@@ -5,10 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cf": "npx @cloudflare/next-on-pages",
+    "preview": "npx wrangler pages dev .vercel/output/static",
+    "deploy": "npx wrangler pages deploy .vercel/output/static --project-name=stampmail",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@cloudflare/next-on-pages": "^1.13.16",
     "next": "16.2.0",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -21,6 +25,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.75.0"
   }
 }
