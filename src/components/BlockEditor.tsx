@@ -329,11 +329,15 @@ function LivePreview({
     plan,
     signatureId: sigId,
   };
-  // Use template-based rendering so template selection updates the preview
-  const html = generateSignatureHtml(data, options);
+  // Use block-based rendering for drag & drop preview + template-based for copy output
+  const blockHtml = generateHtmlFromBlocks(blocks, data, options);
+  const templateHtml = generateSignatureHtml(data, options);
+  // Preview shows the block arrangement; copy uses template output
+  const html = blockHtml;
 
   const handleCopy = async () => {
-    const ok = await copySignatureToClipboard(html);
+    // Copy the template-based output (what actually goes in the email)
+    const ok = await copySignatureToClipboard(templateHtml);
     if (ok) {
       setCopyState("copied");
       setTimeout(() => setCopyState("idle"), 3000);
