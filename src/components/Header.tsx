@@ -12,7 +12,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/80 backdrop-blur-lg">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center">
-          <img src="/logo.svg" alt="NeatStamp" className="h-7" />
+          <img src="/logo.svg" alt="NeatStamp" className="h-9" />
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">
