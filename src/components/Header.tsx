@@ -11,13 +11,8 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/80 backdrop-blur-lg">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-sm shadow-sm shadow-blue-600/25">
-            NS
-          </div>
-          <span className="text-lg font-bold text-slate-900">
-            Neat<span className="text-blue-600">Stamp</span>
-          </span>
+        <Link href="/" className="flex items-center">
+          <img src="/logo.svg" alt="NeatStamp" className="h-7" />
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">

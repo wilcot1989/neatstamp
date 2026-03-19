@@ -111,11 +111,8 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 border-t border-slate-800 pt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-white font-bold text-xs">
-              NS
-            </div>
-            <span className="text-sm font-semibold text-white">NeatStamp</span>
+          <div className="flex items-center">
+            <img src="/logo-light.svg" alt="NeatStamp" className="h-6" />
           </div>
           <p className="text-sm text-slate-500">
             &copy; {new Date().getFullYear()} NeatStamp. Professional email signatures, actually free.
