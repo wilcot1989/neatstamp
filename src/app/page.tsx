@@ -42,19 +42,19 @@ const TESTIMONIALS = [
   {
     name: "Sarah Chen",
     role: "Freelance Designer",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&h=96&fit=crop&crop=face",
+    image: "/images/avatar-1.jpg",
     quote: "Finally an email signature generator that's actually free. No bait-and-switch. I had my signature ready in under a minute.",
   },
   {
     name: "Marcus Johnson",
     role: "Sales Director, TechFlow",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face",
+    image: "/images/avatar-2.jpg",
     quote: "We switched our entire team from WiseStamp. The Outlook compatibility alone was worth it — no more broken signatures.",
   },
   {
     name: "Emma Rodriguez",
     role: "Real Estate Agent",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=96&h=96&fit=crop&crop=face",
+    image: "/images/avatar-3.jpg",
     quote: "My clients always compliment my email signature now. The Calendly button has been a game-changer for booking viewings.",
   },
 ];
@@ -103,10 +103,10 @@ export default function HomePage() {
               </div>
               <div className="mt-10 flex items-center gap-4">
                 <div className="flex -space-x-2">
-                  {["photo-1494790108377-be9c29b29330", "photo-1507003211169-0a1dd7228f2d", "photo-1438761681033-6461ffad8d80", "photo-1472099645785-5658abf4ff4e"].map((id) => (
+                  {["/images/social-1.jpg", "/images/social-2.jpg", "/images/social-3.jpg", "/images/social-4.jpg"].map((src) => (
                     <img
-                      key={id}
-                      src={`https://images.unsplash.com/${id}?w=40&h=40&fit=crop&crop=face`}
+                      key={src}
+                      src={src}
                       alt=""
                       className="h-10 w-10 rounded-full border-2 border-white object-cover"
                     />
@@ -123,7 +123,7 @@ export default function HomePage() {
             <div className="relative">
               <div className="relative rounded-2xl bg-white p-3 shadow-2xl shadow-slate-200/50 ring-1 ring-slate-100">
                 <img
-                  src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&h=400&fit=crop"
+                  src="/images/hero.jpg"
                   alt="Professional using email on laptop"
                   className="rounded-xl object-cover w-full"
                   width={600}
@@ -177,19 +177,19 @@ export default function HomePage() {
                 step: "01",
                 title: "Enter your details",
                 description: "Name, title, email, phone, socials — just fill in what you want to show.",
-                image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop",
+                image: "/images/step-1.jpg",
               },
               {
                 step: "02",
                 title: "Pick a design",
                 description: "Choose from 5 free templates. Customize colors to match your brand.",
-                image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=300&fit=crop",
+                image: "/images/step-2.jpg",
               },
               {
                 step: "03",
                 title: "Copy & paste",
                 description: "One click to copy. Paste into Gmail, Outlook, or any email client.",
-                image: "https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&h=300&fit=crop",
+                image: "/images/step-3.jpg",
               },
             ].map((item) => (
               <div key={item.step} className="group">
@@ -253,7 +253,7 @@ export default function HomePage() {
             </div>
             <div className="relative">
               <img
-                src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&h=500&fit=crop"
+                src="/images/why-neatstamp.jpg"
                 alt="Team collaborating on email branding"
                 className="rounded-2xl shadow-2xl object-cover w-full"
               />
