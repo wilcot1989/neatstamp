@@ -419,13 +419,24 @@ const templateGenerators: Record<
   compact: generateCompact,
 };
 
+// Preview HTML — always shows the full editable signature (for the editor preview)
 export function generateSignatureHtml(
+  data: SignatureData,
+  options?: GenerateOptions
+): string {
+  const generator = templateGenerators[data.template] || generateMinimal;
+  return generator(data, options);
+}
+
+// Copy HTML — what the user actually gets when they click "Copy"
+// Free users: single image. Pro users: full HTML.
+export function generateCopyHtml(
   data: SignatureData,
   options?: GenerateOptions
 ): string {
   const isPro = options?.plan === "pro" || options?.plan === "team";
 
-  // Free users: output is a single hosted image (not editable HTML)
+  // Free users: output is a single hosted image (not editable)
   if (!isPro && options?.signatureId) {
     const renderUrl = `https://neatstamp.com/api/images/render?id=${encodeURIComponent(options.signatureId)}`;
     const trackUrl = `https://neatstamp.com/api/images/${encodeURIComponent(options.signatureId)}/track`;
@@ -444,7 +455,7 @@ export function generateSignatureHtml(
 </table>`;
   }
 
-  // Pro/Team users: full HTML output (editable, no branding, no tracking)
+  // Pro/Team users: full HTML
   const generator = templateGenerators[data.template] || generateMinimal;
   return generator(data, options);
 }

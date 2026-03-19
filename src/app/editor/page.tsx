@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { SignatureData, TemplateName, DEFAULT_SIGNATURE_DATA, TEMPLATES } from "@/lib/types";
-import { generateSignatureHtml } from "@/lib/generateSignature";
+import { generateSignatureHtml, generateCopyHtml } from "@/lib/generateSignature";
 import { copySignatureToClipboard } from "@/lib/clipboard";
 import { Block, getDefaultBlocks } from "@/lib/blocks";
 import BlockEditor from "@/components/BlockEditor";
@@ -499,13 +499,18 @@ function ProSignaturePreview({ data, isPro, onAfterCopy }: ProSignaturePreviewPr
   const [showCode, setShowCode] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const [sigId] = useState(() => crypto.randomUUID());
-  const html = generateSignatureHtml(data, {
+
+  // Preview: always show full HTML (so user can see what they're building)
+  const previewHtml = generateSignatureHtml(data);
+
+  // Copy: free users get image, pro users get HTML
+  const copyHtml = generateCopyHtml(data, {
     plan: isPro ? "pro" : "free",
     signatureId: sigId,
   });
 
   const handleCopy = async () => {
-    const success = await copySignatureToClipboard(html);
+    const success = await copySignatureToClipboard(copyHtml);
     if (success) {
       setCopyState("copied");
       setTimeout(() => setCopyState("idle"), 3000);
@@ -530,13 +535,13 @@ function ProSignaturePreview({ data, isPro, onAfterCopy }: ProSignaturePreviewPr
 
   const handleCopyHtml = async () => {
     try {
-      await navigator.clipboard.writeText(html);
+      await navigator.clipboard.writeText(copyHtml);
       setCopyState("copied");
       setTimeout(() => setCopyState("idle"), 3000);
       if (!isPro) onAfterCopy();
     } catch {
       const textarea = document.createElement("textarea");
-      textarea.value = html;
+      textarea.value = copyHtml;
       textarea.style.position = "fixed";
       textarea.style.left = "-9999px";
       document.body.appendChild(textarea);
@@ -565,7 +570,7 @@ function ProSignaturePreview({ data, isPro, onAfterCopy }: ProSignaturePreviewPr
           <div
             ref={previewRef}
             className="signature-preview-container"
-            dangerouslySetInnerHTML={{ __html: html }}
+            dangerouslySetInnerHTML={{ __html: previewHtml }}
           />
         </div>
       </div>
@@ -641,7 +646,7 @@ function ProSignaturePreview({ data, isPro, onAfterCopy }: ProSignaturePreviewPr
             </button>
           </div>
           <pre className="max-h-60 overflow-auto text-xs text-slate-300 leading-relaxed">
-            <code>{html}</code>
+            <code>{copyHtml}</code>
           </pre>
         </div>
       )}
