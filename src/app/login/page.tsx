@@ -11,12 +11,26 @@ function LoginForm() {
   const error = searchParams.get("error");
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
-    await signIn("resend", { email, callbackUrl });
-    setEmailSent(true);
+    if (!email || sending) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/auth/magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setEmailSent(true);
+      }
+    } catch {
+      // silent fail — show sent state anyway to prevent email enumeration
+      setEmailSent(true);
+    }
+    setSending(false);
   };
 
   return (
@@ -113,7 +127,7 @@ function LoginForm() {
               type="submit"
               className="w-full rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
             >
-              Send me a sign-in link
+              {sending ? "Sending..." : "Send me a sign-in link"}
             </button>
             <p className="text-center text-xs text-slate-400">
               No password needed. We&apos;ll email you a secure link.
