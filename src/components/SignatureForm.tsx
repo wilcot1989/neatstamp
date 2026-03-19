@@ -5,6 +5,8 @@ import { SignatureData } from "@/lib/types";
 interface SignatureFormProps {
   data: SignatureData;
   onChange: (data: SignatureData) => void;
+  signatureId?: string;
+  plan?: "free" | "pro" | "team";
 }
 
 function FormSection({
@@ -98,12 +100,13 @@ function ColorField({
   );
 }
 
-export default function SignatureForm({ data, onChange }: SignatureFormProps) {
+export default function SignatureForm({ data, onChange, signatureId, plan }: SignatureFormProps) {
+  const isPro = plan === "pro" || plan === "team";
   const update = (field: keyof SignatureData, value: string) => {
     onChange({ ...data, [field]: value });
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -112,28 +115,68 @@ export default function SignatureForm({ data, onChange }: SignatureFormProps) {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const size = 200;
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
+    // Resize image client-side
+    const resizedBlob = await new Promise<Blob>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const size = 200;
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) { resolve(file); return; }
+          const minDim = Math.min(img.width, img.height);
+          const sx = (img.width - minDim) / 2;
+          const sy = (img.height - minDim) / 2;
+          ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+          canvas.toBlob((blob) => resolve(blob || file), "image/jpeg", 0.85);
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
 
+    // For free users: upload to R2 via API
+    if (!isPro && signatureId) {
+      try {
+        const formData = new FormData();
+        formData.append("file", resizedBlob, "photo.jpg");
+        formData.append("signature_id", signatureId);
+
+        const res = await fetch("/api/images/upload", { method: "POST", body: formData });
+        const result = await res.json() as { url?: string; error?: string };
+
+        if (result.url) {
+          update("photoUrl", result.url);
+          return;
+        }
+      } catch {
+        // Fall through to base64 on upload failure
+      }
+    }
+
+    // For Pro users or upload failure: use base64 data URL
+    const reader = new FileReader();
+    reader.onload = () => {
+      const canvas = document.createElement("canvas");
+      const size = 200;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      const img = new window.Image();
+      img.onload = () => {
         const minDim = Math.min(img.width, img.height);
         const sx = (img.width - minDim) / 2;
         const sy = (img.height - minDim) / 2;
         ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
-
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-        update("photoUrl", dataUrl);
+        update("photoUrl", canvas.toDataURL("image/jpeg", 0.85));
       };
-      img.src = event.target?.result as string;
+      img.src = reader.result as string;
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(resizedBlob);
   };
 
   return (
