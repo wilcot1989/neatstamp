@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { EMAIL_CLIENTS } from "@/components/EmailClientLogos";
+import { EmailClientGrid } from "@/components/EmailClientLogos";
 
 export const metadata: Metadata = {
   title:
@@ -155,16 +155,7 @@ export default function HomePage() {
           <p className="text-center text-sm font-medium text-slate-400 uppercase tracking-widest mb-8">
             Works perfectly in every email client
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6">
-            {EMAIL_CLIENTS.map(({ name, Logo }) => (
-              <div key={name} className="flex flex-col items-center gap-2 group">
-                <Logo className="h-10 w-10 opacity-70 group-hover:opacity-100 transition-opacity" />
-                <span className="text-xs font-medium text-slate-400 group-hover:text-slate-600 transition-colors">
-                  {name}
-                </span>
-              </div>
-            ))}
-          </div>
+          <EmailClientGrid />
         </div>
       </section>
 
