@@ -52,12 +52,20 @@ export default function Header() {
                 Dashboard
               </Link>
             ) : (
-              <Link
-                href="/editor"
-                className="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700 transition-colors"
-              >
-                Get Started — Free
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                  className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/editor"
+                  className="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-600/25 hover:bg-blue-700 transition-colors"
+                >
+                  Get Started — Free
+                </Link>
+              </>
             )}
           </div>
         </div>
@@ -101,6 +109,24 @@ export default function Header() {
                 {item.label}
               </Link>
             ))}
+            {!session && (
+              <Link
+                href="/login"
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Sign in
+              </Link>
+            )}
+            {session && (
+              <Link
+                href="/dashboard"
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
             <Link
               href="/editor"
               className="mt-2 rounded-full bg-blue-600 px-4 py-2.5 text-center text-sm font-semibold text-white"
