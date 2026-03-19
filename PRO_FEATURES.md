@@ -1,205 +1,151 @@
-# NeatStamp Pro Features — Product Strategie
+# NeatStamp Pro Features — Product Strategie v2
 
-## Het probleem
+## Het kernidee
 
-Het huidige gratis tier geeft alles weg. Er is geen reden om te upgraden.
-Een freelancer die 1 signature nodig heeft krijgt: 5 templates, custom kleuren,
-foto, social links, Calendly, disclaimer — allemaal gratis. Conversie naar Pro
-is daardoor minimaal.
+Free users krijgen een werkende signature, maar die is afhankelijk van
+onze servers (hosted images, tracking pixel, branding badge). Na 90 dagen
+zonder activiteit verloopt de signature.
+
+Pro users krijgen pure, onafhankelijke HTML. Geen afhankelijkheid, geen
+branding, volledige controle.
 
 ---
 
-## Pricing Tiers (nieuw)
+## Free vs Pro — Het verschil
 
-### Free ($0 — geen account nodig)
-Het doel: een bruikbare signature maken die "goed genoeg" is, maar
-niet perfect. Genoeg om te delen (virality), niet genoeg om professioneel
-in te zetten zonder upgrade.
-
-**Wat je krijgt:**
+### Free ($0)
+- 1 signature (max)
 - 2 templates (Minimal + Modern)
-- Standaard kleurschema (blauw/grijs — niet aanpasbaar)
-- Foto OF logo upload (1 afbeelding)
+- Standaard kleuren (niet aanpasbaar)
 - Max 2 social media links
-- Telefoon, email, website
-- Outlook-proof HTML
-- One-click copy
-- "Made with NeatStamp" branding (niet verwijderbaar)
-- Geen account nodig
-
-**Wat je NIET krijgt:**
-- Custom kleuren
-- Calendly/booking link
-- CTA banner
-- Disclaimer
-- Meer dan 2 social links
-- Meer dan 1 signature
-- Analytics
-- Branding verwijderen
+- Foto/logo gehost op img.neatstamp.com (wij controleren)
+- "Made with NeatStamp" badge (hosted image, klikbaar naar neatstamp.com)
+- Tracking pixel ingebouwd (wij tellen opens)
+- **Signature verloopt na 90 dagen inactiviteit**
+  (images worden verwijderd, signature toont broken images)
+- Geen Calendly/booking link
+- Geen CTA banner
+- Geen disclaimer
+- Geen analytics zichtbaar
+- Geen account nodig om te maken, WEL nodig om te bewaren
 
 ### Pro ($5/maand of $39/jaar)
-Het doel: alles wat een professional nodig heeft. De "no-brainer"
-upgrade voor iedereen die email serieus neemt.
-
-**Alles in Free, plus:**
-- Alle 8+ templates (incl. Elegant, Startup, Compact)
-- Custom kleuren (primary + accent, hex picker)
-- Calendly/booking link button
-- CTA banner (upload afbeelding, link, scheduling)
-- Legal disclaimer tekstveld
-- Onbeperkt social media links
-- Meerdere signatures (opslaan in account)
-- "Made with NeatStamp" branding verwijderbaar
-- Click analytics (hoeveel clicks op elke link)
-- QR code in signature (linkt naar vCard of Calendly)
-- Pronouns veld
-- Adres veld
-- Signatures opslaan in cloud (D1 database)
+- Onbeperkt signatures
+- Alle 8+ templates
+- Custom kleuren (hex picker)
+- Onbeperkt social links
+- **Pure HTML output** — geen hosted images, geen afhankelijkheid
+  (foto wordt als data URI of eigen hosting instructie meegegeven)
+- **Geen branding** — "Made with NeatStamp" verwijderd
+- **Geen tracking pixel** — privacy voor de gebruiker
+- **Geen expiratie** — signature werkt voor altijd
+- Calendly/booking link
+- CTA banner
+- Legal disclaimer
+- Click analytics in dashboard
+- QR code generator
+- Meerdere signatures opslaan
+- Pronouns + adres velden
 
 ### Team ($3/user/maand, min 5 users)
-Het doel: consistent email branding voor het hele bedrijf.
-
-**Alles in Pro, plus:**
+- Alles in Pro
 - Centraal beheer dashboard
-- Brand guidelines afdwingen (kleuren, logo, template lock)
+- Brand guidelines afdwingen
 - Medewerkers uitnodigen
 - Afdeling-specifieke signatures
-- Bulk deploy
-- Banner campaigns (schedule per week/maand, per afdeling)
-- A/B testing banners
-- Team analytics (wie gebruikt welke signature)
+- Banner campaigns (schedule, rotate)
+- Team analytics
 - Admin rollen
 
 ---
 
-## Conversie-strategie
+## Technische architectuur
 
-### Waarom iemand upgradet van Free naar Pro:
+### Image hosting (Free users)
+```
+R2 bucket: neatstamp-images
+├── photos/[sig-id].jpg        → profielfoto (max 200x200, <50KB)
+├── logos/[sig-id].jpg         → bedrijfslogo
+├── badge/neatstamp-badge.png  → "Made with NeatStamp" badge
+└── t/[sig-id].gif             → 1x1 tracking pixel
+```
 
-1. **Custom kleuren** — De #1 reden. Iedereen wil brand kleuren.
-   In de editor zie je de kleurpicker, maar als je klikt: "Upgrade to Pro
-   to customize colors." De signature werkt al, maar in standaard blauw.
-   Dat is net genoeg frustratie om te converteren.
+### Free signature HTML bevat:
+```html
+<!-- Foto gehost op onze server -->
+<img src="https://img.neatstamp.com/photos/abc123.jpg" />
 
-2. **Branding verwijderen** — "Made with NeatStamp" staat onder elke
-   gratis signature. Het is subtiel (10px grijs), maar professionals
-   willen het weg. Kost $5/mnd.
+<!-- Tracking pixel -->
+<img src="https://img.neatstamp.com/t/abc123.gif" width="1" height="1" />
 
-3. **Calendly link** — Freelancers en sales professionals willen een
-   booking link. Die zien ze in de editor maar kunnen hem niet activeren
-   zonder Pro.
+<!-- Branding badge, klikbaar -->
+<a href="https://neatstamp.com?ref=sig&id=abc123">
+  <img src="https://img.neatstamp.com/badge/neatstamp-badge.png" />
+</a>
+```
 
-4. **Meerdere signatures** — Wie eenmaal 1 signature heeft gemaakt,
-   wil er vaak een tweede (persoonlijk, werk, side project). Free = max 1.
+### Pro signature HTML bevat:
+```html
+<!-- Foto inline of eigen hosting -->
+<img src="data:image/jpeg;base64,..." />
+<!-- OF instructie om eigen URL te gebruiken -->
 
-5. **Analytics** — "Hoeveel mensen klikken op mijn LinkedIn link?"
-   Deze vraag komt vanzelf na een paar weken gebruik.
+<!-- Geen tracking pixel -->
+<!-- Geen branding -->
+```
 
-### De "Made with NeatStamp" branding strategie
-
-**Kan iemand het weghalen uit de broncode?**
-
-Ja, technisch kan dat. De signature is HTML die je kopieert en plakt.
-Een developer kan de "Made with NeatStamp" regel verwijderen.
-
-**Maar dat is OK. Hier is waarom:**
-
-1. **95% van gebruikers zijn geen developers.** Ze kopieren, plakken, klaar.
-   Ze gaan niet de HTML bewerken.
-
-2. **Het is een nudge, geen lock.** Net als Calendly's "Powered by Calendly"
-   of Mailchimp's "Sent with Mailchimp" — technisch verwijderbaar, maar
-   de meeste mensen doen het niet.
-
-3. **De echte waarde van Pro is niet "branding weg"** — het is custom
-   kleuren + Calendly + analytics + meerdere signatures. Branding
-   verwijderen is een bonus, niet de hoofdreden.
-
-4. **Server-side enforcement is niet mogelijk** voor email signatures.
-   De signature leeft in de email client van de gebruiker, niet op onze
-   server. Dit is inherent aan het product — elke concurrent heeft dit.
-
-5. **WiseStamp doet precies hetzelfde.** Hun gratis tier heeft branding,
-   hun betaalde niet. Werkt al 16 jaar.
-
-**Hoe we het wel slim aanpakken:**
-
-- De branding link gaat naar neatstamp.com?ref=sig — elke klik is een
-  nieuwe potentiele klant.
-- De branding is klein en subtiel — niet storend genoeg om gebruikers
-  weg te jagen, wel zichtbaar genoeg om virality te genereren.
-- De branding zit IN de HTML die we genereren. Als iemand het weghalt
-  en later zijn signature update via NeatStamp, komt het terug.
+### 90-dagen cleanup:
+- Cron job checkt tracking pixel hits
+- Geen hits in 90 dagen → images verwijderd van R2
+- Signature in email toont dan broken images
+- Gebruiker moet terugkomen om te vernieuwen (of upgraden)
 
 ---
 
-## Wat we moeten bouwen
+## Dashboard features
 
-### Fase 1: Gratis tier beperken (1-2 dagen)
-- [ ] Template selector: lock 6 van 8 templates achter Pro badge
-- [ ] Kleur picker: toon maar disable met "Pro" overlay
-- [ ] Social links: max 2 op gratis, toon melding bij 3e
-- [ ] Calendly veld: toon maar disable met Pro badge
-- [ ] Disclaimer veld: toon maar disable met Pro badge
-- [ ] CTA banner: toon maar disable met Pro badge
-- [ ] "Made with NeatStamp" altijd toevoegen in generateSignature.ts
-- [ ] Upgrade prompts in de editor ("Unlock custom colors — $5/mo")
+### Free user dashboard:
+- 1 signature bekijken/bewerken
+- Basis statistieken (opens afgelopen 7 dagen)
+- "Upgrade to Pro" prominente CTA
+- Signature verloopt over X dagen indicator
 
-### Fase 2: Pro features bouwen (3-5 dagen)
-- [ ] Click analytics: redirect links via neatstamp.com/r/[id] tracker
-- [ ] Banner campaigns: upload banner, set start/end date
-- [ ] QR code generator: genereer QR code als SVG/PNG
-- [ ] Signatures opslaan/laden via D1 API (al gebouwd)
-- [ ] Plan check in editor: als user Pro is, unlock alles
+### Pro user dashboard:
+- Alle signatures beheren
+- Click analytics per signature (opens, link clicks)
+- Banner campaign beheer
+- QR code generator
+- Account instellingen
+- Subscription beheer (via LemonSqueezy portal)
 
-### Fase 3: Team features (1-2 weken)
-- [ ] Team dashboard
-- [ ] Invite medewerkers
-- [ ] Brand guidelines (lock kleuren/template)
-- [ ] Afdeling management
-- [ ] Banner scheduling per afdeling
-- [ ] Team analytics
+### Team admin dashboard:
+- Alles van Pro
+- Teamleden beheren
+- Brand guidelines instellen
+- Afdeling signatures
+- Team-wide analytics
+- Banner scheduling
 
 ---
 
-## Revenue projectie (bijgewerkt)
+## Conversie triggers in de editor
 
-Met de nieuwe free/pro split:
-
-| Maand | Gratis users | Conversie | Pro users | MRR |
-|-------|-------------|-----------|-----------|-----|
-| 1 | 1.000 | 5% | 50 | $250 |
-| 3 | 5.000 | 5% | 250 | $1.250 |
-| 6 | 15.000 | 5% | 750 | $3.750 |
-| 12 | 50.000 | 5% | 2.500 | $12.500 |
-
-5% conversie is realistisch als:
-- Custom kleuren achter Pro zit (iedereen wil dit)
-- De tool goed genoeg is dat mensen terugkomen
-- "Made with NeatStamp" branding op elke gratis signature = virality
-
-Vergelijk met MySignature: $700K/jaar = ~$58K/mnd.
-Bij 5% conversie en 50K gratis users komen we op $12.5K/mnd.
-Dat is in lijn met een solo-founder product in jaar 1.
+1. Kleur picker → "Upgrade to Pro to customize colors" overlay
+2. 3e social link → "Free accounts include 2 social links. Upgrade for unlimited."
+3. Calendly veld → "Booking links are a Pro feature"
+4. Template 3-8 → "PRO" badge met lock icon
+5. Na signature copy → "Your signature expires in 90 days. Upgrade to Pro for permanent signatures."
+6. Dashboard → "X days until your signature expires" banner
 
 ---
 
-## Concurrentie vs NeatStamp (bijgewerkt)
+## Revenue projectie
 
-| Feature | WiseStamp ($9-179/mnd) | MySignature ($12/mnd) | NeatStamp Pro ($5/mnd) |
-|---------|----------------------|---------------------|---------------------|
-| Custom kleuren | Ja | Ja | Ja |
-| Templates | 3-20+ | ~15 | 8+ |
-| Calendly link | Ja | Nee | Ja |
-| Banner campaigns | Ja ($49/mnd+) | Nee | Ja |
-| Click analytics | Ja ($49/mnd+) | Nee | Ja |
-| QR code | Nee | Nee | Ja |
-| A/B testing | Ja ($49/mnd+) | Nee | Team plan |
-| Directory sync | Ja ($19/mnd+) | Nee | Nee (later) |
-| Auto-install | Ja | Nee | Nee (later) |
-| Prijs | $9-179/mnd | $12/mnd | $5/mnd |
-| Gratis tier | 14-dag trial | Nee | Ja (permanent) |
+| Maand | Free users | Conversie 5% | Pro MRR | Team MRR | Totaal |
+|-------|-----------|-------------|---------|----------|--------|
+| 1 | 1.000 | 50 | $250 | $0 | $250 |
+| 3 | 5.000 | 250 | $1.250 | $150 | $1.400 |
+| 6 | 15.000 | 750 | $3.750 | $450 | $4.200 |
+| 12 | 50.000 | 2.500 | $12.500 | $1.500 | $14.000 |
 
-**Onze positie:** Goedkoper dan iedereen, met features die WiseStamp
-pas vanaf $49/mnd biedt (banners, analytics). Plus een echte gratis tier
-die de concurrentie niet heeft.
+Bij 50K free users × 5% conversie = $14K MRR in jaar 1.

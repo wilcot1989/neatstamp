@@ -1,5 +1,10 @@
 import { SignatureData, TemplateName } from "./types";
 
+export interface GenerateOptions {
+  plan?: "free" | "pro" | "team";
+  signatureId?: string;
+}
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
@@ -41,11 +46,20 @@ function socialLinks(data: SignatureData, color: string): string {
 function photoCell(
   data: SignatureData,
   size: number,
-  borderRadius: string
+  borderRadius: string,
+  options?: GenerateOptions
 ): string {
   if (!data.photoUrl) return "";
+
+  // For free users with a signatureId, route photo through our CDN
+  const isPro = options?.plan === "pro" || options?.plan === "team";
+  let src = escapeHtml(data.photoUrl);
+  if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
+    src = `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
+  }
+
   return `<td style="vertical-align:top;padding-right:16px;">
-    <img src="${escapeHtml(data.photoUrl)}" alt="${escapeHtml(data.fullName)}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;border-radius:${borderRadius};object-fit:cover;display:block;" />
+    <img src="${src}" alt="${escapeHtml(data.fullName)}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;border-radius:${borderRadius};object-fit:cover;display:block;" />
   </td>`;
 }
 
@@ -75,15 +89,20 @@ function neatstampBranding(): string {
   return `<tr><td style="padding-top:10px;"><a href="https://neatstamp.com?ref=sig" target="_blank" rel="noopener noreferrer" style="color:#94a3b8;font-size:10px;font-family:Arial,sans-serif;text-decoration:none;">Made with NeatStamp</a></td></tr>`;
 }
 
+function trackingPixel(signatureId: string): string {
+  return `<tr><td><img src="https://neatstamp.com/api/images/${escapeHtml(signatureId)}/track" width="1" height="1" style="width:1px;height:1px;display:block;" alt="" /></td></tr>`;
+}
+
 // ============================================================
 // TEMPLATES
 // ============================================================
 
-function generateMinimal(data: SignatureData): string {
+function generateMinimal(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
+  const isPro = options?.plan === "pro" || options?.plan === "team";
   return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333333;">
   <tr>
-    ${photoCell(data, 72, "50%")}
+    ${photoCell(data, 72, "50%", options)}
     <td style="vertical-align:top;">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr><td style="font-size:16px;font-weight:bold;color:#1a1a1a;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:12px;font-weight:normal;color:#888;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
@@ -99,19 +118,21 @@ function generateMinimal(data: SignatureData): string {
         ${socialLinks(data, c)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
-        ${neatstampBranding()}
+        ${!isPro ? neatstampBranding() : ""}
+        ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
     </td>
   </tr>
 </table>`;
 }
 
-function generateModern(data: SignatureData): string {
+function generateModern(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const a = data.accentColor;
+  const isPro = options?.plan === "pro" || options?.plan === "team";
   return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333333;">
   <tr>
-    ${photoCell(data, 80, "8px")}
+    ${photoCell(data, 80, "8px", options)}
     <td style="vertical-align:top;border-left:3px solid ${c};padding-left:14px;">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr><td style="font-size:18px;font-weight:bold;color:${c};">${escapeHtml(data.fullName)}</td></tr>
@@ -131,18 +152,20 @@ function generateModern(data: SignatureData): string {
         ${socialLinks(data, c)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
-        ${neatstampBranding()}
+        ${!isPro ? neatstampBranding() : ""}
+        ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
     </td>
   </tr>
 </table>`;
 }
 
-function generateCorporate(data: SignatureData): string {
+function generateCorporate(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
+  const isPro = options?.plan === "pro" || options?.plan === "team";
   return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333333;border-top:3px solid ${c};padding-top:12px;">
   <tr>
-    ${photoCell(data, 70, "4px")}
+    ${photoCell(data, 70, "4px", options)}
     <td style="vertical-align:top;">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr><td style="font-size:17px;font-weight:bold;color:#1a1a1a;">${escapeHtml(data.fullName)}</td></tr>
@@ -160,20 +183,32 @@ function generateCorporate(data: SignatureData): string {
         ${socialLinks(data, c)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
-        ${neatstampBranding()}
+        ${!isPro ? neatstampBranding() : ""}
+        ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
     </td>
   </tr>
 </table>`;
 }
 
-function generateCreative(data: SignatureData): string {
+function generateCreative(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const a = data.accentColor;
+  const isPro = options?.plan === "pro" || options?.plan === "team";
+
+  let photoPart = "";
+  if (data.photoUrl) {
+    let src = escapeHtml(data.photoUrl);
+    if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
+      src = `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
+    }
+    photoPart = `<img src="${src}" alt="${escapeHtml(data.fullName)}" width="90" height="90" style="width:90px;height:90px;border-radius:50%;object-fit:cover;display:block;border:3px solid ${c};" />`;
+  }
+
   return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;">
   <tr>
     <td style="vertical-align:top;text-align:center;padding-right:16px;">
-      ${data.photoUrl ? `<img src="${escapeHtml(data.photoUrl)}" alt="${escapeHtml(data.fullName)}" width="90" height="90" style="width:90px;height:90px;border-radius:50%;object-fit:cover;display:block;border:3px solid ${c};" />` : ""}
+      ${photoPart}
       ${data.company ? `<div style="margin-top:6px;font-size:11px;font-weight:bold;color:${a};text-transform:uppercase;letter-spacing:1px;">${escapeHtml(data.company)}</div>` : ""}
     </td>
     <td style="vertical-align:top;border-left:2px dashed ${a};padding-left:16px;">
@@ -192,20 +227,32 @@ function generateCreative(data: SignatureData): string {
         ${socialLinks(data, c)}
         ${calendlyButton(data, a)}
         ${ctaBanner(data)}
-        ${neatstampBranding()}
+        ${!isPro ? neatstampBranding() : ""}
+        ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
     </td>
   </tr>
 </table>`;
 }
 
-function generateBold(data: SignatureData): string {
+function generateBold(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
+  const isPro = options?.plan === "pro" || options?.plan === "team";
+
+  let photoPartBold = "";
+  if (data.photoUrl) {
+    let src = escapeHtml(data.photoUrl);
+    if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
+      src = `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
+    }
+    photoPartBold = `<td style="vertical-align:top;padding-right:16px;"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="80" height="80" style="width:80px;height:80px;border-radius:8px;object-fit:cover;display:block;border:2px solid rgba(255,255,255,0.3);" /></td>`;
+  }
+
   return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;background-color:${c};border-radius:8px;padding:16px;">
   <tr><td style="padding:16px;">
     <table cellpadding="0" cellspacing="0" border="0" width="100%">
       <tr>
-        ${data.photoUrl ? `<td style="vertical-align:top;padding-right:16px;"><img src="${escapeHtml(data.photoUrl)}" alt="${escapeHtml(data.fullName)}" width="80" height="80" style="width:80px;height:80px;border-radius:8px;object-fit:cover;display:block;border:2px solid rgba(255,255,255,0.3);" /></td>` : ""}
+        ${photoPartBold}
         <td style="vertical-align:top;">
           <table cellpadding="0" cellspacing="0" border="0">
             <tr><td style="font-size:20px;font-weight:bold;color:#ffffff;">${escapeHtml(data.fullName)}</td></tr>
@@ -232,17 +279,19 @@ function generateBold(data: SignatureData): string {
       </tr>
     </table>
     <table cellpadding="0" cellspacing="0" border="0">
-      <tr><td style="padding-top:6px;"><a href="https://neatstamp.com?ref=sig" target="_blank" rel="noopener noreferrer" style="color:rgba(255,255,255,0.4);font-size:10px;font-family:Arial,sans-serif;text-decoration:none;">Made with NeatStamp</a></td></tr>
+      ${!isPro ? `<tr><td style="padding-top:6px;"><a href="https://neatstamp.com?ref=sig" target="_blank" rel="noopener noreferrer" style="color:rgba(255,255,255,0.4);font-size:10px;font-family:Arial,sans-serif;text-decoration:none;">Made with NeatStamp</a></td></tr>` : ""}
+      ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
     </table>
   </td></tr>
 </table>`;
 }
 
-function generateElegant(data: SignatureData): string {
+function generateElegant(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
+  const isPro = options?.plan === "pro" || options?.plan === "team";
   return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#333;">
   <tr>
-    ${photoCell(data, 75, "50%")}
+    ${photoCell(data, 75, "50%", options)}
     <td style="vertical-align:top;">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr><td style="font-size:18px;font-weight:bold;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;letter-spacing:0.5px;">${escapeHtml(data.fullName)}</td></tr>
@@ -261,21 +310,33 @@ function generateElegant(data: SignatureData): string {
         ${socialLinks(data, c)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
-        ${neatstampBranding()}
+        ${!isPro ? neatstampBranding() : ""}
+        ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
     </td>
   </tr>
 </table>`;
 }
 
-function generateStartup(data: SignatureData): string {
+function generateStartup(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const a = data.accentColor;
+  const isPro = options?.plan === "pro" || options?.plan === "team";
+
+  let startupPhoto = "";
+  if (data.photoUrl) {
+    let src = escapeHtml(data.photoUrl);
+    if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
+      src = `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
+    }
+    startupPhoto = `<td style="vertical-align:middle;padding-right:10px;"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="48" height="48" style="width:48px;height:48px;border-radius:50%;object-fit:cover;display:block;" /></td>`;
+  }
+
   return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;">
   <tr><td style="padding-bottom:8px;">
     <table cellpadding="0" cellspacing="0" border="0">
       <tr>
-        ${data.photoUrl ? `<td style="vertical-align:middle;padding-right:10px;"><img src="${escapeHtml(data.photoUrl)}" alt="${escapeHtml(data.fullName)}" width="48" height="48" style="width:48px;height:48px;border-radius:50%;object-fit:cover;display:block;" /></td>` : ""}
+        ${startupPhoto}
         <td style="vertical-align:middle;">
           <span style="font-size:16px;font-weight:bold;color:#1a1a1a;">${escapeHtml(data.fullName)}</span>
           ${data.pronouns ? `<span style="font-size:11px;color:#888;"> (${escapeHtml(data.pronouns)})</span>` : ""}
@@ -307,12 +368,14 @@ function generateStartup(data: SignatureData): string {
   </td></tr>
   ${data.calendlyUrl ? `<tr><td style="padding-top:8px;"><a href="${escapeHtml(data.calendlyUrl.startsWith("http") ? data.calendlyUrl : `https://${data.calendlyUrl}`)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:5px 14px;background:linear-gradient(135deg,${c},${a});color:#fff;text-decoration:none;font-size:11px;font-family:Arial,sans-serif;border-radius:20px;font-weight:bold;">&#128197; Book a Meeting</a></td></tr>` : ""}
   ${ctaBanner(data)}
-  ${neatstampBranding()}
+  ${!isPro ? neatstampBranding() : ""}
+  ${!isPro && options?.signatureId ? `<tr>${trackingPixel(options.signatureId).replace(/^<tr>/, "").replace(/<\/tr>$/, "")}</tr>` : ""}
 </table>`;
 }
 
-function generateCompact(data: SignatureData): string {
+function generateCompact(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
+  const isPro = options?.plan === "pro" || options?.plan === "team";
   return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#333;">
   <tr><td>
     <strong style="color:#1a1a1a;">${escapeHtml(data.fullName)}</strong>${data.pronouns ? ` <span style="font-size:11px;color:#888;">(${escapeHtml(data.pronouns)})</span>` : ""}${data.jobTitle ? ` | <span style="color:${c};">${escapeHtml(data.jobTitle)}</span>` : ""}${data.company ? ` | ${escapeHtml(data.company)}` : ""}
@@ -333,7 +396,8 @@ function generateCompact(data: SignatureData): string {
     ].filter(Boolean).join("")}
   </td></tr>
   ${calendlyButton(data, c)}
-  ${neatstampBranding()}
+  ${!isPro ? neatstampBranding() : ""}
+  ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
 </table>`;
 }
 
@@ -343,7 +407,7 @@ function generateCompact(data: SignatureData): string {
 
 const templateGenerators: Record<
   TemplateName,
-  (data: SignatureData) => string
+  (data: SignatureData, options?: GenerateOptions) => string
 > = {
   minimal: generateMinimal,
   modern: generateModern,
@@ -355,7 +419,10 @@ const templateGenerators: Record<
   compact: generateCompact,
 };
 
-export function generateSignatureHtml(data: SignatureData): string {
+export function generateSignatureHtml(
+  data: SignatureData,
+  options?: GenerateOptions
+): string {
   const generator = templateGenerators[data.template] || generateMinimal;
-  return generator(data);
+  return generator(data, options);
 }
