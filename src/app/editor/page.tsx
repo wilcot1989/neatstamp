@@ -496,7 +496,11 @@ function ProSignaturePreview({ data, isPro, onAfterCopy }: ProSignaturePreviewPr
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
   const [showCode, setShowCode] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
-  const html = generateSignatureHtml(data);
+  const [sigId] = useState(() => crypto.randomUUID());
+  const html = generateSignatureHtml(data, {
+    plan: isPro ? "pro" : "free",
+    signatureId: sigId,
+  });
 
   const handleCopy = async () => {
     const success = await copySignatureToClipboard(html);
