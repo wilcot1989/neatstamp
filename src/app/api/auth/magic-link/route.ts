@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         Authorization: `Bearer ${resendKey}`,
       },
       body: JSON.stringify({
-        from: "NeatStamp <onboarding@resend.dev>",
+        from: "NeatStamp <noreply@neatstamp.com>",
         to: email,
         subject: "Sign in to NeatStamp",
         html: `
