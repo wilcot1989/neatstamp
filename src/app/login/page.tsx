@@ -36,6 +36,26 @@ function LoginForm() {
           </p>
         </div>
 
+        {/* Why sign in */}
+        <div className="mb-6 rounded-xl border border-border bg-surface p-5">
+          <h2 className="text-sm font-semibold text-foreground mb-3">Why sign in?</h2>
+          <ul className="space-y-2">
+            {[
+              "Save your signatures to the cloud",
+              "Access from any device",
+              "Create multiple signatures",
+              "Unlock Pro templates & analytics",
+            ].map((benefit) => (
+              <li key={benefit} className="flex items-center gap-2 text-sm text-muted">
+                <svg className="h-4 w-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                {benefit}
+              </li>
+            ))}
+          </ul>
+        </div>
+
         {error && (
           <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
             {error === "OAuthAccountNotLinked"
@@ -47,9 +67,9 @@ function LoginForm() {
         <div className="space-y-3">
           <button
             onClick={() => signIn("google", { callbackUrl })}
-            className="flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-white px-4 py-3 text-sm font-medium text-foreground hover:bg-surface transition-colors"
+            className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-white px-4 py-4 text-base font-semibold text-foreground hover:bg-surface transition-colors shadow-md hover:shadow-lg"
           >
-            <svg className="h-5 w-5" viewBox="0 0 24 24">
+            <svg className="h-6 w-6" viewBox="0 0 24 24">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
                 fill="#4285F4"
@@ -124,9 +144,17 @@ function LoginForm() {
           <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
         </p>
 
-        <div className="mt-8 text-center">
-          <Link href="/editor" className="text-sm text-muted hover:text-primary">
-            Just want to create a free signature? No sign-in needed →
+        <div className="mt-8 rounded-xl border border-border bg-surface px-5 py-4 text-center">
+          <p className="text-sm font-medium text-foreground">Just want a quick signature?</p>
+          <p className="mt-0.5 text-xs text-muted">No sign-in needed.</p>
+          <Link
+            href="/editor"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-primary px-4 py-2 text-sm font-semibold text-primary hover:bg-primary hover:text-white transition-colors"
+          >
+            Go to the free editor
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
           </Link>
         </div>
       </div>

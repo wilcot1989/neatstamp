@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { EmailClientGrid } from "@/components/EmailClientLogos";
+import { generateSignatureHtml } from "@/lib/generateSignature";
+import { DEFAULT_SIGNATURE_DATA } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Free Email Signature Generator | NeatStamp — Actually Free",
@@ -54,12 +56,19 @@ const TESTIMONIALS = [
     name: "Emma Rodriguez",
     role: "Real Estate Agent",
     image: "/images/avatar-3.jpg",
-    quote: "My clients always compliment my email signature now. The Calendly button has been a game-changer for booking viewings.",
+    quote: "I was putting off updating my signature for months. NeatStamp took me literally 45 seconds. My clients started complimenting it the same day.",
   },
 ];
 
 
 export default function HomePage() {
+  const sampleSignatureHtml = generateSignatureHtml({
+    ...DEFAULT_SIGNATURE_DATA,
+    template: "modern",
+    primaryColor: "#2563eb",
+    accentColor: "#f59e0b",
+  });
+
   return (
     <>
       {/* HERO */}
@@ -148,6 +157,74 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* SEE IT IN ACTION */}
+      <section className="py-20 bg-white">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <p className="text-sm font-semibold text-blue-600 uppercase tracking-widest mb-3">See it in action</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
+              This is what you&apos;ll get.
+            </h2>
+            <p className="mt-3 text-lg text-slate-500">
+              A real signature, rendered exactly as it appears in Gmail and Outlook.
+            </p>
+          </div>
+          {/* Email compose window mockup */}
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden">
+            {/* Window chrome */}
+            <div className="bg-slate-100 border-b border-slate-200 px-4 py-3 flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full bg-red-400" />
+              <span className="h-3 w-3 rounded-full bg-amber-400" />
+              <span className="h-3 w-3 rounded-full bg-emerald-400" />
+              <span className="ml-3 text-xs font-medium text-slate-500">New Message</span>
+            </div>
+            {/* Email header fields */}
+            <div className="border-b border-slate-100 divide-y divide-slate-100 text-sm">
+              <div className="flex items-center px-5 py-2.5 gap-3">
+                <span className="text-slate-400 font-medium w-14 flex-shrink-0">From:</span>
+                <span className="text-slate-700">Alex Johnson &lt;alex@acmecorp.com&gt;</span>
+              </div>
+              <div className="flex items-center px-5 py-2.5 gap-3">
+                <span className="text-slate-400 font-medium w-14 flex-shrink-0">To:</span>
+                <span className="text-slate-700">client@company.com</span>
+              </div>
+              <div className="flex items-center px-5 py-2.5 gap-3">
+                <span className="text-slate-400 font-medium w-14 flex-shrink-0">Subject:</span>
+                <span className="text-slate-700 font-medium">Following up on our meeting</span>
+              </div>
+            </div>
+            {/* Email body */}
+            <div className="px-5 pt-5 pb-4">
+              <p className="text-sm text-slate-600 leading-relaxed mb-6">
+                Thanks for the meeting. Let me know if you have questions.
+              </p>
+              {/* Divider before signature */}
+              <div className="border-t border-slate-100 pt-4">
+                <div
+                  dangerouslySetInnerHTML={{ __html: sampleSignatureHtml }}
+                  className="text-sm"
+                />
+              </div>
+            </div>
+          </div>
+          {/* CTA below mockup */}
+          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <span className="text-sm font-medium text-slate-500 italic">
+              This took 60 seconds to create →
+            </span>
+            <Link
+              href="/editor"
+              className="inline-flex items-center rounded-full bg-blue-600 px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700 transition-all"
+            >
+              Create Yours Free
+              <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* TRUSTED BY / EMAIL CLIENTS */}
       <section className="border-y border-slate-100 bg-white py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -215,6 +292,44 @@ export default function HomePage() {
               Start Creating — It&apos;s Free
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* WHAT YOU GET FOR FREE */}
+      <section className="py-20 bg-slate-50">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <p className="text-sm font-semibold text-blue-600 uppercase tracking-widest mb-3">Free tier</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
+              What you get for free.
+            </h2>
+            <p className="mt-3 text-lg text-slate-500">No credit card. No time limit. No catch.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {[
+              "5 professional templates",
+              "Custom brand colors",
+              "Photo & logo upload",
+              "Social media links",
+              "Outlook-proof HTML",
+              "One-click copy",
+              "Mobile responsive",
+              "No account needed",
+            ].map((item) => (
+              <div
+                key={item}
+                className="flex items-start gap-3 rounded-xl bg-white px-4 py-4 shadow-sm ring-1 ring-slate-100"
+              >
+                <span className="flex-shrink-0 mt-0.5">
+                  <CheckIcon className="h-5 w-5 text-emerald-500" />
+                </span>
+                <span className="text-sm font-medium text-slate-700">{item}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-8 text-center text-sm font-semibold text-slate-500">
+            No credit card. No time limit. No catch.
+          </p>
         </div>
       </section>
 
@@ -369,6 +484,105 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* MINI PRICING */}
+      <section className="py-20 bg-white">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <p className="text-sm font-semibold text-blue-600 uppercase tracking-widest mb-3">Pricing</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
+              Simple, honest pricing.
+            </h2>
+            <p className="mt-3 text-lg text-slate-500">Start free. Upgrade when you need more.</p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Free */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-1">Free</p>
+              <p className="text-4xl font-extrabold text-slate-900 mb-1">$0</p>
+              <p className="text-sm text-slate-400 mb-6">Forever, no card needed</p>
+              <ul className="space-y-3 mb-8">
+                {[
+                  "5 professional templates",
+                  "Custom colors & photo",
+                  "Social media links",
+                  "Outlook-proof HTML export",
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-sm text-slate-600">
+                    <CheckIcon className="h-4 w-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/editor"
+                className="block text-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50 transition-all"
+              >
+                Get Started Free
+              </Link>
+            </div>
+            {/* Pro */}
+            <div className="rounded-2xl border-2 border-blue-600 bg-blue-600 p-7 shadow-xl shadow-blue-600/20 relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-400 px-4 py-1 text-xs font-bold text-amber-900 shadow">
+                Most Popular
+              </div>
+              <p className="text-sm font-semibold text-blue-200 uppercase tracking-widest mb-1">Pro</p>
+              <p className="text-4xl font-extrabold text-white mb-1">$5<span className="text-xl font-medium text-blue-200">/mo</span></p>
+              <p className="text-sm text-blue-200 mb-6">Cancel anytime, 30-day guarantee</p>
+              <ul className="space-y-3 mb-8">
+                {[
+                  "15+ premium templates",
+                  "Calendly booking button",
+                  "CTA banners & analytics",
+                  "Save & manage multiple signatures",
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-sm text-white">
+                    <CheckIcon className="h-4 w-4 text-blue-200 flex-shrink-0 mt-0.5" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/pricing"
+                className="block text-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-all"
+              >
+                Upgrade to Pro
+              </Link>
+            </div>
+            {/* Team */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-1">Team</p>
+              <p className="text-4xl font-extrabold text-slate-900 mb-1">$3<span className="text-xl font-medium text-slate-400">/user/mo</span></p>
+              <p className="text-sm text-slate-400 mb-6">Minimum 3 users</p>
+              <ul className="space-y-3 mb-8">
+                {[
+                  "Everything in Pro",
+                  "Centralized team management",
+                  "Brand consistency controls",
+                  "Priority support",
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-sm text-slate-600">
+                    <CheckIcon className="h-4 w-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/pricing"
+                className="block text-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50 transition-all"
+              >
+                See Team Plans
+              </Link>
+            </div>
+          </div>
+          <p className="mt-6 text-center text-sm text-slate-400">
+            Full details at{" "}
+            <Link href="/pricing" className="text-blue-600 hover:underline font-medium">
+              neatstamp.com/pricing
+            </Link>
+          </p>
         </div>
       </section>
 
