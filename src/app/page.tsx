@@ -1,16 +1,18 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Free Email Signature Generator | NeatStamp — Actually Free, No Signup",
+  title:
+    "Free Email Signature Generator | NeatStamp — Actually Free, No Signup",
   description:
     "Create a professional email signature in 60 seconds. Free forever — no account, no credit card, no paywall. Works in Gmail, Outlook, Apple Mail & 30+ email clients. Outlook-proof guaranteed.",
   alternates: { canonical: "https://neatstamp.com" },
 };
 
-function CheckIcon() {
+function CheckIcon({ className = "h-5 w-5 text-emerald-500" }: { className?: string }) {
   return (
-    <svg className="h-5 w-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
     </svg>
   );
@@ -24,7 +26,40 @@ function XIcon() {
   );
 }
 
-const TRUSTED_CLIENTS = [
+function StarRating() {
+  return (
+    <div className="flex gap-0.5">
+      {[...Array(5)].map((_, i) => (
+        <svg key={i} className="h-4 w-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
+const TESTIMONIALS = [
+  {
+    name: "Sarah Chen",
+    role: "Freelance Designer",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&h=96&fit=crop&crop=face",
+    quote: "Finally an email signature generator that's actually free. No bait-and-switch. I had my signature ready in under a minute.",
+  },
+  {
+    name: "Marcus Johnson",
+    role: "Sales Director, TechFlow",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face",
+    quote: "We switched our entire team from WiseStamp. The Outlook compatibility alone was worth it — no more broken signatures.",
+  },
+  {
+    name: "Emma Rodriguez",
+    role: "Real Estate Agent",
+    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=96&h=96&fit=crop&crop=face",
+    quote: "My clients always compliment my email signature now. The Calendly button has been a game-changer for booking viewings.",
+  },
+];
+
+const LOGO_CLIENTS = [
   "Gmail", "Outlook", "Apple Mail", "Yahoo Mail",
   "Thunderbird", "Outlook Mobile", "Samsung Mail", "Spark",
 ];
@@ -33,38 +68,102 @@ export default function HomePage() {
   return (
     <>
       {/* HERO */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 to-white">
-        <div className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 sm:py-28 lg:px-8">
-          <div className="mb-4 inline-flex items-center rounded-full bg-green-100 px-4 py-1.5 text-sm font-medium text-green-700">
-            Actually free — no credit card, no account
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/50 to-indigo-50/30" />
+        <div className="absolute top-0 right-0 w-1/2 h-full opacity-[0.03]" style={{
+          backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")"
+        }} />
+        <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8 lg:py-40">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div>
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-4 py-1.5 text-sm font-medium text-emerald-700">
+                <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
+                Free forever — no credit card required
+              </div>
+              <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+                Email signatures
+                <br />
+                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  that impress.
+                </span>
+              </h1>
+              <p className="mt-6 max-w-lg text-lg leading-relaxed text-slate-600">
+                Create beautiful, Outlook-proof email signatures in 60 seconds.
+                No account needed. No paywall. Just paste and go.
+              </p>
+              <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+                <Link
+                  href="/editor"
+                  className="inline-flex items-center justify-center rounded-full bg-blue-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/30 transition-all"
+                >
+                  Create Your Signature
+                  <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </Link>
+                <span className="text-sm text-slate-500">
+                  Free forever. Ready in 60 seconds.
+                </span>
+              </div>
+              <div className="mt-10 flex items-center gap-4">
+                <div className="flex -space-x-2">
+                  {["photo-1494790108377-be9c29b29330", "photo-1507003211169-0a1dd7228f2d", "photo-1438761681033-6461ffad8d80", "photo-1472099645785-5658abf4ff4e"].map((id) => (
+                    <img
+                      key={id}
+                      src={`https://images.unsplash.com/${id}?w=40&h=40&fit=crop&crop=face`}
+                      alt=""
+                      className="h-10 w-10 rounded-full border-2 border-white object-cover"
+                    />
+                  ))}
+                </div>
+                <div>
+                  <StarRating />
+                  <p className="text-sm text-slate-500">
+                    Loved by <strong className="text-slate-700">2,000+</strong> professionals
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="relative rounded-2xl bg-white p-3 shadow-2xl shadow-slate-200/50 ring-1 ring-slate-100">
+                <img
+                  src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&h=400&fit=crop"
+                  alt="Professional using email on laptop"
+                  className="rounded-xl object-cover w-full"
+                  width={600}
+                  height={400}
+                />
+                <div className="absolute -bottom-4 -left-4 rounded-xl bg-white p-4 shadow-lg ring-1 ring-slate-100">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
+                      <CheckIcon className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">Outlook-proof</p>
+                      <p className="text-xs text-slate-500">Works in 30+ email clients</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute -top-3 -right-3 rounded-xl bg-white px-4 py-2 shadow-lg ring-1 ring-slate-100">
+                  <p className="text-xs font-semibold text-emerald-600">100% Free</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 className="mx-auto max-w-4xl text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            Professional Email Signatures
-            <span className="text-primary"> in 60 Seconds</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted sm:text-xl">
-            Create beautiful, Outlook-proof email signatures for free.
-            No signup. No paywall. No nonsense. Just paste and go.
+        </div>
+      </section>
+
+      {/* TRUSTED BY / EMAIL CLIENTS */}
+      <section className="border-y border-slate-100 bg-white py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-sm font-medium text-slate-400 uppercase tracking-widest mb-8">
+            Works perfectly in every email client
           </p>
-          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <Link
-              href="/editor"
-              className="inline-flex items-center rounded-xl bg-primary px-8 py-4 text-lg font-semibold text-white shadow-lg hover:bg-primary-dark transition-all hover:shadow-xl"
-            >
-              Create Your Signature — Free
-              <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </Link>
-            <span className="text-sm text-muted">
-              No account needed. Ready in 60 seconds.
-            </span>
-          </div>
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
-            {TRUSTED_CLIENTS.map((client) => (
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+            {LOGO_CLIENTS.map((client) => (
               <span
                 key={client}
-                className="rounded-full bg-white px-3 py-1 text-xs font-medium text-muted shadow-sm border border-border"
+                className="text-sm font-semibold text-slate-300 hover:text-slate-500 transition-colors"
               >
                 {client}
               </span>
@@ -74,52 +173,58 @@ export default function HomePage() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="py-20 bg-white" id="how-it-works">
+      <section className="py-24 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-              Three Steps. 60 Seconds. Done.
+          <div className="text-center mb-20">
+            <p className="text-sm font-semibold text-blue-600 uppercase tracking-widest mb-3">How it works</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
+              Three steps. Sixty seconds. Done.
             </h2>
-            <p className="mt-4 text-lg text-muted">
-              No account. No learning curve. No BS.
+            <p className="mt-4 text-lg text-slate-500 max-w-2xl mx-auto">
+              No account. No learning curve. No nonsense.
             </p>
           </div>
-          <div className="grid gap-8 md:grid-cols-3">
+          <div className="grid gap-12 md:grid-cols-3">
             {[
               {
-                step: "1",
-                title: "Enter Your Details",
-                description:
-                  "Name, title, email, phone, socials. Just fill in what you want to show.",
+                step: "01",
+                title: "Enter your details",
+                description: "Name, title, email, phone, socials — just fill in what you want to show.",
+                image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&h=300&fit=crop",
               },
               {
-                step: "2",
-                title: "Pick a Design",
-                description:
-                  "Choose from 5 free templates. Customize colors to match your brand.",
+                step: "02",
+                title: "Pick a design",
+                description: "Choose from 5 free templates. Customize colors to match your brand.",
+                image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=300&fit=crop",
               },
               {
-                step: "3",
-                title: "Copy & Paste",
-                description:
-                  "One click to copy. Paste into Gmail, Outlook, or any email client. Done.",
+                step: "03",
+                title: "Copy & paste",
+                description: "One click to copy. Paste into Gmail, Outlook, or any email client.",
+                image: "https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&h=300&fit=crop",
               },
             ].map((item) => (
-              <div key={item.step} className="text-center">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-2xl font-bold text-white">
-                  {item.step}
+              <div key={item.step} className="group">
+                <div className="relative overflow-hidden rounded-2xl mb-6">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-4 left-4 flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white shadow-lg">
+                    {item.step}
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold text-foreground">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-muted">{item.description}</p>
+                <h3 className="text-xl font-bold text-slate-900">{item.title}</h3>
+                <p className="mt-2 text-slate-500 leading-relaxed">{item.description}</p>
               </div>
             ))}
           </div>
-          <div className="mt-12 text-center">
+          <div className="mt-16 text-center">
             <Link
               href="/editor"
-              className="inline-flex items-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
+              className="inline-flex items-center rounded-full bg-blue-600 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700 transition-all"
             >
               Start Creating — It&apos;s Free
             </Link>
@@ -127,97 +232,78 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* WHY NEATSTAMP */}
-      <section className="py-20 bg-surface">
+      {/* WHY NEATSTAMP — with photo */}
+      <section className="py-24 bg-slate-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-              Why NeatStamp?
-            </h2>
-            <p className="mt-4 text-lg text-muted">
-              Built to fix everything wrong with email signature generators.
-            </p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                title: "Actually Free",
-                description:
-                  "No account needed. No credit card. No sneaky paywall after you've spent 20 minutes designing. The free tier is genuinely free.",
-                icon: "M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-              },
-              {
-                title: "Outlook-Proof",
-                description:
-                  "Built with table-based HTML and inline CSS. Your signature looks perfect in Outlook, Gmail, Apple Mail, Yahoo, and 30+ email clients.",
-                icon: "M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z",
-              },
-              {
-                title: "Privacy-First",
-                description:
-                  "Your data stays in your browser. We don't store your name, email, phone, or photo on any server. No tracking. No data collection.",
-                icon: "M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z",
-              },
-              {
-                title: "60-Second Setup",
-                description:
-                  "Three steps: fill in your details, pick a design, copy and paste. No onboarding wizard. No account creation. No tutorial needed.",
-                icon: "M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z",
-              },
-              {
-                title: "Mobile Responsive",
-                description:
-                  "Your signature looks great on desktop and mobile. No broken layouts on phones — ever.",
-                icon: "M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3",
-              },
-              {
-                title: "Cancel Anytime",
-                description:
-                  "No subscription traps. Cancel Pro in 2 clicks. 30-day money-back guarantee. The free tier never expires.",
-                icon: "M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9",
-              },
-            ].map((feature) => (
-              <div
-                key={feature.title}
-                className="rounded-xl bg-white p-6 shadow-sm border border-border"
-              >
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                  <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d={feature.icon} />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-foreground">
-                  {feature.title}
-                </h3>
-                <p className="mt-2 text-sm text-muted">{feature.description}</p>
+          <div className="grid items-center gap-16 lg:grid-cols-2">
+            <div>
+              <p className="text-sm font-semibold text-blue-600 uppercase tracking-widest mb-3">Why NeatStamp</p>
+              <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
+                Built to fix everything wrong with email signature generators.
+              </h2>
+              <p className="mt-4 text-lg text-slate-500 leading-relaxed">
+                Competitors charge hidden fees, break in Outlook, and make it impossible to cancel. We do things differently.
+              </p>
+              <div className="mt-10 space-y-6">
+                {[
+                  { title: "Actually free", desc: "No account. No credit card. No paywall after you've designed your signature." },
+                  { title: "Outlook-proof", desc: "Table-based HTML that works in Outlook, Gmail, Apple Mail, and 30+ clients." },
+                  { title: "Privacy-first", desc: "Your data stays in your browser. We don't store anything on our servers." },
+                  { title: "60-second setup", desc: "Three steps, no onboarding wizard. Fill in, pick design, copy and paste." },
+                  { title: "Cancel anytime", desc: "Pro can be cancelled in 2 clicks. 30-day money-back guarantee." },
+                ].map((item) => (
+                  <div key={item.title} className="flex gap-4">
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                      <CheckIcon className="h-4 w-4 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">{item.title}</h3>
+                      <p className="text-sm text-slate-500">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            <div className="relative">
+              <img
+                src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&h=500&fit=crop"
+                alt="Team collaborating on email branding"
+                className="rounded-2xl shadow-2xl object-cover w-full"
+              />
+              <div className="absolute -bottom-6 -right-6 rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-100 max-w-xs">
+                <div className="flex items-center gap-2 mb-2">
+                  <StarRating />
+                </div>
+                <p className="text-sm text-slate-600 italic">
+                  &ldquo;We switched from WiseStamp and never looked back. The Outlook compatibility is perfect.&rdquo;
+                </p>
+                <p className="mt-2 text-xs font-semibold text-slate-900">— Marcus J., Sales Director</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* COMPARISON TABLE */}
-      <section className="py-20 bg-white">
+      {/* COMPARISON */}
+      <section className="py-24 bg-white">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-              NeatStamp vs. the Competition
-            </h2>
-            <p className="mt-4 text-lg text-muted">
+          <div className="text-center mb-16">
+            <p className="text-sm font-semibold text-blue-600 uppercase tracking-widest mb-3">Comparison</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
               See why professionals are switching.
-            </p>
+            </h2>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border">
-                  <th className="py-3 text-left font-medium text-muted">Feature</th>
-                  <th className="py-3 text-center font-semibold text-primary">NeatStamp</th>
-                  <th className="py-3 text-center font-medium text-muted">WiseStamp</th>
-                  <th className="py-3 text-center font-medium text-muted">MySignature</th>
+                <tr className="bg-slate-50">
+                  <th className="py-4 px-6 text-left font-medium text-slate-500">Feature</th>
+                  <th className="py-4 px-6 text-center font-bold text-blue-600 bg-blue-50">NeatStamp</th>
+                  <th className="py-4 px-6 text-center font-medium text-slate-500">WiseStamp</th>
+                  <th className="py-4 px-6 text-center font-medium text-slate-500">MySignature</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-slate-100">
                 {[
                   { feature: "Free tier (no catch)", us: true, wise: false, my: false },
                   { feature: "No account required", us: true, wise: false, my: false },
@@ -229,109 +315,124 @@ export default function HomePage() {
                   { feature: "Mobile responsive", us: true, wise: false, my: false },
                   { feature: "Free price", us: "$0", wise: "$0*", my: "$0*" },
                   { feature: "Pro price", us: "$5/mo", wise: "$6-10/mo", my: "$4-8/mo" },
-                ].map((row) => (
-                  <tr key={row.feature}>
-                    <td className="py-3 text-foreground">{row.feature}</td>
-                    <td className="py-3 text-center">
+                ].map((row, i) => (
+                  <tr key={row.feature} className={i % 2 === 0 ? "" : "bg-slate-50/50"}>
+                    <td className="py-3.5 px-6 text-slate-700 font-medium">{row.feature}</td>
+                    <td className="py-3.5 px-6 text-center bg-blue-50/30">
                       {typeof row.us === "boolean" ? (
                         row.us ? <span className="inline-flex justify-center"><CheckIcon /></span> : <span className="inline-flex justify-center"><XIcon /></span>
                       ) : (
-                        <span className="font-semibold text-primary">{row.us}</span>
+                        <span className="font-bold text-blue-600">{row.us}</span>
                       )}
                     </td>
-                    <td className="py-3 text-center">
+                    <td className="py-3.5 px-6 text-center">
                       {typeof row.wise === "boolean" ? (
                         row.wise ? <span className="inline-flex justify-center"><CheckIcon /></span> : <span className="inline-flex justify-center"><XIcon /></span>
                       ) : (
-                        <span className="text-muted">{row.wise}</span>
+                        <span className="text-slate-400">{row.wise}</span>
                       )}
                     </td>
-                    <td className="py-3 text-center">
+                    <td className="py-3.5 px-6 text-center">
                       {typeof row.my === "boolean" ? (
                         row.my ? <span className="inline-flex justify-center"><CheckIcon /></span> : <span className="inline-flex justify-center"><XIcon /></span>
                       ) : (
-                        <span className="text-muted">{row.my}</span>
+                        <span className="text-slate-400">{row.my}</span>
                       )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <p className="mt-2 text-xs text-muted">* Advertised as free but requires payment for essential features like PDF export or premium templates.</p>
           </div>
+          <p className="mt-3 text-xs text-slate-400 text-center">
+            * Advertised as free but requires payment for essential features.
+          </p>
         </div>
       </section>
 
-      {/* TESTIMONIAL / SOCIAL PROOF PLACEHOLDER */}
-      <section className="py-20 bg-surface">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-            Works With Every Email Client
-          </h2>
-          <p className="mt-4 text-lg text-muted">
-            Tested and verified in 30+ email clients. Your signature will look perfect everywhere.
-          </p>
-          <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
-            {TRUSTED_CLIENTS.map((client) => (
+      {/* TESTIMONIALS */}
+      <section className="py-24 bg-slate-50">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <p className="text-sm font-semibold text-blue-600 uppercase tracking-widest mb-3">Testimonials</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
+              Loved by professionals worldwide.
+            </h2>
+          </div>
+          <div className="grid gap-8 md:grid-cols-3">
+            {TESTIMONIALS.map((t) => (
               <div
-                key={client}
-                className="rounded-lg bg-white p-4 text-center shadow-sm border border-border"
+                key={t.name}
+                className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-100 hover:shadow-md transition-shadow"
               >
-                <p className="text-sm font-medium text-foreground">{client}</p>
+                <StarRating />
+                <p className="mt-4 text-slate-600 leading-relaxed italic">
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <div className="mt-6 flex items-center gap-3">
+                  <img
+                    src={t.image}
+                    alt={t.name}
+                    className="h-12 w-12 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{t.name}</p>
+                    <p className="text-xs text-slate-500">{t.role}</p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ - SEO RICH */}
-      <section className="py-20 bg-white">
+      {/* FAQ */}
+      <section className="py-24 bg-white">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-foreground text-center sm:text-4xl mb-12">
-            Frequently Asked Questions
-          </h2>
+          <div className="text-center mb-16">
+            <p className="text-sm font-semibold text-blue-600 uppercase tracking-widest mb-3">FAQ</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
+              Frequently asked questions
+            </h2>
+          </div>
           <div className="space-y-4">
             {[
               {
                 q: "Is NeatStamp really free?",
-                a: "Yes. The free tier lets you create a professional email signature with 5 templates, custom colors, social media links, and photo upload. No account required, no credit card needed, no time limit. The free tier is truly free — forever.",
+                a: "Yes. The free tier lets you create a professional email signature with 5 templates, custom colors, social media links, and photo upload. No account required, no credit card needed, no time limit. Free means free — forever.",
               },
               {
                 q: "Will my signature work in Outlook?",
-                a: "Yes. NeatStamp signatures are built with table-based HTML and inline CSS — the gold standard for email client compatibility. Your signature is guaranteed to look correct in Outlook (desktop, web, and mobile), Gmail, Apple Mail, Yahoo Mail, Thunderbird, and 30+ other email clients.",
+                a: "Yes. NeatStamp signatures use table-based HTML and inline CSS — the gold standard for email client compatibility. Guaranteed to look correct in Outlook (desktop, web, and mobile), Gmail, Apple Mail, Yahoo Mail, and 30+ other clients.",
               },
               {
                 q: "Do you store my personal data?",
-                a: "No. The free version runs entirely in your browser. Your name, email, phone number, and photo never leave your device. We don't track you, we don't store your data, and we don't sell anything to third parties.",
+                a: "No. The free version runs entirely in your browser. Your name, email, phone number, and photo never leave your device. No tracking, no data collection, no third-party sharing.",
               },
               {
                 q: "How do I add the signature to my email?",
-                a: "Click 'Copy Signature', then paste it into your email client's signature settings. For Gmail: Settings → See all settings → Signature → Paste. For Outlook: File → Options → Mail → Signatures → Paste. For Apple Mail: Preferences → Signatures → Paste.",
+                a: "Click 'Copy Signature', then paste it into your email client's signature settings. Gmail: Settings → See all settings → Signature → Paste. Outlook: File → Options → Mail → Signatures → Paste.",
               },
               {
                 q: "What's included in the Pro plan?",
-                a: "Pro ($5/month) adds 15+ premium templates, Calendly booking buttons, CTA banners, multiple signatures, click analytics, and the ability to save your signatures. You can cancel anytime in 2 clicks with a 30-day money-back guarantee.",
+                a: "Pro ($5/month) adds 15+ premium templates, Calendly booking buttons, CTA banners, multiple signatures, click analytics, and the ability to save your signatures. Cancel anytime in 2 clicks. 30-day money-back guarantee.",
               },
               {
-                q: "Can I use NeatStamp for my team?",
-                a: "Yes. The Team plan ($3/user/month, minimum 5 users) lets you manage signatures centrally, enforce brand guidelines, and deploy signatures to your entire team. Perfect for small businesses that want consistent email branding.",
-              },
-              {
-                q: "What makes NeatStamp different from WiseStamp or MySignature?",
-                a: "NeatStamp is genuinely free (no paywall tricks), privacy-first (no data stored), and Outlook-proof (guaranteed to work in all email clients). We also offer easy cancellation (2 clicks) and a 30-day money-back guarantee. Our competitors have 53% 1-star reviews on Trustpilot for subscription traps — we do things differently.",
+                q: "What makes NeatStamp different from competitors?",
+                a: "NeatStamp is genuinely free (no paywall tricks), privacy-first (no data stored on servers), and Outlook-proof (guaranteed to work everywhere). We also offer easy cancellation and a 30-day money-back guarantee — unlike competitors with 53% one-star reviews for subscription traps.",
               },
             ].map((faq) => (
               <details
                 key={faq.q}
-                className="group rounded-lg border border-border bg-white"
+                className="group rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-colors"
               >
-                <summary className="flex cursor-pointer items-center justify-between px-6 py-4 text-base font-semibold text-foreground">
+                <summary className="flex cursor-pointer items-center justify-between px-6 py-5 text-base font-semibold text-slate-900">
                   {faq.q}
-                  <svg className="h-5 w-5 text-muted transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <svg className="h-5 w-5 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                   </svg>
                 </summary>
-                <p className="px-6 pb-4 text-sm text-muted leading-relaxed">
+                <p className="px-6 pb-5 text-slate-500 leading-relaxed">
                   {faq.a}
                 </p>
               </details>
@@ -341,24 +442,32 @@ export default function HomePage() {
       </section>
 
       {/* FINAL CTA */}
-      <section className="py-20 bg-primary">
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white sm:text-4xl">
-            Ready to Make a Great Impression?
+      <section className="relative overflow-hidden py-24">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700" />
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='1.5'/%3E%3C/g%3E%3C/svg%3E\")"
+        }} />
+        <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-extrabold text-white sm:text-4xl lg:text-5xl">
+            Ready to make a
+            <br />
+            great first impression?
           </h2>
-          <p className="mt-4 text-lg text-blue-100">
+          <p className="mt-6 text-xl text-blue-100">
             Join thousands of professionals who use NeatStamp.
-            Free forever. No account needed.
           </p>
           <Link
             href="/editor"
-            className="mt-8 inline-flex items-center rounded-xl bg-white px-8 py-4 text-lg font-semibold text-primary shadow-lg hover:bg-gray-50 transition-all"
+            className="mt-10 inline-flex items-center rounded-full bg-white px-10 py-4 text-lg font-semibold text-blue-600 shadow-xl hover:bg-slate-50 transition-all"
           >
             Create Your Free Signature
             <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
           </Link>
+          <p className="mt-4 text-sm text-blue-200">
+            No account needed. Free forever.
+          </p>
         </div>
       </section>
     </>
