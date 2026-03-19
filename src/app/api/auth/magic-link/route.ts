@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRequestContext } from "@cloudflare/next-on-pages";
+import { logAudit } from "@/lib/audit";
 
 export const runtime = "edge";
 
@@ -7,6 +8,7 @@ export const runtime = "edge";
 export async function POST(request: NextRequest) {
   const body = await request.json() as { email?: string };
   const email = body.email;
+  const ip = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for") || "unknown";
 
   // Email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -14,7 +16,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Valid email required" }, { status: 400 });
   }
 
-  // Normalize email
   const normalizedEmail = email.toLowerCase().trim();
 
   const resendKey = process.env.RESEND_API_KEY;
@@ -22,18 +23,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Email service not configured" }, { status: 500 });
   }
 
-  // Rate limit: max 5 requests per email per hour (basic check via D1)
   let token: string;
+  let db: D1Database;
   try {
     const { env } = getRequestContext();
-    const db = env.DB as D1Database;
+    db = env.DB as D1Database;
 
-    // Rate limit check
+    // Rate limit: max 5 per email per hour
     const recentTokens = await db.prepare(
       "SELECT COUNT(*) as cnt FROM magic_tokens WHERE email = ? AND created_at > datetime('now', '-1 hour')"
     ).bind(normalizedEmail).first<{ cnt: number }>();
 
     if (recentTokens && recentTokens.cnt >= 5) {
+      await logAudit(db, "magic_link_rate_limited", { email: normalizedEmail, ip });
       return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
     }
 
@@ -49,8 +51,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://neatstamp.pages.dev";
-  const verifyUrl = `${appUrl}/api/auth/magic-link?token=${token}&email=${encodeURIComponent(normalizedEmail)}`;
+  // Build the verify URL — always point to the app domain for auth
+  const baseUrl = "https://neatstamp.com";
+  const verifyUrl = `${baseUrl}/api/auth/magic-link?token=${token}&email=${encodeURIComponent(normalizedEmail)}`;
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -89,9 +92,11 @@ export async function POST(request: NextRequest) {
 
     if (!res.ok) {
       console.error("Resend error:", JSON.stringify(resBody));
+      await logAudit(db, "magic_link_failed", { email: normalizedEmail, ip, detail: "Resend API error" });
       return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
     }
 
+    await logAudit(db, "magic_link_sent", { email: normalizedEmail, ip });
     return NextResponse.json({ sent: true });
   } catch (err) {
     console.error("Email send error:", err);
@@ -109,9 +114,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=InvalidToken", request.url));
   }
 
-  // Redirect to the verify page which will call signIn("magic-link") client-side
-  const verifyUrl = new URL("/auth/verify", request.url);
+  // Redirect to the app subdomain verify page
+  const verifyUrl = new URL("https://app.neatstamp.com/auth/verify");
   verifyUrl.searchParams.set("token", token);
   verifyUrl.searchParams.set("email", email);
-  return NextResponse.redirect(verifyUrl);
+  return NextResponse.redirect(verifyUrl.toString());
 }
