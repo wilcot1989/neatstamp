@@ -58,16 +58,23 @@ export async function POST(request: NextRequest) {
       }),
     });
 
+    const resBody = await res.json();
+
     if (!res.ok) {
-      const err = await res.text();
-      console.error("Resend error:", err);
-      return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
+      console.error("Resend error:", JSON.stringify(resBody));
+      return NextResponse.json({
+        error: "Failed to send email",
+        detail: resBody?.message || resBody?.name || "Unknown error"
+      }, { status: 500 });
     }
 
-    return NextResponse.json({ sent: true });
+    return NextResponse.json({ sent: true, id: resBody.id });
   } catch (err) {
     console.error("Email send error:", err);
-    return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
+    return NextResponse.json({
+      error: "Failed to send email",
+      detail: String(err)
+    }, { status: 500 });
   }
 }
 
