@@ -380,8 +380,19 @@ export function generateHtmlFromBlocks(
   const plan = options?.plan ?? "free";
   const isPro = plan === "pro" || plan === "team";
 
-  const rows = blocks
-    .filter((b) => b.visible)
+  const visibleBlocks = blocks.filter((b) => b.visible);
+
+  // Check if photo block has position left/right (side-by-side layout)
+  const photoBlock = visibleBlocks.find((b) => b.type === "photo");
+  const photoPosition = photoBlock ? safeStr(photoBlock.settings.position, "left") : "";
+  const photoIsSideBySide = photoBlock && (photoPosition === "left" || photoPosition === "right") && data.photoUrl;
+
+  // Build content rows (everything except photo if it's side-by-side)
+  const contentBlocks = photoIsSideBySide
+    ? visibleBlocks.filter((b) => b.type !== "photo")
+    : visibleBlocks;
+
+  const contentRows = contentBlocks
     .map((b) => {
       switch (b.type) {
         case "photo":
@@ -406,6 +417,28 @@ export function generateHtmlFromBlocks(
     })
     .filter(Boolean)
     .join("\n");
+
+  // If photo is side-by-side, wrap in a two-column table
+  let rows: string;
+  if (photoIsSideBySide && photoBlock) {
+    const size = safeNum(photoBlock.settings.size, 80);
+    const shape = safeStr(photoBlock.settings.shape, "circle");
+    const borderRadius = shape === "circle" ? "50%" : shape === "rounded" ? "8px" : "0px";
+    const src = esc(data.photoUrl);
+
+    const photoTd = `<td style="vertical-align:top;padding-${photoPosition === "left" ? "right" : "left"}:14px;width:${size}px;">
+      <img src="${src}" alt="${esc(data.fullName)}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;border-radius:${borderRadius};object-fit:cover;display:block;" />
+    </td>`;
+    const contentTd = `<td style="vertical-align:top;">
+      <table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;">
+        ${contentRows}
+      </table>
+    </td>`;
+
+    rows = `<tr>${photoPosition === "left" ? photoTd + contentTd : contentTd + photoTd}</tr>`;
+  } else {
+    rows = contentRows;
+  }
 
   const branding = !isPro
     ? `<tr><td style="padding-top:8px;"><a href="https://neatstamp.com?ref=sig" target="_blank" rel="noopener noreferrer" style="color:#94a3b8;font-size:10px;font-family:Arial,Helvetica,sans-serif;text-decoration:none;">Made with NeatStamp</a></td></tr>`
