@@ -17,9 +17,10 @@ function VerifyContent() {
     }
 
     // Sign in via the Credentials provider with the magic link token
-    signIn("magic-link", {
+    signIn("credentials", {
       email,
       token,
+      method: "magic-link",
       callbackUrl: "/dashboard",
       redirect: true,
     }).catch(() => {

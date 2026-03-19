@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
+import { verifyPassword } from "./password";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -9,45 +10,67 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
     Credentials({
-      id: "magic-link",
-      name: "Magic Link",
+      id: "credentials",
+      name: "Email & Password",
       credentials: {
         email: { type: "email" },
+        password: { type: "password" },
+        // Magic link fields (optional)
         token: { type: "text" },
+        method: { type: "text" },
       },
       async authorize(credentials) {
-        const email = credentials?.email as string;
-        const token = credentials?.token as string;
-        if (!email || !token) return null;
+        const email = (credentials?.email as string)?.toLowerCase().trim();
+        const method = credentials?.method as string;
 
-        // Validate token against D1
+        if (!email) return null;
+
         try {
           const { getRequestContext } = await import("@cloudflare/next-on-pages");
           const { env } = getRequestContext();
           const db = env.DB as D1Database;
 
-          const row = await db.prepare(
-            "SELECT * FROM magic_tokens WHERE token = ? AND email = ? AND used = 0 AND expires_at > datetime('now')"
-          ).bind(token, email).first<{ id: string; email: string }>();
+          // Magic link flow
+          if (method === "magic-link") {
+            const token = credentials?.token as string;
+            if (!token) return null;
 
-          if (!row) return null;
+            const row = await db.prepare(
+              "SELECT * FROM magic_tokens WHERE token = ? AND email = ? AND used = 0 AND expires_at > datetime('now')"
+            ).bind(token, email).first<{ id: string; email: string }>();
 
-          // Mark token as used
-          await db.prepare("UPDATE magic_tokens SET used = 1 WHERE id = ?").bind(row.id).run();
+            if (!row) return null;
 
-          // Find or create user
-          let user = await db.prepare("SELECT id, email, name FROM users WHERE email = ?")
-            .bind(email).first<{ id: string; email: string; name: string | null }>();
+            await db.prepare("UPDATE magic_tokens SET used = 1 WHERE id = ?").bind(row.id).run();
 
-          if (!user) {
-            const userId = crypto.randomUUID();
-            await db.prepare("INSERT INTO users (id, email) VALUES (?, ?)").bind(userId, email).run();
-            user = { id: userId, email, name: null };
+            let user = await db.prepare("SELECT id, email, name FROM users WHERE email = ?")
+              .bind(email).first<{ id: string; email: string; name: string | null }>();
+
+            if (!user) {
+              const userId = crypto.randomUUID();
+              await db.prepare("INSERT INTO users (id, email) VALUES (?, ?)").bind(userId, email).run();
+              user = { id: userId, email, name: null };
+            }
+
+            return { id: user.id, email: user.email, name: user.name };
           }
 
-          return { id: user.id, email: user.email, name: user.name };
+          // Email + password flow
+          const password = credentials?.password as string;
+          if (!password) return null;
+
+          const user = await db.prepare(
+            "SELECT id, email, name, avatar_url, password_hash FROM users WHERE email = ?"
+          ).bind(email).first<{ id: string; email: string; name: string | null; avatar_url: string | null; password_hash: string | null }>();
+
+          if (!user || !user.password_hash) return null;
+
+          const valid = await verifyPassword(password, user.password_hash);
+          if (!valid) return null;
+
+          return { id: user.id, email: user.email, name: user.name, image: user.avatar_url };
         } catch (err) {
-          console.error("Magic link auth error:", err);
+          console.error("Auth error:", err);
           return null;
         }
       },
@@ -68,7 +91,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (account) {
         token.provider = account.provider;
       }
-      // Store Google user in D1 on first sign-in
+      // Store Google user in D1
       if (user && account?.provider === "google") {
         try {
           const { getRequestContext } = await import("@cloudflare/next-on-pages");

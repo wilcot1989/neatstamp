@@ -9,28 +9,58 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const error = searchParams.get("error");
-  const [email, setEmail] = useState("");
-  const [emailSent, setEmailSent] = useState(false);
-  const [sending, setSending] = useState(false);
 
-  const handleMagicLink = async (e: React.FormEvent) => {
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleEmailPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || sending) return;
-    setSending(true);
-    try {
-      const res = await fetch("/api/auth/magic-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      if (res.ok) {
-        setEmailSent(true);
+    if (!email || !password) return;
+    setLoading(true);
+    setMessage("");
+
+    if (mode === "register") {
+      // Register first, then sign in
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, name: name || undefined }),
+        });
+        const data = await res.json() as { error?: string; success?: boolean };
+
+        if (!res.ok) {
+          setMessage(data.error || "Registration failed");
+          setLoading(false);
+          return;
+        }
+      } catch {
+        setMessage("Something went wrong. Please try again.");
+        setLoading(false);
+        return;
       }
-    } catch {
-      // silent fail — show sent state anyway to prevent email enumeration
-      setEmailSent(true);
     }
-    setSending(false);
+
+    // Sign in
+    const result = await signIn("credentials", {
+      email: email.toLowerCase().trim(),
+      password,
+      redirect: false,
+      callbackUrl,
+    });
+
+    if (result?.error) {
+      setMessage(mode === "register" ? "Account created! But sign-in failed. Try logging in." : "Invalid email or password.");
+      setLoading(false);
+    } else if (result?.url) {
+      window.location.href = result.url;
+    } else {
+      setLoading(false);
+    }
   };
 
   return (
@@ -41,7 +71,7 @@ function LoginForm() {
             <img src="/logo.svg" alt="NeatStamp" className="h-10 mx-auto" />
           </a>
           <h1 className="text-2xl font-bold text-slate-900">
-            Sign in to NeatStamp
+            {mode === "register" ? "Create your account" : "Sign in to NeatStamp"}
           </h1>
           <p className="mt-2 text-sm text-slate-500">
             Save your signatures, access Pro features, manage your subscription.
@@ -68,13 +98,9 @@ function LoginForm() {
           </ul>
         </div>
 
-        {error && (
+        {(error || message) && (
           <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-            {error === "OAuthAccountNotLinked"
-              ? "This email is already linked to another sign-in method. Use the original method."
-              : error === "Configuration"
-                ? "Authentication is being set up. Please try again shortly."
-                : "Something went wrong. Please try again."}
+            {message || (error === "CredentialsSignin" ? "Invalid email or password." : "Something went wrong. Please try again.")}
           </div>
         )}
 
@@ -95,45 +121,65 @@ function LoginForm() {
         {/* Divider */}
         <div className="my-6 flex items-center gap-3">
           <div className="flex-1 border-t border-slate-200"></div>
-          <span className="text-xs text-slate-400">or sign in with email</span>
+          <span className="text-xs text-slate-400">or use email</span>
           <div className="flex-1 border-t border-slate-200"></div>
         </div>
 
-        {/* Magic link */}
-        {emailSent ? (
-          <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-6 text-center">
-            <svg className="mx-auto h-8 w-8 text-emerald-500 mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-            </svg>
-            <h3 className="font-semibold text-emerald-800">Check your email</h3>
-            <p className="mt-1 text-sm text-emerald-700">
-              We sent a sign-in link to <strong>{email}</strong>
-            </p>
-            <p className="mt-3 text-xs text-emerald-600">
-              No password needed. Click the link in your email to sign in.
-            </p>
-          </div>
-        ) : (
-          <form onSubmit={handleMagicLink} className="space-y-3">
+        {/* Email + Password form */}
+        <form onSubmit={handleEmailPassword} className="space-y-3">
+          {mode === "register" && (
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@company.com"
-              required
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Full name (optional)"
               className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
-            >
-              {sending ? "Sending..." : "Send me a sign-in link"}
-            </button>
-            <p className="text-center text-xs text-slate-400">
-              No password needed. We&apos;ll email you a secure link.
-            </p>
-          </form>
-        )}
+          )}
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@company.com"
+            required
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={mode === "register" ? "Create a password (min 8 characters)" : "Password"}
+            required
+            minLength={8}
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
+            {loading ? "Please wait..." : mode === "register" ? "Create account" : "Sign in"}
+          </button>
+        </form>
+
+        {/* Toggle login/register */}
+        <p className="mt-4 text-center text-sm text-slate-500">
+          {mode === "login" ? (
+            <>
+              Don&apos;t have an account?{" "}
+              <button onClick={() => { setMode("register"); setMessage(""); }} className="text-blue-600 font-medium hover:underline">
+                Create one
+              </button>
+            </>
+          ) : (
+            <>
+              Already have an account?{" "}
+              <button onClick={() => { setMode("login"); setMessage(""); }} className="text-blue-600 font-medium hover:underline">
+                Sign in
+              </button>
+            </>
+          )}
+        </p>
 
         <p className="mt-6 text-center text-xs text-slate-400">
           By signing in, you agree to our{" "}
