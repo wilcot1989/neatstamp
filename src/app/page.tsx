@@ -3,10 +3,9 @@ import type { Metadata } from "next";
 import { EmailClientGrid } from "@/components/EmailClientLogos";
 
 export const metadata: Metadata = {
-  title:
-    "Free Email Signature Generator | NeatStamp — Actually Free, No Signup",
+  title: "Free Email Signature Generator | NeatStamp — Actually Free",
   description:
-    "Create a professional email signature in 60 seconds. Free forever — no account, no credit card, no paywall. Works in Gmail, Outlook, Apple Mail & 30+ email clients. Outlook-proof guaranteed.",
+    "Create a professional email signature in 60 seconds. Free forever — no account, no credit card. Works in Gmail, Outlook & 30+ email clients.",
   alternates: { canonical: "https://neatstamp.com" },
 };
 

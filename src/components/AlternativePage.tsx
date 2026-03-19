@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AlternativePageData } from "@/lib/alternativePages";
+import { BreadcrumbStructuredData } from "@/components/StructuredData";
 
 function CheckIcon() {
   return (
@@ -19,6 +20,13 @@ function XIcon() {
 
 export default function AlternativePage({ page }: { page: AlternativePageData }) {
   return (
+    <>
+      <BreadcrumbStructuredData
+        items={[
+          { name: "Home", url: "https://neatstamp.com" },
+          { name: `${page.competitorName} Alternative`, url: `https://neatstamp.com/${page.slug}` },
+        ]}
+      />
     <div className="py-16">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Hero */}
@@ -141,5 +149,6 @@ export default function AlternativePage({ page }: { page: AlternativePageData })
         </section>
       </div>
     </div>
+    </>
   );
 }

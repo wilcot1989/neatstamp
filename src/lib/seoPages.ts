@@ -73,7 +73,7 @@ export const SEO_PAGES: SeoPageData[] = [
     slug: "email-signature-outlook",
     title: "Outlook",
     metaTitle:
-      "Free Email Signature Generator for Outlook | NeatStamp — Guaranteed to Work",
+      "Free Email Signature Generator for Outlook | NeatStamp",
     metaDescription:
       "Create an Outlook-proof email signature for free. Built with table-based HTML that works in Outlook desktop, web, and mobile. No broken layouts — guaranteed.",
     h1: "Free Email Signature Generator for Outlook",

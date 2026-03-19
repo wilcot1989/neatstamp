@@ -4,21 +4,26 @@ export function middleware(request: NextRequest) {
   const hostname = request.headers.get("host") || "";
   const pathname = request.nextUrl.pathname;
 
-  // App subdomain: app.neatstamp.com
+  // Only apply subdomain routing on the real domain, not on pages.dev
+  const isProductionDomain = hostname.includes("neatstamp.com");
+  if (!isProductionDomain) {
+    return NextResponse.next();
+  }
+
   const isAppSubdomain = hostname.startsWith("app.");
 
-  // Marketing pages that should redirect TO app subdomain when accessed on main domain
+  // App paths that should live on app.neatstamp.com
   const appPaths = ["/editor", "/dashboard", "/login"];
   const isAppPath = appPaths.some((p) => pathname.startsWith(p));
 
   // If on main domain and accessing app paths → redirect to app subdomain
   if (!isAppSubdomain && isAppPath) {
-    const appUrl = new URL(pathname, `https://app.${hostname}`);
+    const appUrl = new URL(pathname, `https://app.neatstamp.com`);
     appUrl.search = request.nextUrl.search;
-    return NextResponse.redirect(appUrl);
+    return NextResponse.redirect(appUrl, 301);
   }
 
-  // If on app subdomain and accessing marketing paths → redirect to main domain
+  // Marketing paths that should live on neatstamp.com (not app subdomain)
   const marketingPaths = [
     "/pricing",
     "/about",
@@ -29,16 +34,19 @@ export function middleware(request: NextRequest) {
     "/examples",
     "/email-signature-",
     "/alternative-to-",
+    "/professional-",
+    "/html-",
+    "/best-",
+    "/ai-",
+    "/small-",
   ];
-  const isMarketingPath =
-    marketingPaths.some((p) => pathname.startsWith(p)) ||
-    (pathname === "/" && isAppSubdomain === false);
+  const isMarketingPath = marketingPaths.some((p) => pathname.startsWith(p));
 
+  // If on app subdomain and accessing marketing paths → redirect to main domain
   if (isAppSubdomain && isMarketingPath) {
-    const mainHost = hostname.replace("app.", "");
-    const mainUrl = new URL(pathname, `https://${mainHost}`);
+    const mainUrl = new URL(pathname, "https://neatstamp.com");
     mainUrl.search = request.nextUrl.search;
-    return NextResponse.redirect(mainUrl);
+    return NextResponse.redirect(mainUrl, 301);
   }
 
   // If on app subdomain and hitting root → show editor
@@ -51,12 +59,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all paths except:
-     * - api routes
-     * - static files
-     * - _next internal
-     */
     "/((?!api|_next/static|_next/image|favicon.ico|icon|apple-icon|opengraph-image|logos|images|logo).*)",
   ],
 };

@@ -1,8 +1,17 @@
 import Link from "next/link";
 import { SeoPageData } from "@/lib/seoPages";
+import { FAQStructuredData, BreadcrumbStructuredData } from "@/components/StructuredData";
 
 export default function SeoLandingPage({ page }: { page: SeoPageData }) {
   return (
+    <>
+      {page.faq.length > 0 && <FAQStructuredData faqs={page.faq} />}
+      <BreadcrumbStructuredData
+        items={[
+          { name: "Home", url: "https://neatstamp.com" },
+          { name: page.title, url: `https://neatstamp.com/${page.slug}` },
+        ]}
+      />
     <div className="py-16">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Hero */}
@@ -133,5 +142,6 @@ export default function SeoLandingPage({ page }: { page: SeoPageData }) {
         </section>
       </div>
     </div>
+    </>
   );
 }
