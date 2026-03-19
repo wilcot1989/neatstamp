@@ -510,6 +510,19 @@ function ProSignaturePreview({ data, isPro, onAfterCopy }: ProSignaturePreviewPr
   });
 
   const handleCopy = async () => {
+    // Free users: save signature data to D1 first so the render endpoint works
+    if (!isPro) {
+      try {
+        await fetch("/api/signatures/free", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: sigId, data, template: data.template }),
+        });
+      } catch {
+        // Continue even if save fails — user still gets the copy
+      }
+    }
+
     const success = await copySignatureToClipboard(copyHtml);
     if (success) {
       setCopyState("copied");
@@ -776,52 +789,7 @@ export default function EditorPage() {
         </p>
       </div>
 
-      {/* Mode toggle */}
-      <div className="mb-8 flex justify-center">
-        <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-1 gap-1">
-          <button
-            type="button"
-            onClick={() => setEditorMode("templates")}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-              editorMode === "templates"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            🎨 Templates
-          </button>
-          <button
-            type="button"
-            onClick={() => setEditorMode("blocks")}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-              editorMode === "blocks"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            ✋ Drag &amp; Drop
-          </button>
-        </div>
-      </div>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* DRAG & DROP BLOCK EDITOR MODE                                        */}
-      {/* ------------------------------------------------------------------ */}
-      {editorMode === "blocks" && (
-        <BlockEditor
-          blocks={blocks}
-          onBlocksChange={setBlocks}
-          data={data}
-          onDataChange={setData}
-          plan={userPlan}
-        />
-      )}
-
-      {/* ------------------------------------------------------------------ */}
-      {/* TEMPLATES MODE (original form-based editor)                          */}
-      {/* ------------------------------------------------------------------ */}
-      {editorMode === "templates" && (
-      <>
+      {/* Template selector + Drag & Drop editor — all on one page */}
 
       <div className="mb-2">
         <ProTemplateSelector
@@ -924,8 +892,18 @@ export default function EditorPage() {
         </div>
       )}
 
-      </>
-      )} {/* end editorMode === "templates" */}
+      {/* Drag & Drop layout editor below the form */}
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">Customize Layout</h2>
+        <p className="text-sm text-slate-500 mb-4">Drag blocks to rearrange your signature layout. Click the gear icon to adjust settings.</p>
+        <BlockEditor
+          blocks={blocks}
+          onBlocksChange={setBlocks}
+          data={data}
+          onDataChange={setData}
+          plan={userPlan}
+        />
+      </div>
     </div>
   );
 }

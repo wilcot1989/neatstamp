@@ -42,9 +42,10 @@ export const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
     icon: "🖼️",
     description: "Profile photo or company logo",
     defaultSettings: {
-      shape: "circle",   // circle | square | rounded
-      size: 80,          // px, 60–120
-      alignment: "left", // left | center
+      shape: "circle",    // circle | square | rounded
+      size: 80,           // px, 60–120
+      alignment: "left",  // left | center
+      position: "left",   // left | right — photo position relative to text
     },
     proOnly: false,
   },

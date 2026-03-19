@@ -224,8 +224,18 @@ function PhotoSettings({
           { value: "left", label: "Left" },
           { value: "center", label: "Center" },
         ]}
-        hint="Horizontal position of the photo"
+        hint="Photo alignment when it's on its own row"
         onChange={(v) => set("alignment", v)}
+      />
+      <RadioGroup
+        label="Photo position"
+        value={String(s.position ?? "left")}
+        options={[
+          { value: "left", label: "Left of text" },
+          { value: "right", label: "Right of text" },
+        ]}
+        hint="Place your photo to the left or right of your contact details"
+        onChange={(v) => set("position", v)}
       />
     </div>
   );
