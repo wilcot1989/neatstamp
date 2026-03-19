@@ -23,11 +23,9 @@ function LoginForm() {
     <div className="min-h-[60vh] flex items-center justify-center py-16">
       <div className="w-full max-w-md px-4">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white font-bold text-lg">
-              NS
-            </div>
-          </Link>
+          <a href="https://neatstamp.com" className="inline-block mb-6">
+            <img src="/logo.svg" alt="NeatStamp" className="h-10 mx-auto" />
+          </a>
           <h1 className="text-2xl font-bold text-foreground">
             Sign in to NeatStamp
           </h1>
