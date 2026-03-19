@@ -812,61 +812,41 @@ export default function EditorPage() {
       )}
       {isPro && <div className="mb-8" />}
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <div>
-          <div className="sticky top-20">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">Your Details</h2>
-            <ProSignatureForm data={data} onChange={setData} isPro={isPro} />
-          </div>
-        </div>
-        <div>
-          <div className="sticky top-20" ref={previewRef}>
-            <ProSignaturePreview data={data} isPro={isPro} onAfterCopy={handleAfterCopy} />
-
-            {/* Why sign up card — only for unauthenticated/free users */}
-            {!isPro && (
-              <div className="mt-6 rounded-xl border border-border bg-surface p-5">
-                <h3 className="text-sm font-semibold text-foreground mb-2">Why sign up?</h3>
-                <ul className="space-y-1 text-sm text-muted mb-4">
-                  <li>Save your signature for later</li>
-                  <li>Create multiple signatures</li>
-                  <li>Get premium templates &amp; analytics</li>
-                </ul>
-                {status === "unauthenticated" || status === "loading" ? (
-                  <Link
-                    href="/login"
-                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
-                  >
-                    Sign in with Google
-                  </Link>
-                ) : (
-                  <Link
-                    href="/pricing"
-                    className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 transition-colors"
-                  >
-                    Upgrade to Pro — $5/month
-                  </Link>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Your details form */}
+      <div className="mb-8">
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Your Details</h2>
+        <ProSignatureForm data={data} onChange={setData} isPro={isPro} />
       </div>
 
-      {/* Sticky floating copy button */}
-      {showStickyButton && (
-        <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2">
-          <button
-            onClick={() =>
-              previewRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
-            }
-            className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg hover:bg-primary-dark transition-colors"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
-            </svg>
-            Copy Signature
-          </button>
+      {/* Signature editor with drag & drop + live preview + copy */}
+      <div>
+        <h2 className="text-lg font-semibold text-slate-900 mb-2">Customize Layout & Preview</h2>
+        <p className="text-sm text-slate-500 mb-4">Drag blocks to rearrange. Click the gear icon for settings. Copy your signature from the preview.</p>
+        <BlockEditor
+          blocks={blocks}
+          onBlocksChange={setBlocks}
+          data={data}
+          onDataChange={setData}
+          plan={userPlan}
+        />
+      </div>
+
+      {/* Why sign up — only for free users */}
+      {!isPro && planLoaded && (
+        <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-5 text-center">
+          <p className="text-sm font-semibold text-slate-900">Want custom colors, unlimited signatures & more?</p>
+          <p className="mt-1 text-xs text-slate-500">Upgrade to Pro for $5/month. 30-day money-back guarantee.</p>
+          <div className="mt-3 flex justify-center gap-3">
+            {status === "unauthenticated" ? (
+              <a href="https://app.neatstamp.com/login" className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition-colors">
+                Sign in first
+              </a>
+            ) : (
+              <a href="https://neatstamp.com/pricing" className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition-colors">
+                Upgrade to Pro
+              </a>
+            )}
+          </div>
         </div>
       )}
 
@@ -878,32 +858,6 @@ export default function EditorPage() {
           onClose={() => setToast(null)}
         />
       )}
-
-      {/* Plan status indicator (loaded) */}
-      {planLoaded && !isPro && (
-        <div className="mt-4 text-center text-xs text-muted">
-          <span className="inline-flex items-center gap-1">
-            Free plan ·{" "}
-            <Link href="/pricing" className="text-primary underline">
-              Upgrade to Pro
-            </Link>{" "}
-            for custom colors, unlimited signatures &amp; more
-          </span>
-        </div>
-      )}
-
-      {/* Drag & Drop layout editor below the form */}
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Customize Layout</h2>
-        <p className="text-sm text-slate-500 mb-4">Drag blocks to rearrange your signature layout. Click the gear icon to adjust settings.</p>
-        <BlockEditor
-          blocks={blocks}
-          onBlocksChange={setBlocks}
-          data={data}
-          onDataChange={setData}
-          plan={userPlan}
-        />
-      </div>
     </div>
   );
 }
