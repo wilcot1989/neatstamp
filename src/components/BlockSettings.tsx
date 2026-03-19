@@ -8,6 +8,7 @@ interface BlockSettingsProps {
   data: SignatureData;
   plan: "free" | "pro" | "team";
   onSettingsChange: (settings: Record<string, unknown>) => void;
+  onDataChange?: (data: SignatureData) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -188,15 +189,80 @@ function TextInputField({
 function PhotoSettings({
   block,
   onChange,
+  data,
+  onDataChange,
 }: {
   block: Block;
+  data?: SignatureData;
+  onDataChange?: (data: SignatureData) => void;
   onChange: (s: Record<string, unknown>) => void;
 }) {
   const s = block.settings;
   const set = (key: string, val: unknown) => onChange({ ...s, [key]: val });
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !data || !onDataChange) return;
+    if (file.size > 2 * 1024 * 1024) { alert("Image must be under 2MB"); return; }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const size = 200;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        const minDim = Math.min(img.width, img.height);
+        const sx = (img.width - minDim) / 2;
+        const sy = (img.height - minDim) / 2;
+        ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+        onDataChange({ ...data, photoUrl: canvas.toDataURL("image/jpeg", 0.85) });
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="space-y-3">
+      {/* Photo upload */}
+      <div>
+        <label className="block text-xs font-medium text-slate-600 mb-1.5">Photo</label>
+        {data?.photoUrl ? (
+          <div className="flex items-center gap-3">
+            <img src={data.photoUrl} alt="Preview" className="h-14 w-14 rounded-full object-cover border border-slate-200" />
+            <div className="flex gap-2">
+              <label className="cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                Change
+                <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+              </label>
+              <button
+                onClick={() => onDataChange?.({ ...data, photoUrl: "" })}
+                className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ) : (
+          <label className="flex cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500 hover:border-blue-300 hover:text-blue-600 transition-colors">
+            <span>Click to upload photo (max 2MB)</span>
+            <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+          </label>
+        )}
+        <p className="mt-1 text-[10px] text-slate-400">Or paste a URL below:</p>
+        <input
+          type="text"
+          value={data?.photoUrl?.startsWith("data:") ? "" : (data?.photoUrl || "")}
+          onChange={(e) => onDataChange?.({ ...data!, photoUrl: e.target.value })}
+          placeholder="https://example.com/photo.jpg"
+          className="mt-1 w-full rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+        />
+      </div>
+
       <RadioGroup
         label="Shape"
         value={String(s.shape ?? "circle")}
@@ -519,9 +585,9 @@ function SpacerSettings({
 // Main export
 // ---------------------------------------------------------------------------
 
-export default function BlockSettings({ block, data, plan, onSettingsChange }: BlockSettingsProps) {
+export default function BlockSettings({ block, data, plan, onSettingsChange, onDataChange }: BlockSettingsProps) {
   const map: Record<BlockType, React.ReactNode> = {
-    photo: <PhotoSettings block={block} onChange={onSettingsChange} />,
+    photo: <PhotoSettings block={block} onChange={onSettingsChange} data={data} onDataChange={onDataChange} />,
     name: <NameSettings block={block} onChange={onSettingsChange} />,
     contact: <ContactSettings block={block} onChange={onSettingsChange} />,
     social: <SocialSettings block={block} data={data} plan={plan} onChange={onSettingsChange} />,

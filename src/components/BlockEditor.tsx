@@ -71,6 +71,7 @@ interface BlockCardProps {
   onToggleVisible: () => void;
   onDelete: () => void;
   onSettingsChange: (settings: Record<string, unknown>) => void;
+  onDataChange: (data: SignatureData) => void;
   onDragHandleMouseDown: (e: React.MouseEvent, index: number) => void;
   onDragHandleTouchStart: (e: React.TouchEvent, index: number) => void;
 }
@@ -89,6 +90,7 @@ function BlockCard({
   onToggleExpand,
   onToggleVisible,
   onDelete,
+  onDataChange,
   onSettingsChange,
   onDragHandleMouseDown,
   onDragHandleTouchStart,
@@ -193,6 +195,7 @@ function BlockCard({
             data={data}
             plan={plan}
             onSettingsChange={onSettingsChange}
+            onDataChange={onDataChange}
           />
         )}
       </div>
@@ -492,6 +495,7 @@ export default function BlockEditor({
   blocks,
   onBlocksChange,
   data,
+  onDataChange,
   plan,
 }: BlockEditorProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -709,6 +713,7 @@ export default function BlockEditor({
                 onToggleVisible={() => toggleVisible(block.id)}
                 onDelete={() => deleteBlock(block.id)}
                 onSettingsChange={(s) => updateSettings(block.id, s)}
+                onDataChange={onDataChange}
                 onDragHandleMouseDown={handleDragHandleMouseDown}
                 onDragHandleTouchStart={handleDragHandleTouchStart}
               />
