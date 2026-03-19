@@ -51,6 +51,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Template and data required" }, { status: 400 });
   }
 
+  // Input validation
+  const allowedTemplates = ["minimal", "modern", "corporate", "creative", "bold", "elegant", "startup", "compact"];
+  if (!allowedTemplates.includes(template)) {
+    return NextResponse.json({ error: "Invalid template" }, { status: 400 });
+  }
+
+  const dataStr = JSON.stringify(data);
+  if (dataStr.length > 10000) {
+    return NextResponse.json({ error: "Signature data too large" }, { status: 400 });
+  }
+
+  if (name && name.length > 100) {
+    return NextResponse.json({ error: "Name too long" }, { status: 400 });
+  }
+
   try {
     const { env } = getRequestContext();
     const db = env.DB as D1Database;

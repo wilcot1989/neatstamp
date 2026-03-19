@@ -8,20 +8,34 @@ export async function POST(request: NextRequest) {
   const body = await request.json() as { email?: string };
   const email = body.email;
 
-  if (!email || !email.includes("@")) {
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email) || email.length > 254) {
     return NextResponse.json({ error: "Valid email required" }, { status: 400 });
   }
+
+  // Normalize email
+  const normalizedEmail = email.toLowerCase().trim();
 
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) {
     return NextResponse.json({ error: "Email service not configured" }, { status: 500 });
   }
 
-  // Generate token and store in D1
+  // Rate limit: max 5 requests per email per hour (basic check via D1)
   let token: string;
   try {
     const { env } = getRequestContext();
     const db = env.DB as D1Database;
+
+    // Rate limit check
+    const recentTokens = await db.prepare(
+      "SELECT COUNT(*) as cnt FROM magic_tokens WHERE email = ? AND created_at > datetime('now', '-1 hour')"
+    ).bind(normalizedEmail).first<{ cnt: number }>();
+
+    if (recentTokens && recentTokens.cnt >= 5) {
+      return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
+    }
 
     const id = crypto.randomUUID();
     token = crypto.randomUUID();
@@ -29,15 +43,14 @@ export async function POST(request: NextRequest) {
 
     await db.prepare(
       "INSERT INTO magic_tokens (id, email, token, expires_at) VALUES (?, ?, ?, ?)"
-    ).bind(id, email, token, expiresAt).run();
+    ).bind(id, normalizedEmail, token, expiresAt).run();
   } catch (err) {
-    // If D1 is not available, use a simple token (less secure but functional)
-    console.error("D1 error, using fallback token:", err);
-    token = crypto.randomUUID();
+    console.error("D1 error:", err);
+    return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://neatstamp.pages.dev";
-  const verifyUrl = `${appUrl}/api/auth/magic-link?token=${token}&email=${encodeURIComponent(email)}`;
+  const verifyUrl = `${appUrl}/api/auth/magic-link?token=${token}&email=${encodeURIComponent(normalizedEmail)}`;
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -48,7 +61,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         from: "NeatStamp <noreply@neatstamp.com>",
-        to: email,
+        to: normalizedEmail,
         subject: "Sign in to NeatStamp",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
@@ -76,16 +89,13 @@ export async function POST(request: NextRequest) {
 
     if (!res.ok) {
       console.error("Resend error:", JSON.stringify(resBody));
-      return NextResponse.json({
-        error: "Failed to send email",
-        detail: String(resBody?.message || "Unknown error"),
-      }, { status: 500 });
+      return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
     }
 
     return NextResponse.json({ sent: true });
   } catch (err) {
     console.error("Email send error:", err);
-    return NextResponse.json({ error: "Failed to send email", detail: String(err) }, { status: 500 });
+    return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
   }
 }
 

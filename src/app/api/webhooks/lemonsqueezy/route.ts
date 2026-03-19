@@ -27,7 +27,12 @@ async function verifySignature(
 // LemonSqueezy webhook handler
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
-  const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET || "";
+  const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
+
+  if (!secret) {
+    console.error("[Webhook] LEMONSQUEEZY_WEBHOOK_SECRET not configured");
+    return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
+  }
 
   const signature = request.headers.get("x-signature");
   if (!signature) {
