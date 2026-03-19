@@ -1010,10 +1010,81 @@ function DashboardContent() {
             />
           )}
           {activeTab === "editor" && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-foreground">Signature Editor</h2>
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("/api/signatures", {
+                        method: signatures.length > 0 ? "PUT" : "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          id: signatures.length > 0 ? signatures[0].id : undefined,
+                          name: editorData.fullName ? `${editorData.fullName}'s Signature` : "My Signature",
+                          template: editorData.template,
+                          data: editorData,
+                        }),
+                      });
+                      if (res.ok) {
+                        // Refresh signatures
+                        const sigRes = await fetch("/api/signatures");
+                        const sigData = await sigRes.json() as { signatures?: Signature[] };
+                        setSignatures(sigData.signatures ?? []);
+                        setActiveTab("signatures");
+                      }
+                    } catch (err) {
+                      console.error("Save error:", err);
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600 transition-colors shadow-sm"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                  Save Signature
+                </button>
               </div>
+
+              {/* Template selector */}
+              <div>
+                <h3 className="text-sm font-semibold text-foreground mb-3">Choose a template</h3>
+                <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                  {(["minimal", "modern", "corporate", "creative", "bold", "elegant", "startup", "compact"] as const).map((t) => {
+                    const isSelected = editorData.template === t;
+                    const isLocked = !isPro && !["minimal", "modern"].includes(t);
+                    return (
+                      <button
+                        key={t}
+                        onClick={() => {
+                          if (!isLocked) setEditorData({ ...editorData, template: t });
+                        }}
+                        className={`relative rounded-lg border-2 px-2 py-2 text-xs font-medium capitalize transition-all ${
+                          isSelected
+                            ? "border-primary bg-blue-50 text-primary"
+                            : isLocked
+                              ? "border-border bg-slate-50 text-slate-400 cursor-not-allowed"
+                              : "border-border bg-white text-foreground hover:border-primary/50"
+                        }`}
+                      >
+                        {t}
+                        {isLocked && (
+                          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[8px] text-white">
+                            <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                            </svg>
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                {!isPro && (
+                  <p className="mt-2 text-xs text-muted">Free plan: 2 templates. <a href="https://neatstamp.com/pricing" className="text-primary underline">Upgrade for all 8+</a></p>
+                )}
+              </div>
+
+              {/* Block editor */}
               <BlockEditor
                 blocks={editorBlocks}
                 onBlocksChange={setEditorBlocks}
