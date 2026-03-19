@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" fill="none">
+  <!-- Rounded rectangle badge -->
+  <rect x="0" y="4" width="32" height="32" rx="6" ry="6" fill="#2563eb"/>
+  <!-- NS text inside badge -->
+  <text x="16" y="25" font-family="sans-serif" font-size="14" font-weight="800" fill="white" text-anchor="middle">NS</text>
+  <!-- NeatStamp wordmark -->
+  <text x="42" y="27" font-family="sans-serif" font-size="20" font-weight="700" fill="#0f172a">Neat</text>
+  <text x="90" y="27" font-family="sans-serif" font-size="20" font-weight="700" fill="#2563eb">Stamp</text>
+</svg>

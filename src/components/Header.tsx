@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { data: session } = useSession();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-white/95 backdrop-blur-sm">
@@ -43,12 +45,24 @@ export default function Header() {
           >
             Pricing
           </Link>
-          <Link
-            href="/editor"
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
-          >
-            Get Started — Free
-          </Link>
+          {session ? (
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
+            >
+              {session.user?.image && (
+                <img src={session.user.image} alt="" className="h-5 w-5 rounded-full" />
+              )}
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/editor"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
+            >
+              Get Started — Free
+            </Link>
+          )}
         </div>
 
         <button
