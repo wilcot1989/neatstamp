@@ -3,6 +3,7 @@ import { SignatureData, TemplateName } from "./types";
 export interface GenerateOptions {
   plan?: "free" | "pro" | "team";
   signatureId?: string;
+  imageUrl?: string; // R2 hosted image URL for free user signatures
 }
 
 function escapeHtml(text: string): string {
@@ -436,16 +437,15 @@ export function generateCopyHtml(
 ): string {
   const isPro = options?.plan === "pro" || options?.plan === "team";
 
-  // Free users: output is a single hosted image (not editable)
-  if (!isPro && options?.signatureId) {
-    const renderUrl = `https://neatstamp.com/api/images/render?id=${encodeURIComponent(options.signatureId)}`;
+  // Free users: if imageUrl is provided (uploaded to R2), output is a single <img> tag
+  if (!isPro && options?.signatureId && options?.imageUrl) {
     const trackUrl = `https://neatstamp.com/api/images/${encodeURIComponent(options.signatureId)}/track`;
 
     return `<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,sans-serif;">
   <tr>
     <td>
       <a href="https://neatstamp.com?ref=sig&id=${encodeURIComponent(options.signatureId)}" target="_blank" rel="noopener noreferrer">
-        <img src="${renderUrl}" alt="Email signature — ${escapeHtml(data.fullName)}" width="500" style="width:500px;max-width:100%;height:auto;display:block;border:0;" />
+        <img src="${escapeHtml(options.imageUrl)}" alt="Email signature — ${escapeHtml(data.fullName)}" width="500" style="width:500px;max-width:100%;height:auto;display:block;border:0;" />
       </a>
     </td>
   </tr>
@@ -453,6 +453,12 @@ export function generateCopyHtml(
     <td><img src="${trackUrl}" width="1" height="1" style="width:1px;height:1px;display:block;" alt="" /></td>
   </tr>
 </table>`;
+  }
+
+  // Free users without imageUrl: fall back to HTML with branding
+  if (!isPro && options?.signatureId) {
+    const generator = templateGenerators[data.template] || generateMinimal;
+    return generator(data, options);
   }
 
   // Pro/Team users: full HTML

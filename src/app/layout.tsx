@@ -21,6 +21,10 @@ export const metadata: Metadata = {
     default: "NeatStamp — Free Email Signature Generator",
     template: "%s",
   },
+  icons: {
+    icon: "/logo.svg",
+    apple: "/logo.svg",
+  },
   description:
     "Create professional email signatures for free. No account needed. Works in Gmail, Outlook, Apple Mail & more. Actually free — no paywall, no credit card.",
   keywords: [
