@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature for Interns — Make a Great First Impression | NeatStamp",
+  title: "Email Signature for Interns — First Impression",
   description:
     "Your first professional email signature as an intern. What to include, what to skip, real examples for summer, co-op, and graduate interns, and what hiring managers actually notice.",
   alternates: {

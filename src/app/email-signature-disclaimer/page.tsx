@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature Disclaimer — Templates & Legal Guide | NeatStamp",
+  title: "Email Signature Disclaimer — Templates & Guide",
   description:
     "What email signature disclaimers are, when you actually need one, copy-paste templates for confidentiality, GDPR, HIPAA, and liability — plus the honest answer about whether they hold up legally.",
   alternates: {

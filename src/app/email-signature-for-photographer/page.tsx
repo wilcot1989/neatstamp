@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature for Photographers — Portfolio in Every Email | NeatStamp",
+  title: "Email Signature for Photographers (2026)",
   description:
     "How photographers should use email signatures as mini-portfolios — portfolio links, Instagram, booking links, style specialty, and what not to include.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-photographer" },

@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "HubSpot Email Signature Alternative — More Features, No CRM | NeatStamp",
+  title: "HubSpot Email Signature Alternative (2026)",
   description:
     "HubSpot's signature generator is genuinely free but limited to 12 templates and no Calendly links. Here's what it offers and when to use something else.",
   alternates: { canonical: "https://neatstamp.com/alternative-to-hubspot-signature" },

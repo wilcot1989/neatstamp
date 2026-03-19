@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature for Freelancers — Stand Out & Win Clients | NeatStamp",
+  title: "Email Signature for Freelancers — Win Clients",
   description:
     "Your email signature is your business card. What to include as a freelancer, how to build trust, and real examples that win clients.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-freelancers" },

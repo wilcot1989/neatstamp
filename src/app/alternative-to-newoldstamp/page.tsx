@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Newoldstamp Alternative — Modern & Affordable (2026) | NeatStamp",
+  title: "Newoldstamp Alternative — Modern & Free (2026)",
   description:
     "Newoldstamp was acquired in 2022 and shifted to enterprise. If the pricing or interface no longer fits you, here's what changed and what to use instead.",
   alternates: { canonical: "https://neatstamp.com/alternative-to-newoldstamp" },

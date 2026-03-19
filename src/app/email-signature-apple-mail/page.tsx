@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature for Apple Mail — Mac, iPhone & iPad Guide | NeatStamp",
+  title: "Email Signature for Apple Mail — Full Guide",
   description:
     "Step-by-step instructions for adding an email signature in Apple Mail on Mac, iPhone, and iPad. Includes the HTML workaround and iOS limitations.",
   alternates: { canonical: "https://neatstamp.com/email-signature-apple-mail" },

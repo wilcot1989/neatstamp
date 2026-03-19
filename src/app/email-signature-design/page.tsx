@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature Design — Templates, Ideas & Best Practices | NeatStamp",
+  title: "Email Signature Design — Ideas & Templates (2026)",
   description:
     "Good email signature design isn't about being flashy — it's about being clear. Covers templates, typography, colors, image sizing, mobile rendering, and common mistakes.",
   alternates: {

@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature for Outlook 365 / Microsoft 365 (2026) | NeatStamp",
+  title: "Email Signature for Outlook 365 (2026 Guide)",
   description:
     "Step-by-step for Outlook 365 web, desktop, and mobile. Admin deployment, roaming signatures, IT policy options, and common fixes.",
   alternates: { canonical: "https://neatstamp.com/email-signature-outlook-365" },

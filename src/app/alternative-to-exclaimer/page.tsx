@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Best Exclaimer Alternative for Small Teams (2026) | NeatStamp",
+  title: "Exclaimer Alternative for Small Teams (2026)",
   description:
     "Exclaimer requires 10+ users and IT setup. If you're a small team, here's an honest look at what you're paying for and what actually fits your size.",
   alternates: { canonical: "https://neatstamp.com/alternative-to-exclaimer" },

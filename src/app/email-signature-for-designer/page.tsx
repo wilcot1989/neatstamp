@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature for Graphic Designers & Creatives | NeatStamp",
+  title: "Email Signature for Designers & Creatives",
   description:
     "How designers should balance creativity and professionalism in email signatures — portfolio links, Behance, Dribbble, and showing work without overdoing it.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-designer" },

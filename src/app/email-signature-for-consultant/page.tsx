@@ -101,7 +101,7 @@ export default function EmailSignatureForConsultantPage() {
           <section className="mb-16">
             <p className="text-muted leading-relaxed mb-4 text-lg">
               I've worked with independent consultants and advisors on their professional presence
-              for years, and the email signature is one of the highest-leverage, lowest-effort
+              for years, and the email signature is one of the highest-impact, lowest-effort
               improvements most of them can make. Consultants send a lot of email, they send it
               to high-value audiences (clients, prospects, referral sources), and the signature
               appears in every single one of those emails. The compounding effect over months of

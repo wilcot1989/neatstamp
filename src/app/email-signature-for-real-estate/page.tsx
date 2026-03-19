@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature for Real Estate Agents — Close More Deals | NeatStamp",
+  title: "Email Signature for Real Estate Agents (2026)",
   description:
     "Real estate email signatures need your license number, headshot, brokerage, and a Calendly link. Here's the complete guide with examples.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-real-estate" },

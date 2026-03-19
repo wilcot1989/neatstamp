@@ -490,7 +490,7 @@ export default function OutlookSignatureNotWorkingPage() {
               </h3>
               <p className="text-slate-600 leading-relaxed mb-4">
                 Classic Outlook has a ribbon-based UI with the familiar Office look. New
-                Outlook looks similar to Outlook on the web — flat, streamlined, with a
+                Outlook looks similar to Outlook on the web — flat, clean, with a
                 toggle in the top-right corner labeled &ldquo;New Outlook&rdquo; (you can switch back to
                 Classic using that toggle if you&rsquo;re in a transition period).
               </p>
@@ -798,7 +798,7 @@ MailFormat = 2  (1 = Plain Text, 2 = HTML, 3 = Rich Text)`}
                 <Link href="/alternative-to-exclaimer" className="text-blue-600 hover:underline">
                   alternative to Exclaimer page
                 </Link>{" "}
-                covers the landscape of options, including some much cheaper alternatives
+                covers the available options, including some much cheaper alternatives
                 to enterprise tools. NeatStamp&rsquo;s Pro plan also handles multi-signature
                 management. The{" "}
                 <Link href="/editor" className="text-blue-600 hover:underline">

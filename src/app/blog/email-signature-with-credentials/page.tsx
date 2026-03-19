@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature with Credentials — MD, PhD, CPA & More | NeatStamp",
+  title: "Email Signature with Credentials — MD, PhD, CPA",
   description:
     "How to list credentials correctly in your email signature. Ordering rules, real examples for medical, legal, financial, academic, and tech fields. Avoid the alphabet soup problem.",
   alternates: {

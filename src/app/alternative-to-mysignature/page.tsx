@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Best MySignature Alternative (2026) — Free Without the Catch | NeatStamp",
+  title: "MySignature Alternative — Actually Free (2026)",
   description:
     "MySignature's 'free' plan can't actually export. Here's an honest comparison of what you get, what you don't, and a genuinely free alternative.",
   alternates: { canonical: "https://neatstamp.com/alternative-to-mysignature" },
@@ -177,7 +177,7 @@ export default function AlternativeToMysignaturePage() {
                 Where MySignature has an edge: a slightly larger template library, and email tracking is available at a lower paid tier. Where NeatStamp has an edge: genuinely free for individuals, faster editor, and the team plan costs less per seat.
               </p>
               <p>
-                I want to be honest about NeatStamp's limitations too. The template count is lower — around 12 right now. If you want a large library to browse through before committing to a design, MySignature or <Link href="/alternative-to-wisestamp">WiseStamp</Link> have more variety. Analytics on the NeatStamp free tier are basic. <Link href="/pricing">Paid plans</Link> unlock fuller tracking. These are real tradeoffs.
+                I want to be honest about NeatStamp's limitations too. The template count is lower — around 12 right now. If you want a large library to browse through before committing to a design, MySignature or <Link href="/alternative-to-wisestamp">WiseStamp</Link> have more variety. Analytics on the NeatStamp free tier are basic. <Link href="/pricing">Paid plans</Link> include fuller tracking. These are real tradeoffs.
               </p>
               <p>
                 For a <Link href="/email-signature-for-freelancers">freelancer</Link>, solo professional, or <Link href="/small-business-email-signature">small business</Link> that just needs a clean, working signature without a monthly subscription, NeatStamp makes more sense. For someone who specifically wants email link tracking and is happy to pay for it, MySignature's paid tier is a reasonable choice.

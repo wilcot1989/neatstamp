@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "What to Include in Your Email Signature (Complete Guide) | NeatStamp",
+  title: "What to Include in Your Email Signature (2026)",
   description:
     "The definitive checklist for email signatures: must-haves, should-haves, nice-to-haves, and what to leave out entirely. Includes per-industry recommendations.",
   alternates: {

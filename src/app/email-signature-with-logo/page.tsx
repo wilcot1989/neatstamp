@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature with Logo — How to Add Yours (Free) | NeatStamp",
+  title: "Email Signature with Logo — Free Guide (2026)",
   description:
     "A logo makes your email signature look 10x more professional. Here's exactly how to add it, size it correctly, and fix the common problems (blurry logo, attachment icon, broken in Outlook).",
   alternates: { canonical: "https://neatstamp.com/email-signature-with-logo" },
@@ -393,7 +393,7 @@ export default function EmailSignatureWithLogoPage() {
                 { href: "/email-signature-outlook", label: "How to install your signature in Outlook" },
                 { href: "/email-signature-design", label: "Email signature design best practices" },
                 { href: "/professional-email-signature", label: "What makes a professional email signature" },
-                { href: "/html-email-signature", label: "HTML email signature — technical deep dive" },
+                { href: "/html-email-signature", label: "HTML email signature — full technical breakdown" },
                 { href: "/templates", label: "Browse logo-ready signature templates" },
                 { href: "/email-signature-for-business", label: "Email signature for business — full guide" },
                 { href: "/best-email-signature-generator", label: "Best email signature generators compared" },

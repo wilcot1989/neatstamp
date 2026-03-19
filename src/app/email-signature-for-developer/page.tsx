@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature for Software Developers & Engineers | NeatStamp",
+  title: "Email Signature for Developers & Engineers",
   description:
     "How developers should approach email signatures — GitHub links, the tech stack debate, minimal vs detailed, and what actually matters.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-developer" },

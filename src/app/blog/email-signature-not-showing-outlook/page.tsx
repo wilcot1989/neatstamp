@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature Not Showing in Outlook — 10 Fixes (2026) | NeatStamp",
+  title: "Email Signature Not Showing in Outlook — 10 Fixes",
   description:
     "Your email signature not showing in Outlook? I've fixed this exact issue dozens of times. Here are all 10 causes — and exactly how to fix each one.",
   alternates: {

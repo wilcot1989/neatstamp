@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Why Canva Email Signatures Don't Work (And What to Use Instead) | NeatStamp",
+  title: "Why Canva Email Signatures Don't Work + Alternative",
   description:
     "Canva exports an image, not HTML. No clickable links, breaks in Outlook, large file size. Here's why it fails as an email signature and what to use instead.",
   alternates: { canonical: "https://neatstamp.com/alternative-to-canva-signature" },

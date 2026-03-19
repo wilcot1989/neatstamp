@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature for Doctors & Medical Professionals | NeatStamp",
+  title: "Email Signature for Doctors & Medical Pros",
   description:
     "What belongs in a physician's email signature — MD/DO credentials, NPI, hospital affiliation, HIPAA considerations, and specialty. With examples.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-doctor" },

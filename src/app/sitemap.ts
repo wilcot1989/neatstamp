@@ -4,246 +4,104 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://neatstamp.com";
   const now = new Date().toISOString();
 
-  return [
-    {
-      url: baseUrl,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/editor`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/templates`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/examples`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/pricing`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
+  const pages: { url: string; priority: number; changeFrequency: "weekly" | "monthly" | "yearly" }[] = [
+    // Core
+    { url: "", priority: 1.0, changeFrequency: "weekly" },
+    { url: "/editor", priority: 0.9, changeFrequency: "weekly" },
+    { url: "/templates", priority: 0.8, changeFrequency: "monthly" },
+    { url: "/examples", priority: 0.8, changeFrequency: "monthly" },
+    { url: "/pricing", priority: 0.7, changeFrequency: "monthly" },
+
     // Email client pages
-    {
-      url: `${baseUrl}/email-signature-gmail`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/email-signature-outlook`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/email-signature-apple-mail`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/email-signature-yahoo`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
+    { url: "/email-signature-gmail", priority: 0.9, changeFrequency: "monthly" },
+    { url: "/email-signature-outlook", priority: 0.9, changeFrequency: "monthly" },
+    { url: "/email-signature-apple-mail", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/email-signature-yahoo", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-outlook-365", priority: 0.7, changeFrequency: "monthly" },
+
+    // Feature pages
+    { url: "/email-signature-maker", priority: 0.8, changeFrequency: "monthly" },
+    { url: "/professional-email-signature", priority: 0.8, changeFrequency: "monthly" },
+    { url: "/email-signature-with-logo", priority: 0.8, changeFrequency: "monthly" },
+    { url: "/email-signature-design", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/html-email-signature", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/best-email-signature-generator", priority: 0.8, changeFrequency: "monthly" },
+    { url: "/ai-email-signature-generator", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/email-signature-examples-with-logo", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/email-signature-with-pronouns", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/email-signature-quotes", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/email-signature-disclaimer", priority: 0.7, changeFrequency: "monthly" },
+
     // Use case pages
-    {
-      url: `${baseUrl}/email-signature-for-business`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/email-signature-for-freelancers`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/email-signature-for-students`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/email-signature-for-real-estate`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    // Feature & keyword pages
-    {
-      url: `${baseUrl}/email-signature-maker`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/professional-email-signature`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/email-signature-with-logo`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/email-signature-design`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/html-email-signature`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/best-email-signature-generator`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/ai-email-signature-generator`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/email-signature-outlook-365`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/email-signature-examples-with-logo`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/small-business-email-signature`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    // Alternative pages (competitor comparison)
-    {
-      url: `${baseUrl}/alternative-to-wisestamp`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/alternative-to-mysignature`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/alternative-to-exclaimer`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/alternative-to-signaturely`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/alternative-to-hubspot-signature`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/alternative-to-newoldstamp`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/alternative-to-canva-signature`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    // Other pages
-    {
-      url: `${baseUrl}/about`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.4,
-    },
-    {
-      url: `${baseUrl}/blog`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.6,
-    },
-    // Blog articles
-    {
-      url: `${baseUrl}/blog/email-signature-best-practices`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/email-signature-size`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/outlook-signature-not-working`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/how-to-add-social-media-icons-email-signature`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/blog/email-signature-generator-comparison`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/privacy`,
-      lastModified: now,
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
-    {
-      url: `${baseUrl}/terms`,
-      lastModified: now,
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
+    { url: "/email-signature-for-business", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/email-signature-for-freelancers", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/email-signature-for-students", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-real-estate", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/small-business-email-signature", priority: 0.7, changeFrequency: "monthly" },
+
+    // Profession pages
+    { url: "/email-signature-for-lawyer", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-doctor", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-teacher", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-nurse", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-ceo", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-designer", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-developer", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-consultant", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-photographer", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-job-seekers", priority: 0.6, changeFrequency: "monthly" },
+
+    // Seasonal
+    { url: "/christmas-email-signature", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/holiday-email-signature", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/new-year-email-signature", priority: 0.6, changeFrequency: "monthly" },
+
+    // Alternative pages
+    { url: "/alternative-to-wisestamp", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/alternative-to-mysignature", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/alternative-to-exclaimer", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/alternative-to-signaturely", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/alternative-to-hubspot-signature", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/alternative-to-newoldstamp", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/alternative-to-canva-signature", priority: 0.6, changeFrequency: "monthly" },
+
+    // Blog
+    { url: "/blog", priority: 0.7, changeFrequency: "weekly" },
+    { url: "/blog/email-signature-best-practices", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-size", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/blog/outlook-signature-not-working", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/blog/how-to-add-social-media-icons-email-signature", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-generator-comparison", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-not-showing-outlook", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-images-not-displaying", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/gmail-signature-not-working", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-keeps-disappearing", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-etiquette", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/best-email-sign-offs", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-on-phone", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-personal-email", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-dark-mode", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/what-to-include-email-signature", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-with-credentials", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-animated-gif", priority: 0.5, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-banner-ideas", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-for-interns", priority: 0.5, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-marketing", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/how-many-lines-email-signature", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-when-leaving-job", priority: 0.5, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-remote-workers", priority: 0.5, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-trends-2026", priority: 0.6, changeFrequency: "monthly" },
+
+    // Other
+    { url: "/about", priority: 0.4, changeFrequency: "monthly" },
+    { url: "/privacy", priority: 0.2, changeFrequency: "yearly" },
+    { url: "/terms", priority: 0.2, changeFrequency: "yearly" },
   ];
+
+  return pages.map((page) => ({
+    url: `${baseUrl}${page.url}`,
+    lastModified: now,
+    changeFrequency: page.changeFrequency,
+    priority: page.priority,
+  }));
 }

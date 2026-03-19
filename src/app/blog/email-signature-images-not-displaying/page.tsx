@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature Images Not Showing? Here's Why + Fix | NeatStamp",
+  title: "Email Signature Images Not Showing? Fix Guide",
   description:
     "Logo not showing in your email signature? Photo missing? I've diagnosed every cause — recipient blocks, broken URLs, wrong DPI, dark mode, and more. Here are the fixes.",
   alternates: {

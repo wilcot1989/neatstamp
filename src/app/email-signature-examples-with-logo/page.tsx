@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature Examples with Logo — 10+ Real Designs | NeatStamp",
+  title: "Email Signature Examples with Logo — 10+ Designs",
   description:
     "10+ described email signature examples with logos. Different placements, professions, and styles — with notes on what makes each one work.",
   alternates: { canonical: "https://neatstamp.com/email-signature-examples-with-logo" },

@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature for Students — Internship-Ready in 60 Seconds | NeatStamp",
+  title: "Email Signature for Students — Free Guide (2026)",
   description:
     "Why students need email signatures, what to include (and skip), and examples for undergrad, grad, and PhD students emailing recruiters and professors.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-students" },

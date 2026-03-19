@@ -235,7 +235,7 @@ function DashboardContent() {
       <div className="mt-12 rounded-2xl bg-gradient-to-r from-primary to-blue-700 p-8 text-white">
         <h2 className="text-2xl font-bold">Upgrade to Pro</h2>
         <p className="mt-2 text-blue-100">
-          Unlock premium templates, Calendly buttons, CTA banners, analytics, and more.
+          Get access to premium templates, Calendly buttons, CTA banners, analytics, and more.
         </p>
         <div className="mt-6 flex gap-4">
           <button

@@ -360,7 +360,7 @@ export default function EmailSignatureBestPracticesPage() {
                 forced dark background can cause inversion issues.
               </p>
               <p className="text-slate-600 leading-relaxed">
-                For a deep dive on design options, the{" "}
+                For a detailed look at design options, the{" "}
                 <Link href="/email-signature-design" className="text-blue-600 hover:underline">
                   email signature design guide
                 </Link>{" "}

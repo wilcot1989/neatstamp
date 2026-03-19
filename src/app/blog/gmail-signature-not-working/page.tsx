@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Gmail Signature Not Working? 8 Fixes That Actually Work | NeatStamp",
+  title: "Gmail Signature Not Working? 8 Fixes (2026)",
   description:
     "Gmail signature not saving, not showing on replies, or losing its formatting? I've fixed every version of this problem. Here are 8 actual causes with exact steps to fix each one.",
   alternates: {

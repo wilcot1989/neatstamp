@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Free Email Signature Maker — No Signup, Ready in 60 Seconds | NeatStamp",
+  title: "Free Email Signature Maker — No Signup Needed",
   description:
     "Create a professional email signature in under a minute. NeatStamp is free, requires no account, and works in Gmail, Outlook, Apple Mail and more. No watermarks, no hidden fees.",
   alternates: { canonical: "https://neatstamp.com/email-signature-maker" },

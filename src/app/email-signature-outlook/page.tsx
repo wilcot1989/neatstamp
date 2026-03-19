@@ -57,7 +57,7 @@ const RELATED_GUIDES = [
   { href: "/email-signature-gmail", label: "Gmail Signatures", desc: "Complete Gmail guide" },
   { href: "/email-signature-outlook-365", label: "Outlook 365 Signatures", desc: "Microsoft 365 specific" },
   { href: "/email-signature-apple-mail", label: "Apple Mail Signatures", desc: "Mac & iOS setup" },
-  { href: "/html-email-signature", label: "HTML Email Signatures", desc: "Technical deep dive" },
+  { href: "/html-email-signature", label: "HTML Email Signatures", desc: "Full technical breakdown" },
   { href: "/email-signature-for-business", label: "Business Signatures", desc: "Team & brand guide" },
   { href: "/email-signature-with-logo", label: "Signature with Logo", desc: "Logo setup tips" },
   { href: "/professional-email-signature", label: "Professional Signatures", desc: "Best practices" },

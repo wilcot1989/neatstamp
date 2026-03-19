@@ -35,7 +35,7 @@ const faqs = [
   },
   {
     q: "Is Yahoo Mail worth using for professional email in 2026?",
-    a: "For personal email, Yahoo Mail is fine. For professional use — especially if you're sending client communications, running a business, or need robust signature support — Gmail (via Google Workspace) or Outlook (via Microsoft 365) offer better tools. Gmail's signature editor is more capable, better documented, and the resulting signatures render more consistently across recipients. If you're using Yahoo Mail for business, consider whether a custom domain email via Google Workspace or Microsoft 365 might serve you better.",
+    a: "For personal email, Yahoo Mail is fine. For professional use — especially if you're sending client communications, running a business, or need full signature support — Gmail (via Google Workspace) or Outlook (via Microsoft 365) offer better tools. Gmail's signature editor is more capable, better documented, and the resulting signatures render more consistently across recipients. If you're using Yahoo Mail for business, consider whether a custom domain email via Google Workspace or Microsoft 365 might serve you better.",
   },
 ];
 

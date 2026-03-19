@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Best WiseStamp Alternative (2026) — Honest Comparison | NeatStamp",
+  title: "WiseStamp Alternative — Honest Review (2026)",
   description:
     "53% one-star reviews, billing traps, cancel hell. Here's what WiseStamp gets right, where it fails, and what to use instead.",
   alternates: { canonical: "https://neatstamp.com/alternative-to-wisestamp" },

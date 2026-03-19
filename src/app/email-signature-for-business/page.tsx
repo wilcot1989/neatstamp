@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signatures for Business — Brand Every Email (2026) | NeatStamp",
+  title: "Email Signatures for Business — Guide (2026)",
   description:
     "Why consistent team signatures matter, how to roll out across departments, and what a business email signature actually needs. Free guide.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-business" },

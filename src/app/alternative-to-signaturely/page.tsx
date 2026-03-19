@@ -100,7 +100,7 @@ export default function AlternativeToSignaturelyPage() {
               Beyond the product scope mismatch, there are some factual concerns worth knowing about before handing over your contact information. Signaturely's domain has appeared in documented phishing reports — multiple security researchers have flagged Signaturely-branded messages in threat intelligence databases. I want to be careful about what I claim here: these reports don't prove the company is doing anything malicious. Their infrastructure may have been abused by third parties, which happens to many services. But it's a data point that should be on the table when you're evaluating tools that store your name, phone number, and company information.
             </p>
             <p>
-              This page covers the factual landscape around Signaturely, the product scope question, the pricing flow that frustrates users, and how <Link href="/editor">NeatStamp</Link> covers the email signature use case cleanly. I've tried to be fair and stick to documented information rather than speculation.
+              This page covers the facts about Signaturely, the product scope question, the pricing flow that frustrates users, and how <Link href="/editor">NeatStamp</Link> covers the email signature use case cleanly. I've tried to be fair and stick to documented information rather than speculation.
             </p>
           </div>
 

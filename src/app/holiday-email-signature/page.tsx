@@ -110,7 +110,7 @@ export default function HolidayEmailSignaturePage() {
               when the occasion has passed.
             </p>
             <p className="text-muted leading-relaxed">
-              This guide focuses on the broader holiday landscape — the December
+              This guide focuses on the broader holiday picture — the December
               season, end-of-year messaging, and how to handle multiple holidays
               in a diverse professional context. For specific Christmas templates,
               see the{" "}

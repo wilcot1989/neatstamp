@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature for Job Seekers — Land That Interview | NeatStamp",
+  title: "Email Signature for Job Seekers (2026)",
   description:
     "How job seekers should set up email signatures — LinkedIn priority, what NOT to include, networking vs. application signatures, and skills showcase tips.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-job-seekers" },

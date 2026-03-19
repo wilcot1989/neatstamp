@@ -490,7 +490,7 @@ export default function EmailSignatureGmailPage() {
               <h3 className="font-semibold text-slate-900 mb-2">Use a Calendly or booking link instead of asking people to reply</h3>
               <p className="leading-relaxed text-slate-700">
                 If you take calls or meetings as part of your work, a booking link in your signature
-                is one of the highest-leverage things you can do. Instead of three back-and-forth
+                is one of the highest-impact things you can do. Instead of three back-and-forth
                 emails scheduling a time, the person reading your email can click your booking link
                 and pick a slot right there. Keep the link text short: &quot;Book a call&quot; or &quot;Schedule
                 time with me&quot; — not a full URL. Make it a hyperlink so it doesn&apos;t break across

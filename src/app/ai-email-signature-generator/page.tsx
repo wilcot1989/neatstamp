@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "AI Email Signature Generator — What It Is & How It Works | NeatStamp",
+  title: "AI Email Signature Generator — How It Works (2026)",
   description:
     "What AI actually does for email signatures, what it doesn't do, how NeatStamp uses it, and an honest comparison with manual creation.",
   alternates: { canonical: "https://neatstamp.com/ai-email-signature-generator" },

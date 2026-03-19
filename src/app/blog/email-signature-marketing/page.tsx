@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature Marketing — Turn Every Email Into a Campaign | NeatStamp",
+  title: "Email Signature Marketing — Campaign Guide (2026)",
   description:
     "Your team sends thousands of emails a month. That's free advertising space most companies completely ignore. Here's how to turn email signatures into a real marketing channel.",
   alternates: {

@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Animated GIF in Email Signature — Should You Use One? | NeatStamp",
+  title: "Animated GIF in Email Signature — Worth It?",
   description:
     "The honest answer on animated GIFs in email signatures. Gmail, Outlook, and Apple Mail support compared. File size limits, accessibility concerns, and when they actually work.",
   alternates: {
