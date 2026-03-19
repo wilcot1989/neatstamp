@@ -5,6 +5,8 @@ import { useSession } from "next-auth/react";
 import { SignatureData, TemplateName, DEFAULT_SIGNATURE_DATA, TEMPLATES } from "@/lib/types";
 import { generateSignatureHtml } from "@/lib/generateSignature";
 import { copySignatureToClipboard } from "@/lib/clipboard";
+import { Block, getDefaultBlocks } from "@/lib/blocks";
+import BlockEditor from "@/components/BlockEditor";
 import Link from "next/link";
 
 // ---------------------------------------------------------------------------
@@ -681,6 +683,8 @@ export default function EditorPage() {
   const [userPlan, setUserPlan] = useState<"free" | "pro" | "team">("free");
   const [planLoaded, setPlanLoaded] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "info" | "warning" | "success" } | null>(null);
+  const [editorMode, setEditorMode] = useState<"templates" | "blocks">("templates");
+  const [blocks, setBlocks] = useState<Block[]>(() => getDefaultBlocks());
   const previewRef = useRef<HTMLDivElement>(null);
 
   const isPro = userPlan === "pro" || userPlan === "team";
@@ -756,7 +760,7 @@ export default function EditorPage() {
         </nav>
       </div>
 
-      <div className="mb-8 text-center">
+      <div className="mb-6 text-center">
         <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
           Create Your Email Signature
         </h1>
@@ -766,6 +770,53 @@ export default function EditorPage() {
             : "Free. No account needed. Works in Gmail, Outlook, Apple Mail & more."}
         </p>
       </div>
+
+      {/* Mode toggle */}
+      <div className="mb-8 flex justify-center">
+        <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-1 gap-1">
+          <button
+            type="button"
+            onClick={() => setEditorMode("templates")}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+              editorMode === "templates"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            🎨 Templates
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditorMode("blocks")}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+              editorMode === "blocks"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            ✋ Drag &amp; Drop
+          </button>
+        </div>
+      </div>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* DRAG & DROP BLOCK EDITOR MODE                                        */}
+      {/* ------------------------------------------------------------------ */}
+      {editorMode === "blocks" && (
+        <BlockEditor
+          blocks={blocks}
+          onBlocksChange={setBlocks}
+          data={data}
+          onDataChange={setData}
+          plan={userPlan}
+        />
+      )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/* TEMPLATES MODE (original form-based editor)                          */}
+      {/* ------------------------------------------------------------------ */}
+      {editorMode === "templates" && (
+      <>
 
       <div className="mb-2">
         <ProTemplateSelector
@@ -867,6 +918,9 @@ export default function EditorPage() {
           </span>
         </div>
       )}
+
+      </>
+      )} {/* end editorMode === "templates" */}
     </div>
   );
 }
