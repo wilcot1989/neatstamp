@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email service not configured" }, { status: 500 });
     }
 
-    const resetUrl = `https://neatstamp.com/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+    const resetUrl = `https://app.neatstamp.com/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
 
     await fetch("https://api.resend.com/emails", {
       method: "POST",
