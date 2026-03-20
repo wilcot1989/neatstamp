@@ -251,6 +251,139 @@ function SignatureCard({
 }
 
 // ---------------------------------------------------------------------------
+// Compact Signature Form (for dashboard editor)
+// ---------------------------------------------------------------------------
+
+function CompactInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-[11px] font-medium text-slate-500 mb-0.5">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      />
+    </div>
+  );
+}
+
+function CompactSignatureForm({
+  data,
+  onChange,
+}: {
+  data: SignatureData;
+  onChange: (data: SignatureData) => void;
+}) {
+  const update = (field: keyof SignatureData, value: string) => {
+    onChange({ ...data, [field]: value });
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { alert("Image must be under 2MB"); return; }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const size = 200;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        const minDim = Math.min(img.width, img.height);
+        const sx = (img.width - minDim) / 2;
+        const sy = (img.height - minDim) / 2;
+        ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+        update("photoUrl", canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="space-y-3">
+      <details open className="group">
+        <summary className="flex cursor-pointer items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
+          Personal Info
+          <svg className="h-3.5 w-3.5 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+        </summary>
+        <div className="mt-2 space-y-2 px-1">
+          <CompactInput label="Full Name" value={data.fullName} onChange={(v) => update("fullName", v)} placeholder="John Doe" />
+          <CompactInput label="Job Title" value={data.jobTitle} onChange={(v) => update("jobTitle", v)} placeholder="Marketing Manager" />
+          <CompactInput label="Company" value={data.company} onChange={(v) => update("company", v)} placeholder="Acme Corp" />
+          <CompactInput label="Pronouns" value={data.pronouns} onChange={(v) => update("pronouns", v)} placeholder="he/him" />
+        </div>
+      </details>
+
+      <details open className="group">
+        <summary className="flex cursor-pointer items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
+          Contact
+          <svg className="h-3.5 w-3.5 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+        </summary>
+        <div className="mt-2 space-y-2 px-1">
+          <CompactInput label="Email" value={data.email} onChange={(v) => update("email", v)} placeholder="john@company.com" type="email" />
+          <CompactInput label="Phone" value={data.phone} onChange={(v) => update("phone", v)} placeholder="+1 (555) 123-4567" type="tel" />
+          <CompactInput label="Website" value={data.website} onChange={(v) => update("website", v)} placeholder="www.company.com" />
+          <CompactInput label="Address" value={data.address} onChange={(v) => update("address", v)} placeholder="123 Main St, New York" />
+        </div>
+      </details>
+
+      <details className="group">
+        <summary className="flex cursor-pointer items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
+          Photo
+          <svg className="h-3.5 w-3.5 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+        </summary>
+        <div className="mt-2 space-y-2 px-1">
+          {data.photoUrl ? (
+            <div className="flex items-center gap-2">
+              <img src={data.photoUrl} alt="Preview" className="h-10 w-10 rounded-full object-cover border border-slate-200" />
+              <button onClick={() => update("photoUrl", "")} className="text-[11px] text-red-500 hover:text-red-700">Remove</button>
+            </div>
+          ) : (
+            <label className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-xs text-slate-500 hover:border-blue-400 hover:text-blue-600 transition-colors">
+              <span>Upload photo (max 2MB)</span>
+              <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+            </label>
+          )}
+        </div>
+      </details>
+
+      <details className="group">
+        <summary className="flex cursor-pointer items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
+          Social Media
+          <svg className="h-3.5 w-3.5 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+        </summary>
+        <div className="mt-2 space-y-2 px-1">
+          <CompactInput label="LinkedIn" value={data.linkedin} onChange={(v) => update("linkedin", v)} placeholder="https://linkedin.com/in/..." />
+          <CompactInput label="X (Twitter)" value={data.twitter} onChange={(v) => update("twitter", v)} placeholder="https://x.com/..." />
+          <CompactInput label="Instagram" value={data.instagram} onChange={(v) => update("instagram", v)} placeholder="https://instagram.com/..." />
+          <CompactInput label="Facebook" value={data.facebook} onChange={(v) => update("facebook", v)} placeholder="https://facebook.com/..." />
+          <CompactInput label="GitHub" value={data.github} onChange={(v) => update("github", v)} placeholder="https://github.com/..." />
+          <CompactInput label="YouTube" value={data.youtube} onChange={(v) => update("youtube", v)} placeholder="https://youtube.com/@..." />
+        </div>
+      </details>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Sidebar / Tab navigation
 // ---------------------------------------------------------------------------
 
@@ -1132,14 +1265,24 @@ function DashboardContent() {
                 )}
               </div>
 
-              {/* Block editor */}
-              <BlockEditor
-                blocks={editorBlocks}
-                onBlocksChange={setEditorBlocks}
-                data={editorData}
-                onDataChange={setEditorData}
-                plan={plan}
-              />
+              {/* Form + Block editor side by side */}
+              <div className="grid gap-6 lg:grid-cols-7">
+                <div className="lg:col-span-2">
+                  <div className="sticky top-20">
+                    <h3 className="text-sm font-semibold text-slate-800 mb-3">Your Details</h3>
+                    <CompactSignatureForm data={editorData} onChange={setEditorData} />
+                  </div>
+                </div>
+                <div className="lg:col-span-5">
+                  <BlockEditor
+                    blocks={editorBlocks}
+                    onBlocksChange={setEditorBlocks}
+                    data={editorData}
+                    onDataChange={setEditorData}
+                    plan={plan}
+                  />
+                </div>
+              </div>
             </div>
           )}
           {activeTab === "analytics" && (
