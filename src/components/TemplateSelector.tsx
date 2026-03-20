@@ -9,7 +9,7 @@ import {
   TemplateName,
   ColorTheme,
 } from "@/lib/types";
-import { generateHtmlFromBlocks, getPresetForTemplate } from "@/lib/blocks";
+import { generateSignatureHtml } from "@/lib/generateSignature";
 
 interface TemplateSelectorProps {
   selectedTemplate: TemplateName;
@@ -55,8 +55,7 @@ export default function TemplateSelector({
       company: template?.previewCompany ?? DEFAULT_SIGNATURE_DATA.company,
       photoUrl: template?.previewPhoto ?? "",
     };
-    const preset = getPresetForTemplate(templateId, previewData);
-    return generateHtmlFromBlocks(preset.blocks, previewData, preset.wrapperSettings);
+    return generateSignatureHtml(previewData);
   }
 
   function handleSelect(templateId: TemplateName, templateIsPro: boolean) {

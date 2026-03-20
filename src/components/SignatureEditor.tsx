@@ -2,8 +2,8 @@
 
 import { useState, useRef } from "react";
 import { SignatureData, WrapperSettings, DEFAULT_WRAPPER_SETTINGS } from "@/lib/types";
-import { generateHtmlFromBlocks, Block, SOCIAL_ICON_URLS, SOCIAL_LABELS } from "@/lib/blocks";
-import { GenerateOptions } from "@/lib/generateSignature";
+import { Block, SOCIAL_ICON_URLS, SOCIAL_LABELS } from "@/lib/blocks";
+import { GenerateOptions, generateSignatureHtml } from "@/lib/generateSignature";
 import { copySignatureToClipboard } from "@/lib/clipboard";
 
 // ---------------------------------------------------------------------------
@@ -370,7 +370,7 @@ function LivePreview({ blocks, data, wrapperSettings, plan }: {
   blocks: Block[]; data: SignatureData; wrapperSettings: WrapperSettings; plan: "free" | "pro" | "team";
 }) {
   const options: GenerateOptions = { plan };
-  const html = generateHtmlFromBlocks(blocks, data, wrapperSettings, options);
+  const html = generateSignatureHtml(data, options);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -484,7 +484,7 @@ export default function SignatureEditor({
       }
     }
 
-    let html = generateHtmlFromBlocks(blocks, copyData, ws, options);
+    let html = generateSignatureHtml(copyData, options);
 
     if (copyData.photoUrl && copyData.photoUrl.startsWith("data:")) {
       try {
