@@ -58,13 +58,17 @@ function socialLinks(data: SignatureData): string {
 
 function photoCell(
   data: SignatureData,
-  size: number,
-  borderRadius: string,
+  defaultSize: number,
+  defaultBorderRadius: string,
   options?: GenerateOptions
 ): string {
   if (!data.photoUrl) return "";
 
-  // For free users with a signatureId, route photo through our CDN
+  // User overrides from Design tab
+  const size = data.photoSize ?? defaultSize;
+  const shape = data.photoShape ?? "";
+  const borderRadius = shape === "circle" ? "50%" : shape === "rounded" ? "8px" : shape === "square" ? "0" : defaultBorderRadius;
+
   const isPro = options?.plan === "pro" || options?.plan === "team";
   let src = escapeHtml(data.photoUrl);
   if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
@@ -836,7 +840,79 @@ export function generateSignatureHtml(
   options?: GenerateOptions
 ): string {
   const generator = templateGenerators[data.template] || generateMinimal;
-  return generator(data, options);
+  let html = generator(data, options);
+
+  // Apply user styling overrides from Design tab (data.nameSize, data.nameColor, etc.)
+  html = applyStyleOverrides(html, data);
+
+  return html;
+}
+
+function applyStyleOverrides(html: string, data: SignatureData): string {
+  // Font family override — replace all font-family declarations
+  if (data.fontFamily) {
+    html = html.replace(/font-family:[^;"]+/g, `font-family:${data.fontFamily}`);
+  }
+
+  // Name styling: find the fullName text and apply overrides
+  if (data.fullName) {
+    const nameEscaped = escapeHtml(data.fullName);
+    const nameStyles: string[] = [];
+    if (data.nameSize) nameStyles.push(`font-size:${data.nameSize}px`);
+    if (data.nameColor) nameStyles.push(`color:${data.nameColor}`);
+    if (data.nameBold === false) nameStyles.push("font-weight:normal");
+    if (data.nameBold === true) nameStyles.push("font-weight:bold");
+    if (data.nameItalic) nameStyles.push("font-style:italic");
+
+    if (nameStyles.length > 0) {
+      // Replace the name element's inline styles
+      const namePattern = new RegExp(`(style="[^"]*)(">\\s*${nameEscaped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "g");
+      html = html.replace(namePattern, (match, stylePart, rest) => {
+        let newStyle = stylePart;
+        nameStyles.forEach((s) => {
+          const prop = s.split(":")[0];
+          const re = new RegExp(`${prop}:[^;]+;?`);
+          if (re.test(newStyle)) {
+            newStyle = newStyle.replace(re, `${s};`);
+          } else {
+            newStyle += `;${s}`;
+          }
+        });
+        return newStyle + rest;
+      });
+    }
+  }
+
+  // Title color override
+  if (data.titleColor && data.jobTitle) {
+    const titleEscaped = escapeHtml(data.jobTitle);
+    const titlePattern = new RegExp(`(style="[^"]*color:)[^;"]+([^"]*">\\s*${titleEscaped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "g");
+    html = html.replace(titlePattern, `$1${data.titleColor}$2`);
+  }
+
+  // Title size override
+  if (data.titleSize && data.jobTitle) {
+    const titleEscaped = escapeHtml(data.jobTitle);
+    const titleSizePattern = new RegExp(`(style="[^"]*font-size:)[^;"]+([^"]*">\\s*${titleEscaped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "g");
+    html = html.replace(titleSizePattern, `$1${data.titleSize}px$2`);
+  }
+
+  // Background color wrapper
+  if (data.backgroundColor && data.backgroundColor !== "#ffffff") {
+    const textColor = data.textOnDark ? "#ffffff" : "#333333";
+    html = `<table cellpadding="0" cellspacing="0" border="0" style="background-color:${escapeHtml(data.backgroundColor)};border-radius:8px;"><tr><td style="padding:16px 20px;color:${textColor};">${html}</td></tr></table>`;
+    // If textOnDark, also override text colors inside
+    if (data.textOnDark) {
+      html = html.replace(/color:#1a1a1a/g, "color:#ffffff");
+      html = html.replace(/color:#333/g, "color:#ffffff");
+      html = html.replace(/color:#555/g, "color:rgba(255,255,255,0.85)");
+      html = html.replace(/color:#666/g, "color:rgba(255,255,255,0.8)");
+      html = html.replace(/color:#999/g, "color:rgba(255,255,255,0.5)");
+      html = html.replace(/color:#aaa/g, "color:rgba(255,255,255,0.4)");
+    }
+  }
+
+  return html;
 }
 
 // Copy HTML — what the user actually gets when they click "Copy"

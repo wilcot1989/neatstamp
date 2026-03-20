@@ -318,19 +318,12 @@ function PhotoSection({
   onBlocksChange: (b: Block[]) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const photoBlock = blocks.find((b) => b.type === "photo");
-  const s = photoBlock?.settings ?? {};
-  const shape = String(s.shape ?? "circle");
-  const size = Number(s.size ?? 80);
-  const position = String(s.position ?? "left");
+  const shape = String(data.photoShape ?? "circle");
+  const size = Number(data.photoSize ?? 80);
+  const position = String(data.photoPosition ?? "left");
 
   const set = (key: string, val: unknown) => {
-    if (!photoBlock) return;
-    onBlocksChange(
-      blocks.map((b) =>
-        b.id === photoBlock.id ? { ...b, settings: { ...b.settings, [key]: val } } : b
-      )
-    );
+    onDataChange({ ...data, [key]: val });
   };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -413,7 +406,7 @@ function PhotoSection({
             <button
               key={opt.value}
               type="button"
-              onClick={() => set("shape", opt.value)}
+              onClick={() => set("photoShape", opt.value)}
               title={opt.title}
               className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${
                 shape === opt.value
@@ -441,7 +434,7 @@ function PhotoSection({
           min={40}
           max={120}
           value={size}
-          onChange={(e) => set("size", Number(e.target.value))}
+          onChange={(e) => set("photoSize", Number(e.target.value))}
           className="w-full h-1.5 accent-blue-600"
         />
       </div>
@@ -454,7 +447,7 @@ function PhotoSection({
             <button
               key={p}
               type="button"
-              onClick={() => set("position", p)}
+              onClick={() => set("photoPosition", p)}
               className={`px-4 py-1.5 text-xs font-medium transition-colors ${
                 position === p
                   ? "bg-blue-600 text-white"
@@ -627,99 +620,62 @@ function AddOnsSection({
 // ---------------------------------------------------------------------------
 
 function DesignPanel({
-  blocks,
   data,
-  wrapperSettings: ws,
-  onBlocksChange,
   onDataChange,
-  onWrapperSettingsChange,
 }: {
-  blocks: Block[];
   data: SignatureData;
-  wrapperSettings: WrapperSettings;
-  onBlocksChange: (b: Block[]) => void;
   onDataChange: (d: SignatureData) => void;
-  onWrapperSettingsChange: (ws: WrapperSettings) => void;
 }) {
-  const nameBlock = blocks.find((b) => b.type === "name");
-  const ns = nameBlock?.settings ?? {};
-
-  const setName = (key: string, val: unknown) => {
-    if (!nameBlock) return;
-    onBlocksChange(
-      blocks.map((b) =>
-        b.id === nameBlock.id ? { ...b, settings: { ...b.settings, [key]: val } } : b
-      )
-    );
-  };
-
-  // Text styling rows: { label, boldKey, italicKey, underlineKey, colorKey, sizeKey }
-  const textRows = [
-    { label: "Job Title", boldKey: "titleBold", italicKey: "titleItalic", underlineKey: "titleUnderline", colorKey: "titleColor", sizeKey: "titleSize", defaultColor: "#555555", defaultSize: 13 },
-    { label: "Name", boldKey: "nameBold", italicKey: "nameItalic", underlineKey: "nameUnderline", colorKey: "nameColor", sizeKey: "nameSize", defaultColor: "#1a1a1a", defaultSize: 16 },
-    { label: "Company", boldKey: "companyBold", italicKey: "companyItalic", underlineKey: "companyUnderline", colorKey: "companyColor", sizeKey: "companySize", defaultColor: "#555555", defaultSize: 13 },
-  ];
-
-  const contactRows = [
-    { label: "Label text", boldKey: "labelBold", italicKey: "labelItalic", colorKey: "labelColor", sizeKey: "labelSize", defaultColor: "#888888", defaultSize: 12 },
-    { label: "Info text", boldKey: "infoBold", italicKey: "infoItalic", colorKey: "infoColor", sizeKey: "infoSize", defaultColor: "#555555", defaultSize: 12 },
-  ];
+  const set = (key: keyof SignatureData, val: unknown) => onDataChange({ ...data, [key]: val });
 
   return (
     <div className="space-y-6">
-      {/* Text Styling */}
+      {/* Text Styling — all write to data.* so renderer can read them */}
       <div>
         <SectionHeader title="Text Styling" />
-        <div className="space-y-2">
-          {textRows.map((row) => (
-            <div key={row.label} className="flex items-center gap-2">
-              <span className="w-16 text-xs text-slate-500 flex-shrink-0">{row.label}</span>
-              <BIUButtons
-                bold={Boolean(ns[row.boldKey])}
-                italic={Boolean(ns[row.italicKey])}
-                underline={Boolean(ns[row.underlineKey])}
-                onBold={(v) => setName(row.boldKey, v)}
-                onItalic={(v) => setName(row.italicKey, v)}
-                onUnderline={(v) => setName(row.underlineKey, v)}
-              />
-              <ColorDot
-                value={String(ns[row.colorKey] ?? row.defaultColor)}
-                onChange={(v) => setName(row.colorKey, v)}
-              />
-              <FontSizeInput
-                value={Number(ns[row.sizeKey] ?? row.defaultSize)}
-                onChange={(v) => setName(row.sizeKey, v)}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Contact Info Styling */}
-      <div>
-        <SectionHeader title="Contact Info Styling" />
-        <div className="space-y-2">
-          {contactRows.map((row) => (
-            <div key={row.label} className="flex items-center gap-2">
-              <span className="w-16 text-xs text-slate-500 flex-shrink-0">{row.label}</span>
-              <BIUButtons
-                bold={Boolean(ns[row.boldKey])}
-                italic={Boolean(ns[row.italicKey])}
-                underline={false}
-                onBold={(v) => setName(row.boldKey, v)}
-                onItalic={(v) => setName(row.italicKey, v)}
-                onUnderline={() => {}}
-              />
-              <ColorDot
-                value={String(ns[row.colorKey] ?? row.defaultColor)}
-                onChange={(v) => setName(row.colorKey, v)}
-              />
-              <FontSizeInput
-                value={Number(ns[row.sizeKey] ?? row.defaultSize)}
-                onChange={(v) => setName(row.sizeKey, v)}
-              />
-            </div>
-          ))}
+        <div className="space-y-2.5">
+          {/* Name */}
+          <div className="flex items-center gap-2">
+            <span className="w-16 text-xs text-slate-500 flex-shrink-0">Name</span>
+            <BIUButtons
+              bold={data.nameBold ?? true}
+              italic={data.nameItalic ?? false}
+              underline={false}
+              onBold={(v) => set("nameBold", v)}
+              onItalic={(v) => set("nameItalic", v)}
+              onUnderline={() => {}}
+            />
+            <ColorDot value={data.nameColor ?? "#1a1a1a"} onChange={(v) => set("nameColor", v)} />
+            <FontSizeInput value={data.nameSize ?? 17} onChange={(v) => set("nameSize", v)} />
+          </div>
+          {/* Job Title */}
+          <div className="flex items-center gap-2">
+            <span className="w-16 text-xs text-slate-500 flex-shrink-0">Title</span>
+            <BIUButtons
+              bold={data.titleBold ?? false}
+              italic={data.titleItalic ?? false}
+              underline={false}
+              onBold={(v) => set("titleBold", v)}
+              onItalic={(v) => set("titleItalic", v)}
+              onUnderline={() => {}}
+            />
+            <ColorDot value={data.titleColor ?? "#555555"} onChange={(v) => set("titleColor", v)} />
+            <FontSizeInput value={data.titleSize ?? 12} onChange={(v) => set("titleSize", v)} />
+          </div>
+          {/* Company */}
+          <div className="flex items-center gap-2">
+            <span className="w-16 text-xs text-slate-500 flex-shrink-0">Company</span>
+            <BIUButtons
+              bold={data.companyBold ?? false}
+              italic={data.companyItalic ?? false}
+              underline={false}
+              onBold={(v) => set("companyBold", v)}
+              onItalic={(v) => set("companyItalic", v)}
+              onUnderline={() => {}}
+            />
+            <ColorDot value={data.companyColor ?? "#999999"} onChange={(v) => set("companyColor", v)} />
+            <FontSizeInput value={data.companySize ?? 12} onChange={(v) => set("companySize", v)} />
+          </div>
         </div>
       </div>
 
@@ -730,8 +686,8 @@ function DesignPanel({
           <div>
             <label className="text-[11px] font-medium text-slate-500 block mb-1">Font family</label>
             <select
-              value={ws.fontFamily}
-              onChange={(e) => onWrapperSettingsChange({ ...ws, fontFamily: e.target.value })}
+              value={data.fontFamily ?? "Arial,Helvetica,sans-serif"}
+              onChange={(e) => set("fontFamily", e.target.value)}
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
             >
               <option value="Arial,Helvetica,sans-serif">Arial</option>
@@ -744,17 +700,33 @@ function DesignPanel({
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-[11px] font-medium text-slate-500">Line height</label>
-              <span className="text-[11px] text-slate-400">{ws.baseFontSize}</span>
+              <label className="text-[11px] font-medium text-slate-500">Base font size</label>
+              <span className="text-[11px] text-slate-400">{data.fontSize ?? 14}px</span>
             </div>
-            <input
-              type="range"
-              min={12}
-              max={22}
-              value={ws.baseFontSize}
-              onChange={(e) => onWrapperSettingsChange({ ...ws, baseFontSize: Number(e.target.value) })}
-              className="w-full h-1.5 accent-blue-600"
-            />
+            <input type="range" min={11} max={18} value={data.fontSize ?? 14} onChange={(e) => set("fontSize", Number(e.target.value))} className="w-full h-1.5 accent-blue-600" />
+          </div>
+        </div>
+      </div>
+
+      {/* Photo */}
+      <div>
+        <SectionHeader title="Photo Style" />
+        <div className="space-y-3">
+          <div>
+            <label className="text-[11px] font-medium text-slate-500 block mb-1">Size</label>
+            <input type="range" min={40} max={120} value={data.photoSize ?? 70} onChange={(e) => set("photoSize", Number(e.target.value))} className="w-full h-1.5 accent-blue-600" />
+            <span className="text-[10px] text-slate-400">{data.photoSize ?? 70}px</span>
+          </div>
+          <div>
+            <label className="text-[11px] font-medium text-slate-500 block mb-1">Shape</label>
+            <div className="flex gap-2">
+              {(["circle", "rounded", "square"] as const).map((s) => (
+                <button key={s} type="button" onClick={() => set("photoShape", s)}
+                  className={`h-8 w-8 rounded-lg border flex items-center justify-center transition-colors ${(data.photoShape ?? "circle") === s ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300"}`}>
+                  <span className="h-4 w-4 bg-slate-400" style={{ borderRadius: s === "circle" ? "50%" : s === "rounded" ? "20%" : "0" }} />
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -763,80 +735,36 @@ function DesignPanel({
       <div>
         <SectionHeader title="Colors" />
         <div className="space-y-2.5">
-          {[
-            { label: "Primary color", key: "primaryColor" as keyof SignatureData, fallback: "#2563eb" },
-            { label: "Accent color", key: "accentColor" as keyof SignatureData, fallback: "#f59e0b" },
-          ].map((item) => (
-            <div key={item.key} className="flex items-center justify-between">
-              <span className="text-xs text-slate-600">{item.label}</span>
-              <label className="relative cursor-pointer">
-                <span
-                  className="block h-7 w-12 rounded-lg border border-slate-200 shadow-sm"
-                  style={{ backgroundColor: String(data[item.key] ?? item.fallback) }}
-                />
-                <input
-                  type="color"
-                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                  value={String(data[item.key] ?? item.fallback)}
-                  onChange={(e) => onDataChange({ ...data, [item.key]: e.target.value })}
-                />
-              </label>
-            </div>
-          ))}
-
-          {/* Background color */}
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-600">Background color</span>
+            <span className="text-xs text-slate-600">Primary color</span>
+            <label className="relative cursor-pointer">
+              <span className="block h-7 w-12 rounded-lg border border-slate-200 shadow-sm" style={{ backgroundColor: data.primaryColor }} />
+              <input type="color" className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" value={data.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} />
+            </label>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-600">Accent color</span>
+            <label className="relative cursor-pointer">
+              <span className="block h-7 w-12 rounded-lg border border-slate-200 shadow-sm" style={{ backgroundColor: data.accentColor }} />
+              <input type="color" className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" value={data.accentColor} onChange={(e) => set("accentColor", e.target.value)} />
+            </label>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-600">Background</span>
             <div className="flex items-center gap-1.5">
               <label className="relative cursor-pointer">
-                <span
-                  className="block h-7 w-12 rounded-lg border border-slate-200 shadow-sm"
-                  style={{ backgroundColor: ws.backgroundColor !== "none" ? ws.backgroundColor : "#ffffff" }}
-                />
-                <input
-                  type="color"
-                  value={ws.backgroundColor !== "none" ? ws.backgroundColor : "#ffffff"}
-                  onChange={(e) =>
-                    onWrapperSettingsChange({
-                      ...ws,
-                      backgroundColor: e.target.value,
-                      backgroundRadius: 8,
-                      backgroundPadding: 16,
-                    })
-                  }
-                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                />
+                <span className="block h-7 w-12 rounded-lg border border-slate-200 shadow-sm" style={{ backgroundColor: data.backgroundColor ?? "#ffffff" }} />
+                <input type="color" value={data.backgroundColor ?? "#ffffff"} onChange={(e) => set("backgroundColor", e.target.value)} className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" />
               </label>
-              {ws.backgroundColor !== "none" && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    onWrapperSettingsChange({
-                      ...ws,
-                      backgroundColor: "none",
-                      backgroundPadding: 0,
-                      backgroundRadius: 0,
-                      textOnDark: false,
-                    })
-                  }
-                  className="text-xs text-slate-400 hover:text-red-500 transition-colors px-1"
-                  title="Remove background"
-                >
-                  none
-                </button>
+              {data.backgroundColor && (
+                <button type="button" onClick={() => { set("backgroundColor", undefined); set("textOnDark", false); }} className="text-xs text-slate-400 hover:text-red-500 px-1">none</button>
               )}
             </div>
           </div>
-
-          {ws.backgroundColor !== "none" && (
+          {data.backgroundColor && (
             <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={ws.textOnDark}
-                onChange={(e) => onWrapperSettingsChange({ ...ws, textOnDark: e.target.checked })}
-                className="accent-blue-600 h-3.5 w-3.5"
-              />
-              <span className="text-xs text-slate-600">Light text (for dark background)</span>
+              <input type="checkbox" checked={data.textOnDark ?? false} onChange={(e) => set("textOnDark", e.target.checked)} className="accent-blue-600 h-3.5 w-3.5" />
+              <span className="text-xs text-slate-600">Light text (dark background)</span>
             </label>
           )}
         </div>
@@ -1043,12 +971,8 @@ export default function SignatureEditor({
             </>
           ) : (
             <DesignPanel
-              blocks={blocks}
               data={data}
-              wrapperSettings={ws}
-              onBlocksChange={onBlocksChange}
               onDataChange={onDataChange}
-              onWrapperSettingsChange={onWrapperSettingsChange}
             />
           )}
         </div>

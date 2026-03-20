@@ -20,6 +20,26 @@ export interface SignatureData {
   ctaBannerLink: string;
   pronouns: string;
   address: string;
+  // Styling overrides (set via Design tab, read by renderer)
+  fontFamily?: string;
+  fontSize?: number;
+  nameSize?: number;
+  nameColor?: string;
+  nameBold?: boolean;
+  nameItalic?: boolean;
+  titleSize?: number;
+  titleColor?: string;
+  titleBold?: boolean;
+  titleItalic?: boolean;
+  companySize?: number;
+  companyColor?: string;
+  companyBold?: boolean;
+  companyItalic?: boolean;
+  photoSize?: number;
+  photoShape?: string;
+  photoPosition?: string;
+  backgroundColor?: string;
+  textOnDark?: boolean;
 }
 
 // ---------------------------------------------------------------------------
