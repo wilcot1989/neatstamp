@@ -6,7 +6,8 @@ import { useEffect, useState, useRef, Suspense } from "react";
 import Link from "next/link";
 import { SignatureData, DEFAULT_SIGNATURE_DATA, TemplateName, TEMPLATES, WrapperSettings, DEFAULT_WRAPPER_SETTINGS } from "@/lib/types";
 import { Block, getDefaultBlocks, getPresetForTemplate } from "@/lib/blocks";
-import BlockEditor from "@/components/BlockEditor";
+import dynamic from "next/dynamic";
+const SignatureEditor = dynamic(() => import("@/components/SignatureEditor"), { ssr: false });
 import { generateSignatureHtml } from "@/lib/generateSignature";
 
 // ---------------------------------------------------------------------------
@@ -1443,7 +1444,7 @@ function DashboardContent() {
                 )}
               </div>
 
-              {/* Form + Block editor side by side */}
+              {/* Form + Signature editor side by side */}
               <div className="grid gap-6 lg:grid-cols-7">
                 <div className="lg:col-span-2">
                   <div className="sticky top-20">
@@ -1452,13 +1453,13 @@ function DashboardContent() {
                   </div>
                 </div>
                 <div className="lg:col-span-5">
-                  <BlockEditor
+                  <SignatureEditor
                     blocks={editorBlocks}
-                    onBlocksChange={setEditorBlocks}
                     data={editorData}
-                    onDataChange={setEditorData}
-                    plan={plan}
                     wrapperSettings={editorWrapperSettings}
+                    plan={plan}
+                    onBlocksChange={setEditorBlocks}
+                    onDataChange={setEditorData}
                     onWrapperSettingsChange={setEditorWrapperSettings}
                   />
                 </div>

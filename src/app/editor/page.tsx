@@ -6,7 +6,9 @@ import { SignatureData, TemplateName, DEFAULT_SIGNATURE_DATA, TEMPLATES, Wrapper
 import { generateSignatureHtml, generateCopyHtml } from "@/lib/generateSignature";
 import { copySignatureToClipboard } from "@/lib/clipboard";
 import { Block, getDefaultBlocks, getPresetForTemplate } from "@/lib/blocks";
-import BlockEditor from "@/components/BlockEditor";
+import dynamic from "next/dynamic";
+
+const SignatureEditor = dynamic(() => import("@/components/SignatureEditor"), { ssr: false });
 
 
 // ---------------------------------------------------------------------------
@@ -827,7 +829,7 @@ export default function EditorPage() {
       )}
       {isPro && <div className="mb-8" />}
 
-      {/* Three-column layout: form | blocks | preview */}
+      {/* Two-column layout: form | editor */}
       <div className="grid gap-6 lg:grid-cols-7">
         {/* Left: Your details form (compact) */}
         <div className="lg:col-span-2">
@@ -837,15 +839,15 @@ export default function EditorPage() {
           </div>
         </div>
 
-        {/* Right: Drag & drop layout + live preview + copy */}
+        {/* Right: TipTap signature editor */}
         <div className="lg:col-span-5">
-          <BlockEditor
+          <SignatureEditor
             blocks={blocks}
-            onBlocksChange={setBlocks}
             data={data}
-            onDataChange={setData}
-            plan={userPlan}
             wrapperSettings={wrapperSettings}
+            plan={userPlan}
+            onBlocksChange={setBlocks}
+            onDataChange={setData}
             onWrapperSettingsChange={setWrapperSettings}
           />
         </div>
