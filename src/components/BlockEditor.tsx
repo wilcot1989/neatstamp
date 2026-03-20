@@ -333,11 +333,18 @@ function LivePreview({
     plan,
     signatureId: sigId,
   };
-  // Block-based rendering with template styling for preview
+  // Templates with complex/unique layouts that the block renderer can't replicate
+  const TEMPLATE_RENDER_TEMPLATES: string[] = [
+    "executive", "gradient", "developer", "sales", "medical", "legal",
+    "academic", "realtor", "influencer", "photographer", "dark", "simple",
+    "bold", "creative",
+  ];
+  const useTemplateRenderer = TEMPLATE_RENDER_TEMPLATES.includes(data.template);
+
+  // Block-based rendering for basic templates, template-specific for complex ones
   const blockHtml = generateHtmlFromBlocks(blocks, data, options);
-  // Template-based rendering for copy output (exact match with what user gets)
   const templateHtml = generateSignatureHtml(data, options);
-  const html = blockHtml;
+  const html = useTemplateRenderer ? templateHtml : blockHtml;
 
   const handleCopy = async () => {
     let finalHtml = templateHtml;

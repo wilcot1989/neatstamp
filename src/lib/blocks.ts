@@ -181,17 +181,20 @@ export function getBlocksForTemplate(template: string): Block[] {
   return blocks;
 }
 
-// Ensure blocks have a photo block when switching to a template that needs one
+// Ensure blocks match the template — add/remove photo block as needed
 export function ensureBlocksForTemplate(existingBlocks: Block[], template: string): Block[] {
   const needsPhoto = TEMPLATES_WITH_PHOTO.includes(template);
   const hasPhotoBlock = existingBlocks.some((b) => b.type === "photo");
 
   if (needsPhoto && !hasPhotoBlock) {
-    // Add photo block at the beginning
     return [
       makeBlock("photo", { settings: { ...BLOCK_CONFIGS.photo.defaultSettings, position: "left" } }),
       ...existingBlocks,
     ];
+  }
+
+  if (!needsPhoto && hasPhotoBlock) {
+    return existingBlocks.filter((b) => b.type !== "photo");
   }
 
   return existingBlocks;
