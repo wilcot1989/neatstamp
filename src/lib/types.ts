@@ -80,19 +80,19 @@ export const TEMPLATES: TemplateConfig[] = [
     id: "corporate",
     name: "Corporate",
     description: "Professional look for business environments.",
-    isPro: false,
+    isPro: true,
   },
   {
     id: "creative",
     name: "Creative",
     description: "Stand out with a bold, colorful design.",
-    isPro: false,
+    isPro: true,
   },
   {
     id: "bold",
     name: "Bold",
     description: "Make a strong impression with large text.",
-    isPro: false,
+    isPro: true,
   },
   {
     id: "elegant",
