@@ -14,28 +14,40 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function socialLink(url: string, platform: string, color: string): string {
+const SOCIAL_ICON_URLS: Record<string, string> = {
+  linkedin: "https://neatstamp.com/icons/linkedin.svg",
+  twitter: "https://neatstamp.com/icons/twitter.svg",
+  instagram: "https://neatstamp.com/icons/instagram.svg",
+  facebook: "https://neatstamp.com/icons/facebook.svg",
+  github: "https://neatstamp.com/icons/github.svg",
+  youtube: "https://neatstamp.com/icons/youtube.svg",
+};
+
+const SOCIAL_LABELS: Record<string, string> = {
+  linkedin: "LinkedIn",
+  twitter: "X (Twitter)",
+  instagram: "Instagram",
+  facebook: "Facebook",
+  github: "GitHub",
+  youtube: "YouTube",
+};
+
+function socialLink(url: string, platform: string): string {
   if (!url) return "";
   const href = url.startsWith("http") ? url : `https://${url}`;
-  const labels: Record<string, string> = {
-    linkedin: "LinkedIn",
-    twitter: "X (Twitter)",
-    instagram: "Instagram",
-    facebook: "Facebook",
-    github: "GitHub",
-    youtube: "YouTube",
-  };
-  return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" style="color:${color};text-decoration:none;font-size:12px;margin-right:12px;">${labels[platform] || platform}</a>`;
+  const label = SOCIAL_LABELS[platform] || platform;
+  const iconUrl = SOCIAL_ICON_URLS[platform] || "";
+  return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-right:8px;text-decoration:none;" title="${escapeHtml(label)}"><img src="${iconUrl}" alt="${escapeHtml(label)}" width="20" height="20" style="width:20px;height:20px;display:block;border:0;" /></a>`;
 }
 
-function socialLinks(data: SignatureData, color: string): string {
+function socialLinks(data: SignatureData): string {
   const links = [
-    socialLink(data.linkedin, "linkedin", color),
-    socialLink(data.twitter, "twitter", color),
-    socialLink(data.instagram, "instagram", color),
-    socialLink(data.facebook, "facebook", color),
-    socialLink(data.github, "github", color),
-    socialLink(data.youtube, "youtube", color),
+    socialLink(data.linkedin, "linkedin"),
+    socialLink(data.twitter, "twitter"),
+    socialLink(data.instagram, "instagram"),
+    socialLink(data.facebook, "facebook"),
+    socialLink(data.github, "github"),
+    socialLink(data.youtube, "youtube"),
   ]
     .filter(Boolean)
     .join("");
@@ -116,7 +128,7 @@ function generateMinimal(data: SignatureData, options?: GenerateOptions): string
             ${data.address ? `<tr><td style="padding-top:2px;color:#888;">${escapeHtml(data.address)}</td></tr>` : ""}
           </table>
         </td></tr>
-        ${socialLinks(data, c)}
+        ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
         ${!isPro ? neatstampBranding() : ""}
@@ -150,7 +162,7 @@ function generateModern(data: SignatureData, options?: GenerateOptions): string 
         </td></tr>
         ${data.website ? `<tr><td style="padding-top:2px;font-size:12px;"><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>` : ""}
         ${data.address ? `<tr><td style="padding-top:2px;font-size:11px;color:#888;">${escapeHtml(data.address)}</td></tr>` : ""}
-        ${socialLinks(data, c)}
+        ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
         ${!isPro ? neatstampBranding() : ""}
@@ -181,7 +193,7 @@ function generateCorporate(data: SignatureData, options?: GenerateOptions): stri
             ${data.address ? `<tr><td style="padding-bottom:2px;"><strong style="color:#888;">A</strong>&nbsp;&nbsp;${escapeHtml(data.address)}</td></tr>` : ""}
           </table>
         </td></tr>
-        ${socialLinks(data, c)}
+        ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
         ${!isPro ? neatstampBranding() : ""}
@@ -225,7 +237,7 @@ function generateCreative(data: SignatureData, options?: GenerateOptions): strin
             ${data.address ? `<tr><td style="padding-bottom:3px;color:#888;">&#128205; ${escapeHtml(data.address)}</td></tr>` : ""}
           </table>
         </td></tr>
-        ${socialLinks(data, c)}
+        ${socialLinks(data)}
         ${calendlyButton(data, a)}
         ${ctaBanner(data)}
         ${!isPro ? neatstampBranding() : ""}
@@ -266,14 +278,7 @@ function generateBold(data: SignatureData, options?: GenerateOptions): string {
                 ${data.website ? `<tr><td style="padding-bottom:3px;"><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:#ffffff;text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>` : ""}
               </table>
             </td></tr>
-            ${data.linkedin || data.twitter || data.instagram || data.facebook || data.github || data.youtube ? `<tr><td style="padding-top:8px;">${[
-              socialLink(data.linkedin, "linkedin", "rgba(255,255,255,0.8)"),
-              socialLink(data.twitter, "twitter", "rgba(255,255,255,0.8)"),
-              socialLink(data.instagram, "instagram", "rgba(255,255,255,0.8)"),
-              socialLink(data.facebook, "facebook", "rgba(255,255,255,0.8)"),
-              socialLink(data.github, "github", "rgba(255,255,255,0.8)"),
-              socialLink(data.youtube, "youtube", "rgba(255,255,255,0.8)"),
-            ].filter(Boolean).join("")}</td></tr>` : ""}
+            ${socialLinks(data)}
             ${data.calendlyUrl ? `<tr><td style="padding-top:10px;"><a href="${escapeHtml(data.calendlyUrl.startsWith("http") ? data.calendlyUrl : `https://${data.calendlyUrl}`)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:6px 16px;background-color:#ffffff;color:${c};text-decoration:none;font-size:12px;font-family:Arial,sans-serif;border-radius:4px;font-weight:bold;">Book a Meeting</a></td></tr>` : ""}
           </table>
         </td>
@@ -308,7 +313,7 @@ function generateElegant(data: SignatureData, options?: GenerateOptions): string
             ${data.address ? `<tr><td style="padding-bottom:2px;color:#888;">${escapeHtml(data.address)}</td></tr>` : ""}
           </table>
         </td></tr>
-        ${socialLinks(data, c)}
+        ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
         ${!isPro ? neatstampBranding() : ""}
@@ -357,16 +362,7 @@ function generateStartup(data: SignatureData, options?: GenerateOptions): string
     </table>
   </td></tr>
   ${data.address ? `<tr><td style="font-size:11px;color:#888;padding-top:2px;">${escapeHtml(data.address)}</td></tr>` : ""}
-  <tr><td style="padding-top:6px;">
-    ${[
-      socialLink(data.linkedin, "linkedin", c),
-      socialLink(data.twitter, "twitter", c),
-      socialLink(data.instagram, "instagram", c),
-      socialLink(data.facebook, "facebook", c),
-      socialLink(data.github, "github", c),
-      socialLink(data.youtube, "youtube", c),
-    ].filter(Boolean).join("")}
-  </td></tr>
+  ${socialLinks(data)}
   ${data.calendlyUrl ? `<tr><td style="padding-top:8px;"><a href="${escapeHtml(data.calendlyUrl.startsWith("http") ? data.calendlyUrl : `https://${data.calendlyUrl}`)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:5px 14px;background:linear-gradient(135deg,${c},${a});color:#fff;text-decoration:none;font-size:11px;font-family:Arial,sans-serif;border-radius:20px;font-weight:bold;">&#128197; Book a Meeting</a></td></tr>` : ""}
   ${ctaBanner(data)}
   ${!isPro ? neatstampBranding() : ""}
@@ -389,13 +385,7 @@ function generateCompact(data: SignatureData, options?: GenerateOptions): string
     ].filter(Boolean).join(" &middot; ")}
   </td></tr>
   ${data.address ? `<tr><td style="font-size:11px;color:#888;padding-top:2px;">${escapeHtml(data.address)}</td></tr>` : ""}
-  <tr><td style="padding-top:4px;font-size:12px;">
-    ${[
-      socialLink(data.linkedin, "linkedin", c),
-      socialLink(data.twitter, "twitter", c),
-      socialLink(data.github, "github", c),
-    ].filter(Boolean).join("")}
-  </td></tr>
+  ${socialLinks(data)}
   ${calendlyButton(data, c)}
   ${!isPro ? neatstampBranding() : ""}
   ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}

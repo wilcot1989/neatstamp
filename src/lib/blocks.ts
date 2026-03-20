@@ -656,16 +656,22 @@ const SOCIAL_LABELS: Record<string, string> = {
   youtube: "YouTube",
 };
 
+const SOCIAL_ICON_URLS: Record<string, string> = {
+  linkedin: "https://neatstamp.com/icons/linkedin.svg",
+  twitter: "https://neatstamp.com/icons/twitter.svg",
+  instagram: "https://neatstamp.com/icons/instagram.svg",
+  facebook: "https://neatstamp.com/icons/facebook.svg",
+  github: "https://neatstamp.com/icons/github.svg",
+  youtube: "https://neatstamp.com/icons/youtube.svg",
+};
+
 const SOCIAL_FIELDS: (keyof SignatureData)[] = [
   "linkedin", "twitter", "instagram", "facebook", "github", "youtube",
 ];
 
 function renderSocial(block: Block, data: SignatureData, ts: TemplateStyle, plan: "free" | "pro" | "team"): string {
-  const s = block.settings;
-  const style = safeStr(s.style, "text");
   const isPro = plan === "pro" || plan === "team";
   const maxLinks = isPro ? 99 : 2;
-  const linkColor = resolveColor(ts.socialColor, data, ts);
 
   let fields = SOCIAL_FIELDS;
   if (ts.socialSubset) {
@@ -678,15 +684,14 @@ function renderSocial(block: Block, data: SignatureData, ts: TemplateStyle, plan
 
   if (links.length === 0) return "";
 
+  const iconSize = 20;
   const parts = links.map((f) => {
     const url = String(data[f]);
     const href = url.startsWith("http") ? url : `https://${url}`;
     const label = SOCIAL_LABELS[f] ?? String(f);
+    const iconUrl = SOCIAL_ICON_URLS[f];
 
-    if (style === "icons") {
-      return `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-right:6px;padding:2px 6px;background-color:${data.primaryColor};color:#ffffff;font-size:10px;font-family:Arial,Helvetica,sans-serif;text-decoration:none;border-radius:3px;">${esc(label)}</a>`;
-    }
-    return `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="color:${linkColor};text-decoration:none;font-size:12px;font-family:Arial,Helvetica,sans-serif;margin-right:10px;">${esc(label)}</a>`;
+    return `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-right:8px;text-decoration:none;" title="${esc(label)}"><img src="${iconUrl}" alt="${esc(label)}" width="${iconSize}" height="${iconSize}" style="width:${iconSize}px;height:${iconSize}px;display:block;border:0;" /></a>`;
   });
 
   return `<tr><td style="padding-bottom:4px;">${parts.join("")}</td></tr>`;
