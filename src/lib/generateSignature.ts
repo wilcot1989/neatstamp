@@ -15,12 +15,12 @@ function escapeHtml(text: string): string {
 }
 
 const SOCIAL_ICON_URLS: Record<string, string> = {
-  linkedin: "https://neatstamp.com/icons/linkedin.svg",
-  twitter: "https://neatstamp.com/icons/twitter.svg",
-  instagram: "https://neatstamp.com/icons/instagram.svg",
-  facebook: "https://neatstamp.com/icons/facebook.svg",
-  github: "https://neatstamp.com/icons/github.svg",
-  youtube: "https://neatstamp.com/icons/youtube.svg",
+  linkedin: "https://neatstamp.com/icons/linkedin.png",
+  twitter: "https://neatstamp.com/icons/twitter.png",
+  instagram: "https://neatstamp.com/icons/instagram.png",
+  facebook: "https://neatstamp.com/icons/facebook.png",
+  github: "https://neatstamp.com/icons/github.png",
+  youtube: "https://neatstamp.com/icons/youtube.png",
 };
 
 const SOCIAL_LABELS: Record<string, string> = {
