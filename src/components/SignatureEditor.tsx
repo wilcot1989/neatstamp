@@ -21,57 +21,257 @@ interface SignatureEditorProps {
 }
 
 // ---------------------------------------------------------------------------
-// Small form controls
+// Drag handle — 6-dot ⠿ pattern
 // ---------------------------------------------------------------------------
 
-function Field({ label, value, onChange, placeholder, type = "text" }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string;
-}) {
+function DragHandle() {
   return (
-    <div>
-      <label className="block text-[11px] font-medium text-slate-500 mb-0.5">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
-      />
+    <span
+      className="cursor-grab select-none text-slate-300 hover:text-slate-400 transition-colors flex-shrink-0"
+      title="Drag to reorder"
+      aria-hidden="true"
+    >
+      <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor">
+        <circle cx="2" cy="2" r="1.5" />
+        <circle cx="8" cy="2" r="1.5" />
+        <circle cx="2" cy="8" r="1.5" />
+        <circle cx="8" cy="8" r="1.5" />
+        <circle cx="2" cy="14" r="1.5" />
+        <circle cx="8" cy="14" r="1.5" />
+      </svg>
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Section header with divider
+// ---------------------------------------------------------------------------
+
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-3">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+        {title}
+      </span>
+      <div className="flex-1 h-px bg-slate-200" />
     </div>
   );
 }
 
-function Section({ title, icon, children, defaultOpen = true }: {
-  title: string; icon: string; children: React.ReactNode; defaultOpen?: boolean;
-}) {
+// ---------------------------------------------------------------------------
+// Delete button
+// ---------------------------------------------------------------------------
+
+function DeleteBtn({ onClick }: { onClick: () => void }) {
   return (
-    <details open={defaultOpen} className="group">
-      <summary className="flex cursor-pointer items-center gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors select-none">
-        <span>{icon}</span>
-        <span className="flex-1">{title}</span>
-        <svg className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
-      </summary>
-      <div className="mt-2 space-y-2.5 px-1 pb-1">{children}</div>
-    </details>
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+      aria-label="Delete"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+      </svg>
+    </button>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Photo upload section
+// Bold / Italic / Underline toggle buttons
 // ---------------------------------------------------------------------------
 
-function PhotoUpload({ data, onDataChange, photoBlock, onBlockSettingsChange }: {
+function BIUButtons({
+  bold, italic, underline,
+  onBold, onItalic, onUnderline,
+}: {
+  bold: boolean; italic: boolean; underline: boolean;
+  onBold: (v: boolean) => void; onItalic: (v: boolean) => void; onUnderline: (v: boolean) => void;
+}) {
+  const cls = (active: boolean) =>
+    `h-6 w-6 rounded text-[11px] font-semibold border transition-colors ${
+      active
+        ? "bg-blue-600 text-white border-blue-600"
+        : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
+    }`;
+  return (
+    <div className="flex gap-0.5">
+      <button type="button" onClick={() => onBold(!bold)} className={cls(bold)}>B</button>
+      <button type="button" onClick={() => onItalic(!italic)} className={`${cls(italic)} italic`}>I</button>
+      <button type="button" onClick={() => onUnderline(!underline)} className={`${cls(underline)} underline`}>U</button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Inline color picker dot
+// ---------------------------------------------------------------------------
+
+function ColorDot({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="relative h-6 w-6 flex-shrink-0 cursor-pointer" title="Pick color">
+      <span
+        className="absolute inset-0 rounded border border-slate-200 shadow-sm"
+        style={{ backgroundColor: value }}
+      />
+      <input
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+      />
+    </label>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Font size number input
+// ---------------------------------------------------------------------------
+
+function FontSizeInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <input
+      type="number"
+      min={8}
+      max={36}
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      className="w-12 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-center text-xs text-slate-700 focus:border-blue-500 focus:outline-none"
+    />
+  );
+}
+
+// ---------------------------------------------------------------------------
+// TAB 1: Details Panel
+// ---------------------------------------------------------------------------
+
+// --- User Info Section ---
+
+function UserInfoSection({
+  data,
+  onDataChange,
+}: {
   data: SignatureData;
   onDataChange: (d: SignatureData) => void;
-  photoBlock: Block | undefined;
-  onBlockSettingsChange: (id: string, s: Record<string, unknown>) => void;
+}) {
+  const fields: { key: keyof SignatureData; label: string; placeholder: string; required?: boolean }[] = [
+    { key: "jobTitle", label: "Job Title", placeholder: "Marketing Manager" },
+    { key: "fullName", label: "Name", placeholder: "John Doe", required: true },
+    { key: "company", label: "Company", placeholder: "Acme Corp" },
+    { key: "pronouns", label: "Pronouns", placeholder: "he/him" },
+  ];
+
+  return (
+    <div className="space-y-1.5">
+      <SectionHeader title="User Info" />
+      {fields.map((f) => (
+        <div key={f.key} className="flex items-center gap-2 group">
+          <DragHandle />
+          <input
+            type="text"
+            value={String(data[f.key] ?? "")}
+            onChange={(e) => onDataChange({ ...data, [f.key]: e.target.value })}
+            placeholder={f.placeholder}
+            className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+          />
+          {f.required ? (
+            <div className="h-7 w-7 flex-shrink-0" />
+          ) : (
+            <DeleteBtn onClick={() => onDataChange({ ...data, [f.key]: "" as never })} />
+          )}
+        </div>
+      ))}
+      <button
+        type="button"
+        className="mt-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+      >
+        + Add text field
+      </button>
+    </div>
+  );
+}
+
+// --- Contact Info Section ---
+
+type ContactRow = { id: string; label: string; value: string; dataKey: keyof SignatureData };
+
+function ContactInfoSection({
+  data,
+  onDataChange,
+}: {
+  data: SignatureData;
+  onDataChange: (d: SignatureData) => void;
+}) {
+  const defaultRows: ContactRow[] = [
+    { id: "phone", label: "p.", value: data.phone, dataKey: "phone" },
+    { id: "email", label: "e.", value: data.email, dataKey: "email" },
+    { id: "website", label: "w.", value: data.website, dataKey: "website" },
+    ...(data.address ? [{ id: "address", label: "a.", value: data.address, dataKey: "address" as keyof SignatureData }] : []),
+  ];
+
+  return (
+    <div className="space-y-1.5">
+      <SectionHeader title="Contact Info" />
+      {defaultRows.map((row) => (
+        <div key={row.id} className="flex items-center gap-2">
+          <DragHandle />
+          <input
+            type="text"
+            value={row.label}
+            readOnly
+            className="w-10 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs text-slate-500 text-center focus:outline-none flex-shrink-0"
+          />
+          <input
+            type="text"
+            value={row.value}
+            onChange={(e) => onDataChange({ ...data, [row.dataKey]: e.target.value })}
+            placeholder={row.dataKey === "email" ? "john@company.com" : row.dataKey === "phone" ? "+1 (555) 123-4567" : row.dataKey === "website" ? "www.company.com" : "123 Main St"}
+            className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+          />
+          <DeleteBtn onClick={() => onDataChange({ ...data, [row.dataKey]: "" })} />
+        </div>
+      ))}
+      {!data.address && (
+        <button
+          type="button"
+          onClick={() => onDataChange({ ...data, address: " " })}
+          className="mt-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+        >
+          + Add contact field
+        </button>
+      )}
+    </div>
+  );
+}
+
+// --- Photo or Logo Section ---
+
+function PhotoSection({
+  data,
+  onDataChange,
+  blocks,
+  onBlocksChange,
+}: {
+  data: SignatureData;
+  onDataChange: (d: SignatureData) => void;
+  blocks: Block[];
+  onBlocksChange: (b: Block[]) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const photoBlock = blocks.find((b) => b.type === "photo");
   const s = photoBlock?.settings ?? {};
-  const size = Number(s.size ?? 80);
   const shape = String(s.shape ?? "circle");
-  const borderWidth = Number(s.borderWidth ?? 0);
-  const borderColor = String(s.borderColor ?? "#2563eb");
+  const size = Number(s.size ?? 80);
+  const position = String(s.position ?? "left");
+
+  const set = (key: string, val: unknown) => {
+    if (!photoBlock) return;
+    onBlocksChange(
+      blocks.map((b) =>
+        b.id === photoBlock.id ? { ...b, settings: { ...b.settings, [key]: val } } : b
+      )
+    );
+  };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -86,7 +286,6 @@ function PhotoUpload({ data, onDataChange, photoBlock, onBlockSettingsChange }: 
         canvas.width = sz; canvas.height = sz;
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
-        // Square crop from center
         const min = Math.min(img.width, img.height);
         ctx.drawImage(img, (img.width - min) / 2, (img.height - min) / 2, min, min, 0, 0, sz, sz);
         onDataChange({ ...data, photoUrl: canvas.toDataURL("image/jpeg", 0.85) });
@@ -96,216 +295,199 @@ function PhotoUpload({ data, onDataChange, photoBlock, onBlockSettingsChange }: 
     reader.readAsDataURL(file);
   };
 
-  const set = (key: string, val: unknown) => {
-    if (!photoBlock) return;
-    onBlockSettingsChange(photoBlock.id, { ...s, [key]: val });
-  };
+  const shapeOptions: { value: string; title: string; borderRadius: string }[] = [
+    { value: "circle", title: "Circle", borderRadius: "50%" },
+    { value: "rounded", title: "Rounded", borderRadius: "22%" },
+    { value: "near-square", title: "Near square", borderRadius: "8%" },
+    { value: "square", title: "Square", borderRadius: "0%" },
+  ];
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-3">
+      <SectionHeader title="Photo or Logo" />
+
       {data.photoUrl ? (
         <div className="flex items-center gap-3">
           <img
             src={data.photoUrl}
             alt="Photo"
-            className="object-cover border border-slate-200"
+            className="object-cover border border-slate-200 flex-shrink-0"
             style={{
-              width: 56, height: 56,
-              borderRadius: shape === "circle" ? "50%" : shape === "rounded" ? "8px" : "0px",
+              width: 52, height: 52,
+              borderRadius: shape === "circle" ? "50%" : shape === "rounded" ? "22%" : shape === "near-square" ? "8%" : "0",
             }}
           />
           <div className="flex gap-2">
-            <button onClick={() => fileRef.current?.click()} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">Change</button>
-            <button onClick={() => onDataChange({ ...data, photoUrl: "" })} className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100">Remove</button>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              Replace
+            </button>
+            <button
+              type="button"
+              onClick={() => onDataChange({ ...data, photoUrl: "" })}
+              className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+            >
+              Delete
+            </button>
           </div>
         </div>
       ) : (
-        <label className="flex cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-5 text-sm text-slate-500 hover:border-blue-300 hover:text-blue-600 transition-colors">
-          Click to upload photo
+        <label className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-5 text-sm text-slate-400 hover:border-blue-300 hover:text-blue-500 transition-colors">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+          </svg>
+          <span>Click to upload photo or logo</span>
           <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
         </label>
       )}
       <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
 
-      {photoBlock && (
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-[10px] text-slate-500">Size</label>
-            <input type="range" min={40} max={120} value={size} onChange={(e) => set("size", Number(e.target.value))} className="w-full accent-blue-600 h-1" />
-          </div>
-          <div>
-            <label className="text-[10px] text-slate-500">Shape</label>
-            <div className="flex gap-1">
-              {(["circle", "rounded", "square"] as const).map((sh) => (
-                <button key={sh} onClick={() => set("shape", sh)} className={`flex-1 px-1 py-0.5 text-[10px] rounded ${shape === sh ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>{sh}</button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="text-[10px] text-slate-500">Border</label>
-            <input type="range" min={0} max={5} value={borderWidth} onChange={(e) => set("borderWidth", Number(e.target.value))} className="w-full accent-blue-600 h-1" />
-          </div>
-          {borderWidth > 0 && (
-            <div>
-              <label className="text-[10px] text-slate-500">Border color</label>
-              <input type="color" value={borderColor} onChange={(e) => set("borderColor", e.target.value)} className="h-6 w-full rounded border cursor-pointer" />
-            </div>
-          )}
-          <div>
-            <label className="text-[10px] text-slate-500">Position</label>
-            <div className="flex gap-1">
-              {(["left", "right"] as const).map((p) => (
-                <button key={p} onClick={() => set("position", p)} className={`flex-1 px-1 py-0.5 text-[10px] rounded ${String(s.position ?? "left") === p ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>{p === "left" ? "← Left" : "Right →"}</button>
-              ))}
-            </div>
-          </div>
+      {/* Shape */}
+      <div>
+        <p className="text-[11px] font-medium text-slate-500 mb-1.5">Shape</p>
+        <div className="flex gap-2">
+          {shapeOptions.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => set("shape", opt.value)}
+              title={opt.title}
+              className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${
+                shape === opt.value
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-slate-200 bg-white hover:border-slate-300"
+              }`}
+            >
+              <span
+                className="h-5 w-5 bg-slate-400"
+                style={{ borderRadius: opt.borderRadius }}
+              />
+            </button>
+          ))}
         </div>
-      )}
+      </div>
+
+      {/* Size */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-[11px] font-medium text-slate-500">Size</p>
+          <span className="text-[11px] text-slate-400">{size}px</span>
+        </div>
+        <input
+          type="range"
+          min={40}
+          max={120}
+          value={size}
+          onChange={(e) => set("size", Number(e.target.value))}
+          className="w-full h-1.5 accent-blue-600"
+        />
+      </div>
+
+      {/* Position */}
+      <div>
+        <p className="text-[11px] font-medium text-slate-500 mb-1.5">Position</p>
+        <div className="flex rounded-lg border border-slate-200 overflow-hidden w-fit">
+          {(["left", "right"] as const).map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => set("position", p)}
+              className={`px-4 py-1.5 text-xs font-medium transition-colors ${
+                position === p
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {p === "left" ? "Left" : "Right"}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Style controls
-// ---------------------------------------------------------------------------
+// --- Social Media Section ---
 
-function StyleControls({ blocks, wrapperSettings: ws, onBlockSettingsChange, onWrapperChange }: {
-  blocks: Block[];
-  wrapperSettings: WrapperSettings;
-  onBlockSettingsChange: (id: string, s: Record<string, unknown>) => void;
-  onWrapperChange: (ws: WrapperSettings) => void;
+const SOCIAL_PLATFORMS = [
+  { key: "linkedin" as keyof SignatureData, icon: "linkedin" },
+  { key: "twitter" as keyof SignatureData, icon: "twitter" },
+  { key: "instagram" as keyof SignatureData, icon: "instagram" },
+  { key: "facebook" as keyof SignatureData, icon: "facebook" },
+  { key: "github" as keyof SignatureData, icon: "github" },
+  { key: "youtube" as keyof SignatureData, icon: "youtube" },
+];
+
+function SocialSection({
+  data,
+  onDataChange,
+  plan,
+}: {
+  data: SignatureData;
+  onDataChange: (d: SignatureData) => void;
+  plan: "free" | "pro" | "team";
 }) {
-  const nameBlock = blocks.find((b) => b.type === "name");
-  const contactBlock = blocks.find((b) => b.type === "contact");
-  const dividerBlock = blocks.find((b) => b.type === "divider");
-  const ns = nameBlock?.settings ?? {};
-  const cs = contactBlock?.settings ?? {};
-  const ds = dividerBlock?.settings ?? {};
+  const isPro = plan === "pro" || plan === "team";
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  const setName = (key: string, val: unknown) => nameBlock && onBlockSettingsChange(nameBlock.id, { ...ns, [key]: val });
-  const setContact = (key: string, val: unknown) => contactBlock && onBlockSettingsChange(contactBlock.id, { ...cs, [key]: val });
-  const setDivider = (key: string, val: unknown) => dividerBlock && onBlockSettingsChange(dividerBlock.id, { ...ds, [key]: val });
+  const activePlatforms = SOCIAL_PLATFORMS.filter((p) => String(data[p.key] ?? "").trim() !== "");
+  const availablePlatforms = SOCIAL_PLATFORMS.filter((p) => String(data[p.key] ?? "").trim() === "");
 
   return (
-    <div className="space-y-3">
-      {/* Font family */}
-      <div>
-        <label className="text-[10px] text-slate-500">Font</label>
-        <select
-          value={ws.fontFamily}
-          onChange={(e) => onWrapperChange({ ...ws, fontFamily: e.target.value })}
-          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 focus:border-blue-500 focus:outline-none"
-        >
-          <option value="Arial,Helvetica,sans-serif">Arial</option>
-          <option value="Georgia,'Times New Roman',serif">Georgia</option>
-          <option value="'Courier New',Courier,monospace">Courier New</option>
-          <option value="Verdana,Geneva,sans-serif">Verdana</option>
-          <option value="Tahoma,Geneva,sans-serif">Tahoma</option>
-          <option value="'Trebuchet MS',Helvetica,sans-serif">Trebuchet MS</option>
-        </select>
-      </div>
-
-      {/* Name styling */}
-      {nameBlock && (
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-[10px] text-slate-500">Name color</label>
-            <input type="color" value={String(ns.nameColor ?? "#1a1a1a")} onChange={(e) => setName("nameColor", e.target.value)} className="h-6 w-full rounded border cursor-pointer" />
-          </div>
-          <div>
-            <label className="text-[10px] text-slate-500">Name size</label>
-            <input type="range" min={12} max={28} value={Number(ns.nameSize ?? 16)} onChange={(e) => setName("nameSize", Number(e.target.value))} className="w-full accent-blue-600 h-1" />
-          </div>
-          <div>
-            <label className="text-[10px] text-slate-500">Title color</label>
-            <input type="color" value={String(ns.titleColor ?? "#555555")} onChange={(e) => setName("titleColor", e.target.value)} className="h-6 w-full rounded border cursor-pointer" />
-          </div>
-          <div>
-            <label className="text-[10px] text-slate-500">Weight</label>
-            <div className="flex gap-1">
-              {(["300", "normal", "bold"] as const).map((w) => (
-                <button key={w} onClick={() => setName("nameWeight", w)} className={`flex-1 px-1 py-0.5 text-[10px] rounded ${String(ns.nameWeight ?? "bold") === w ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"}`}>
-                  {w === "300" ? "Light" : w === "normal" ? "Reg" : "Bold"}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Contact link color */}
-      {contactBlock && (
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-[10px] text-slate-500">Link color</label>
-            <input type="color" value={String(cs.linkColor ?? "#2563eb")} onChange={(e) => setContact("linkColor", e.target.value)} className="h-6 w-full rounded border cursor-pointer" />
-          </div>
-          <div>
-            <label className="text-[10px] text-slate-500">Contact layout</label>
-            <select
-              value={String(cs.layout ?? "stacked")}
-              onChange={(e) => setContact("layout", e.target.value)}
-              className="w-full rounded border border-slate-200 bg-white px-1.5 py-1 text-[10px] text-slate-700"
-            >
-              <option value="stacked">Stacked</option>
-              <option value="inline-pipes">Inline |</option>
-              <option value="inline-middot">Inline ·</option>
-              <option value="stacked-labeled">With labels</option>
-              <option value="stacked-emoji">With emoji</option>
-            </select>
-          </div>
-        </div>
-      )}
-
-      {/* Divider */}
-      {dividerBlock && (
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-[10px] text-slate-500">Divider color</label>
-            <input type="color" value={String(ds.color ?? "#2563eb")} onChange={(e) => setDivider("color", e.target.value)} className="h-6 w-full rounded border cursor-pointer" />
-          </div>
-          <div>
-            <label className="text-[10px] text-slate-500">Divider style</label>
-            <div className="flex gap-1">
-              {(["solid", "dashed", "dotted"] as const).map((st) => (
-                <button key={st} onClick={() => setDivider("style", st)} className={`flex-1 px-1 py-0.5 text-[10px] rounded ${String(ds.style ?? "solid") === st ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"}`}>{st}</button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="text-[10px] text-slate-500">Thickness</label>
-            <input type="range" min={1} max={5} value={Number(ds.thickness ?? 2)} onChange={(e) => setDivider("thickness", Number(e.target.value))} className="w-full accent-blue-600 h-1" />
-          </div>
-          <div>
-            <label className="text-[10px] text-slate-500">Width</label>
-            <input type="range" min={20} max={100} value={Number(ds.width ?? 100)} onChange={(e) => setDivider("width", Number(e.target.value))} className="w-full accent-blue-600 h-1" />
-          </div>
-        </div>
-      )}
-
-      {/* Background */}
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="text-[10px] text-slate-500">Background</label>
-          <div className="flex items-center gap-1">
-            <input
-              type="color"
-              value={ws.backgroundColor !== "none" ? ws.backgroundColor : "#ffffff"}
-              onChange={(e) => onWrapperChange({ ...ws, backgroundColor: e.target.value, backgroundRadius: 8, backgroundPadding: 16 })}
-              className="h-6 w-8 rounded border cursor-pointer"
-            />
-            {ws.backgroundColor !== "none" && (
-              <button onClick={() => onWrapperChange({ ...ws, backgroundColor: "none", backgroundPadding: 0, backgroundRadius: 0, textOnDark: false })} className="text-[10px] text-red-500">&times;</button>
+    <div className="space-y-1.5">
+      <SectionHeader title="Social Media" />
+      {activePlatforms.map((p, i) => {
+        const locked = !isPro && i >= 2;
+        return (
+          <div key={p.key} className="flex items-center gap-2">
+            <DragHandle />
+            <img src={SOCIAL_ICON_URLS[p.icon]} alt={SOCIAL_LABELS[p.icon] ?? p.icon} className="h-4 w-4 flex-shrink-0" />
+            {locked ? (
+              <div className="flex-1 flex items-center justify-between rounded-lg border border-dashed border-amber-200 bg-amber-50 px-3 py-1.5">
+                <span className="text-xs text-amber-700">{SOCIAL_LABELS[p.icon]}</span>
+                <span className="text-[9px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full">PRO</span>
+              </div>
+            ) : (
+              <input
+                type="text"
+                value={String(data[p.key] ?? "")}
+                onChange={(e) => onDataChange({ ...data, [p.key]: e.target.value })}
+                placeholder={`https://...`}
+                className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+              />
             )}
+            <DeleteBtn onClick={() => onDataChange({ ...data, [p.key]: "" })} />
           </div>
-        </div>
-        {ws.backgroundColor !== "none" && (
-          <div>
-            <label className="text-[10px] text-slate-500">Light text</label>
-            <label className="flex items-center gap-1.5 mt-1">
-              <input type="checkbox" checked={ws.textOnDark} onChange={(e) => onWrapperChange({ ...ws, textOnDark: e.target.checked })} className="accent-blue-600 h-3 w-3" />
-              <span className="text-[10px] text-slate-600">For dark bg</span>
-            </label>
+        );
+      })}
+
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setShowDropdown((v) => !v)}
+          className="mt-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+        >
+          + Add social link
+        </button>
+        {showDropdown && availablePlatforms.length > 0 && (
+          <div className="absolute left-0 top-full mt-1 z-10 w-48 rounded-xl border border-slate-200 bg-white shadow-lg py-1">
+            {availablePlatforms.map((p) => (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => {
+                  onDataChange({ ...data, [p.key]: " " });
+                  setShowDropdown(false);
+                }}
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <img src={SOCIAL_ICON_URLS[p.icon]} alt="" className="h-4 w-4" />
+                {SOCIAL_LABELS[p.icon] ?? p.key}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -313,51 +495,292 @@ function StyleControls({ blocks, wrapperSettings: ws, onBlockSettingsChange, onW
   );
 }
 
-// ---------------------------------------------------------------------------
-// Social media fields
-// ---------------------------------------------------------------------------
+// --- Add-ons Section (Pro) ---
 
-function SocialFields({ data, onDataChange, plan }: {
-  data: SignatureData; onDataChange: (d: SignatureData) => void; plan: "free" | "pro" | "team";
+function AddOnsSection({
+  data,
+  onDataChange,
+  plan,
+}: {
+  data: SignatureData;
+  onDataChange: (d: SignatureData) => void;
+  plan: "free" | "pro" | "team";
 }) {
   const isPro = plan === "pro" || plan === "team";
-  const socialFields: { key: keyof SignatureData; label: string; placeholder: string; icon: string }[] = [
-    { key: "linkedin", label: "LinkedIn", placeholder: "https://linkedin.com/in/...", icon: "linkedin" },
-    { key: "twitter", label: "X (Twitter)", placeholder: "https://x.com/...", icon: "twitter" },
-    { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/...", icon: "instagram" },
-    { key: "facebook", label: "Facebook", placeholder: "https://facebook.com/...", icon: "facebook" },
-    { key: "github", label: "GitHub", placeholder: "https://github.com/...", icon: "github" },
-    { key: "youtube", label: "YouTube", placeholder: "https://youtube.com/@...", icon: "youtube" },
+
+  if (!isPro) {
+    return (
+      <div className="space-y-2">
+        <SectionHeader title="Add-ons" />
+        <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50 p-4 text-center">
+          <p className="text-xs font-semibold text-amber-700">Pro Feature</p>
+          <p className="text-xs text-amber-600 mt-0.5">Upgrade to add CTA buttons, banners & disclaimers</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <SectionHeader title="Add-ons" />
+
+      {/* CTA Button */}
+      <div>
+        <p className="text-[11px] font-medium text-slate-500 mb-1.5">CTA Button</p>
+        <div className="space-y-1.5">
+          <input
+            type="text"
+            value={data.calendlyUrl}
+            onChange={(e) => onDataChange({ ...data, calendlyUrl: e.target.value })}
+            placeholder="Button URL (e.g. calendly.com/...)"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+          />
+        </div>
+      </div>
+
+      {/* Banner */}
+      <div>
+        <p className="text-[11px] font-medium text-slate-500 mb-1.5">Banner</p>
+        <div className="space-y-1.5">
+          <input
+            type="text"
+            value={data.ctaBannerUrl}
+            onChange={(e) => onDataChange({ ...data, ctaBannerUrl: e.target.value })}
+            placeholder="Banner image URL"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+          />
+          <input
+            type="text"
+            value={data.ctaBannerLink}
+            onChange={(e) => onDataChange({ ...data, ctaBannerLink: e.target.value })}
+            placeholder="Banner link URL"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// TAB 2: Design Panel
+// ---------------------------------------------------------------------------
+
+function DesignPanel({
+  blocks,
+  data,
+  wrapperSettings: ws,
+  onBlocksChange,
+  onDataChange,
+  onWrapperSettingsChange,
+}: {
+  blocks: Block[];
+  data: SignatureData;
+  wrapperSettings: WrapperSettings;
+  onBlocksChange: (b: Block[]) => void;
+  onDataChange: (d: SignatureData) => void;
+  onWrapperSettingsChange: (ws: WrapperSettings) => void;
+}) {
+  const nameBlock = blocks.find((b) => b.type === "name");
+  const ns = nameBlock?.settings ?? {};
+
+  const setName = (key: string, val: unknown) => {
+    if (!nameBlock) return;
+    onBlocksChange(
+      blocks.map((b) =>
+        b.id === nameBlock.id ? { ...b, settings: { ...b.settings, [key]: val } } : b
+      )
+    );
+  };
+
+  // Text styling rows: { label, boldKey, italicKey, underlineKey, colorKey, sizeKey }
+  const textRows = [
+    { label: "Job Title", boldKey: "titleBold", italicKey: "titleItalic", underlineKey: "titleUnderline", colorKey: "titleColor", sizeKey: "titleSize", defaultColor: "#555555", defaultSize: 13 },
+    { label: "Name", boldKey: "nameBold", italicKey: "nameItalic", underlineKey: "nameUnderline", colorKey: "nameColor", sizeKey: "nameSize", defaultColor: "#1a1a1a", defaultSize: 16 },
+    { label: "Company", boldKey: "companyBold", italicKey: "companyItalic", underlineKey: "companyUnderline", colorKey: "companyColor", sizeKey: "companySize", defaultColor: "#555555", defaultSize: 13 },
+  ];
+
+  const contactRows = [
+    { label: "Label text", boldKey: "labelBold", italicKey: "labelItalic", colorKey: "labelColor", sizeKey: "labelSize", defaultColor: "#888888", defaultSize: 12 },
+    { label: "Info text", boldKey: "infoBold", italicKey: "infoItalic", colorKey: "infoColor", sizeKey: "infoSize", defaultColor: "#555555", defaultSize: 12 },
   ];
 
   return (
-    <div className="space-y-2">
-      {socialFields.map((f, i) => {
-        const locked = !isPro && i >= 2 && !data[f.key];
-        if (locked) {
-          return (
-            <div key={f.key} className="flex items-center justify-between rounded-lg border border-dashed border-amber-200 bg-amber-50 px-3 py-2">
-              <div className="flex items-center gap-2">
-                <img src={SOCIAL_ICON_URLS[f.icon]} alt={f.label} className="h-4 w-4 opacity-50" />
-                <span className="text-[11px] text-amber-700">{f.label}</span>
-              </div>
-              <span className="text-[9px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full">PRO</span>
+    <div className="space-y-6">
+      {/* Text Styling */}
+      <div>
+        <SectionHeader title="Text Styling" />
+        <div className="space-y-2">
+          {textRows.map((row) => (
+            <div key={row.label} className="flex items-center gap-2">
+              <span className="w-16 text-xs text-slate-500 flex-shrink-0">{row.label}</span>
+              <BIUButtons
+                bold={Boolean(ns[row.boldKey])}
+                italic={Boolean(ns[row.italicKey])}
+                underline={Boolean(ns[row.underlineKey])}
+                onBold={(v) => setName(row.boldKey, v)}
+                onItalic={(v) => setName(row.italicKey, v)}
+                onUnderline={(v) => setName(row.underlineKey, v)}
+              />
+              <ColorDot
+                value={String(ns[row.colorKey] ?? row.defaultColor)}
+                onChange={(v) => setName(row.colorKey, v)}
+              />
+              <FontSizeInput
+                value={Number(ns[row.sizeKey] ?? row.defaultSize)}
+                onChange={(v) => setName(row.sizeKey, v)}
+              />
             </div>
-          );
-        }
-        return (
-          <div key={f.key} className="flex items-center gap-2">
-            <img src={SOCIAL_ICON_URLS[f.icon]} alt={f.label} className="h-4 w-4" />
+          ))}
+        </div>
+      </div>
+
+      {/* Contact Info Styling */}
+      <div>
+        <SectionHeader title="Contact Info Styling" />
+        <div className="space-y-2">
+          {contactRows.map((row) => (
+            <div key={row.label} className="flex items-center gap-2">
+              <span className="w-16 text-xs text-slate-500 flex-shrink-0">{row.label}</span>
+              <BIUButtons
+                bold={Boolean(ns[row.boldKey])}
+                italic={Boolean(ns[row.italicKey])}
+                underline={false}
+                onBold={(v) => setName(row.boldKey, v)}
+                onItalic={(v) => setName(row.italicKey, v)}
+                onUnderline={() => {}}
+              />
+              <ColorDot
+                value={String(ns[row.colorKey] ?? row.defaultColor)}
+                onChange={(v) => setName(row.colorKey, v)}
+              />
+              <FontSizeInput
+                value={Number(ns[row.sizeKey] ?? row.defaultSize)}
+                onChange={(v) => setName(row.sizeKey, v)}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Style */}
+      <div>
+        <SectionHeader title="Style" />
+        <div className="space-y-3">
+          <div>
+            <label className="text-[11px] font-medium text-slate-500 block mb-1">Font family</label>
+            <select
+              value={ws.fontFamily}
+              onChange={(e) => onWrapperSettingsChange({ ...ws, fontFamily: e.target.value })}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
+            >
+              <option value="Arial,Helvetica,sans-serif">Arial</option>
+              <option value="Georgia,'Times New Roman',serif">Georgia</option>
+              <option value="'Courier New',Courier,monospace">Courier New</option>
+              <option value="Verdana,Geneva,sans-serif">Verdana</option>
+              <option value="Tahoma,Geneva,sans-serif">Tahoma</option>
+              <option value="'Trebuchet MS',Helvetica,sans-serif">Trebuchet MS</option>
+            </select>
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-medium text-slate-500">Line height</label>
+              <span className="text-[11px] text-slate-400">{ws.baseFontSize}</span>
+            </div>
             <input
-              type="text"
-              value={String(data[f.key] ?? "")}
-              onChange={(e) => onDataChange({ ...data, [f.key]: e.target.value })}
-              placeholder={f.placeholder}
-              className="flex-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+              type="range"
+              min={12}
+              max={22}
+              value={ws.baseFontSize}
+              onChange={(e) => onWrapperSettingsChange({ ...ws, baseFontSize: Number(e.target.value) })}
+              className="w-full h-1.5 accent-blue-600"
             />
           </div>
-        );
-      })}
+        </div>
+      </div>
+
+      {/* Colors */}
+      <div>
+        <SectionHeader title="Colors" />
+        <div className="space-y-2.5">
+          {[
+            { label: "Primary color", key: "primaryColor" as keyof SignatureData, fallback: "#2563eb" },
+            { label: "Accent color", key: "accentColor" as keyof SignatureData, fallback: "#f59e0b" },
+          ].map((item) => (
+            <div key={item.key} className="flex items-center justify-between">
+              <span className="text-xs text-slate-600">{item.label}</span>
+              <label className="relative cursor-pointer">
+                <span
+                  className="block h-7 w-12 rounded-lg border border-slate-200 shadow-sm"
+                  style={{ backgroundColor: String(data[item.key] ?? item.fallback) }}
+                />
+                <input
+                  type="color"
+                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                  value={String(data[item.key] ?? item.fallback)}
+                  onChange={(e) => onDataChange({ ...data, [item.key]: e.target.value })}
+                />
+              </label>
+            </div>
+          ))}
+
+          {/* Background color */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-600">Background color</span>
+            <div className="flex items-center gap-1.5">
+              <label className="relative cursor-pointer">
+                <span
+                  className="block h-7 w-12 rounded-lg border border-slate-200 shadow-sm"
+                  style={{ backgroundColor: ws.backgroundColor !== "none" ? ws.backgroundColor : "#ffffff" }}
+                />
+                <input
+                  type="color"
+                  value={ws.backgroundColor !== "none" ? ws.backgroundColor : "#ffffff"}
+                  onChange={(e) =>
+                    onWrapperSettingsChange({
+                      ...ws,
+                      backgroundColor: e.target.value,
+                      backgroundRadius: 8,
+                      backgroundPadding: 16,
+                    })
+                  }
+                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                />
+              </label>
+              {ws.backgroundColor !== "none" && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onWrapperSettingsChange({
+                      ...ws,
+                      backgroundColor: "none",
+                      backgroundPadding: 0,
+                      backgroundRadius: 0,
+                      textOnDark: false,
+                    })
+                  }
+                  className="text-xs text-slate-400 hover:text-red-500 transition-colors px-1"
+                  title="Remove background"
+                >
+                  none
+                </button>
+              )}
+            </div>
+          </div>
+
+          {ws.backgroundColor !== "none" && (
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={ws.textOnDark}
+                onChange={(e) => onWrapperSettingsChange({ ...ws, textOnDark: e.target.checked })}
+                className="accent-blue-600 h-3.5 w-3.5"
+              />
+              <span className="text-xs text-slate-600">Light text (for dark background)</span>
+            </label>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -366,37 +789,47 @@ function SocialFields({ data, onDataChange, plan }: {
 // Live Preview — email chrome + rendered signature
 // ---------------------------------------------------------------------------
 
-function LivePreview({ blocks, data, wrapperSettings, plan }: {
-  blocks: Block[]; data: SignatureData; wrapperSettings: WrapperSettings; plan: "free" | "pro" | "team";
+function LivePreview({
+  data,
+  plan,
+}: {
+  data: SignatureData;
+  plan: "free" | "pro" | "team";
 }) {
   const options: GenerateOptions = { plan };
   const html = generateSignatureHtml(data, options);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-      {/* Email chrome */}
-      <div className="border-b border-slate-100 bg-slate-50 px-4 py-2.5 flex items-center gap-2">
+      {/* macOS-style window chrome */}
+      <div className="border-b border-slate-100 bg-[#f3f3f5] px-4 py-2.5 flex items-center gap-2">
         <div className="flex gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-red-400" />
-          <span className="h-3 w-3 rounded-full bg-amber-400" />
-          <span className="h-3 w-3 rounded-full bg-emerald-400" />
+          <span className="h-3 w-3 rounded-full bg-[#ff5f56]" />
+          <span className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
+          <span className="h-3 w-3 rounded-full bg-[#27c93f]" />
         </div>
-        <span className="ml-2 text-xs text-slate-400 font-medium">New Message</span>
+        <span className="ml-2 text-[11px] font-medium text-slate-400 tracking-wide">New Message</span>
       </div>
-      <div className="border-b border-slate-100 px-4 py-1.5">
-        <span className="text-xs text-slate-400">To: </span>
+
+      {/* Email headers */}
+      <div className="border-b border-slate-100 px-4 py-1.5 flex items-baseline gap-1">
+        <span className="text-[11px] font-medium text-slate-400 w-12 flex-shrink-0">To</span>
         <span className="text-xs text-slate-600">recipient@company.com</span>
       </div>
-      <div className="border-b border-slate-100 px-4 py-1.5">
-        <span className="text-xs text-slate-400">Subject: </span>
+      <div className="border-b border-slate-100 px-4 py-1.5 flex items-baseline gap-1">
+        <span className="text-[11px] font-medium text-slate-400 w-12 flex-shrink-0">Subject</span>
         <span className="text-xs text-slate-600">Quick follow up</span>
       </div>
+
       {/* Email body */}
       <div className="px-4 pt-3 pb-2">
         <p className="text-sm text-slate-500 leading-relaxed">Hi there,</p>
-        <p className="text-sm text-slate-500 mt-2 leading-relaxed">Just wanted to follow up on our conversation. Let me know if you have any questions.</p>
+        <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+          Just wanted to follow up on our conversation. Let me know if you have any questions.
+        </p>
         <p className="text-sm text-slate-500 mt-2 leading-relaxed">Best regards,</p>
       </div>
+
       {/* Signature */}
       <div className="px-4 pb-4">
         <div dangerouslySetInnerHTML={{ __html: html }} />
@@ -418,17 +851,15 @@ export default function SignatureEditor({
   onDataChange,
   onWrapperSettingsChange,
 }: SignatureEditorProps) {
+  const [activeTab, setActiveTab] = useState<"details" | "design">("details");
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
-  const [sigId] = useState(() => typeof crypto !== "undefined" ? crypto.randomUUID() : "temp");
+  const [sigId] = useState(() =>
+    typeof crypto !== "undefined" ? crypto.randomUUID() : "temp"
+  );
+
   const ws = wrapperSettings ?? DEFAULT_WRAPPER_SETTINGS;
-
-  const updateBlockSettings = (blockId: string, newSettings: Record<string, unknown>) => {
-    onBlocksChange(blocks.map((b) => b.id === blockId ? { ...b, settings: newSettings } : b));
-  };
-
   const photoBlock = blocks.find((b) => b.type === "photo" && b.visible);
 
-  // Crop photo to shape (circle/rounded) with white background for Outlook
   const cropPhotoToShape = (photoUrl: string, shape: string): Promise<string> => {
     return new Promise((resolve) => {
       const img = new window.Image();
@@ -439,19 +870,15 @@ export default function SignatureEditor({
         canvas.width = sz; canvas.height = sz;
         const ctx = canvas.getContext("2d");
         if (!ctx) { resolve(photoUrl); return; }
-
-        // White background (Outlook doesn't support transparency)
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, sz, sz);
-
-        // Clipping mask
         if (shape === "circle") {
           ctx.beginPath();
           ctx.arc(sz / 2, sz / 2, sz / 2, 0, Math.PI * 2);
           ctx.closePath();
           ctx.clip();
-        } else if (shape === "rounded") {
-          const r = 16;
+        } else if (shape === "rounded" || shape === "near-square") {
+          const r = shape === "rounded" ? 44 : 16;
           ctx.beginPath();
           ctx.moveTo(r, 0); ctx.lineTo(sz - r, 0);
           ctx.quadraticCurveTo(sz, 0, sz, r); ctx.lineTo(sz, sz - r);
@@ -461,8 +888,6 @@ export default function SignatureEditor({
           ctx.closePath();
           ctx.clip();
         }
-
-        // Draw photo (center crop)
         const min = Math.min(img.width, img.height);
         ctx.drawImage(img, (img.width - min) / 2, (img.height - min) / 2, min, min, 0, 0, sz, sz);
         resolve(canvas.toDataURL("image/jpeg", 0.9));
@@ -474,9 +899,8 @@ export default function SignatureEditor({
 
   const handleCopy = async () => {
     const options: GenerateOptions = { plan, signatureId: sigId };
-
-    // Crop photo to shape before generating HTML
     let copyData = { ...data };
+
     if (data.photoUrl && photoBlock) {
       const shape = String(photoBlock.settings.shape ?? "circle");
       if (shape !== "square") {
@@ -503,7 +927,7 @@ export default function SignatureEditor({
         if (uploadData.url) {
           html = html.replace(/src="data:image[^"]*"/g, `src="${uploadData.url}"`);
         }
-      } catch { /* continue */ }
+      } catch { /* continue with local data URI */ }
     }
 
     const ok = await copySignatureToClipboard(html);
@@ -513,40 +937,69 @@ export default function SignatureEditor({
 
   return (
     <div className="grid gap-6 lg:grid-cols-5">
-      {/* LEFT: Form */}
-      <div className="lg:col-span-2 space-y-3">
-        <Section title="Personal Info" icon="👤" defaultOpen={true}>
-          <Field label="Full Name" value={data.fullName} onChange={(v) => onDataChange({ ...data, fullName: v })} placeholder="John Doe" />
-          <Field label="Job Title" value={data.jobTitle} onChange={(v) => onDataChange({ ...data, jobTitle: v })} placeholder="Marketing Manager" />
-          <Field label="Company" value={data.company} onChange={(v) => onDataChange({ ...data, company: v })} placeholder="Acme Corp" />
-          <Field label="Pronouns" value={data.pronouns} onChange={(v) => onDataChange({ ...data, pronouns: v })} placeholder="he/him" />
-        </Section>
 
-        <Section title="Contact" icon="📞" defaultOpen={true}>
-          <Field label="Email" value={data.email} onChange={(v) => onDataChange({ ...data, email: v })} placeholder="john@company.com" type="email" />
-          <Field label="Phone" value={data.phone} onChange={(v) => onDataChange({ ...data, phone: v })} placeholder="+1 (555) 123-4567" type="tel" />
-          <Field label="Website" value={data.website} onChange={(v) => onDataChange({ ...data, website: v })} placeholder="www.company.com" />
-          <Field label="Address" value={data.address} onChange={(v) => onDataChange({ ...data, address: v })} placeholder="123 Main St, New York" />
-        </Section>
+      {/* ================================================================
+          LEFT PANEL — 3 cols
+      ================================================================ */}
+      <div className="lg:col-span-3 flex flex-col min-h-0">
 
-        <Section title="Photo" icon="🖼️" defaultOpen={false}>
-          <PhotoUpload data={data} onDataChange={onDataChange} photoBlock={photoBlock} onBlockSettingsChange={updateBlockSettings} />
-        </Section>
+        {/* Tab switcher */}
+        <div className="flex border-b border-slate-200 mb-5">
+          {(["details", "design"] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition-colors relative ${
+                activeTab === tab
+                  ? "text-blue-600"
+                  : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              {tab}
+              {activeTab === tab && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t" />
+              )}
+            </button>
+          ))}
+        </div>
 
-        <Section title="Social Media" icon="🔗" defaultOpen={false}>
-          <SocialFields data={data} onDataChange={onDataChange} plan={plan} />
-        </Section>
-
-        <Section title="Styling" icon="🎨" defaultOpen={false}>
-          <StyleControls blocks={blocks} wrapperSettings={ws} onBlockSettingsChange={updateBlockSettings} onWrapperChange={onWrapperSettingsChange} />
-        </Section>
+        {/* Scrollable form content */}
+        <div className="flex-1 overflow-y-auto pr-1 space-y-6 pb-4">
+          {activeTab === "details" ? (
+            <>
+              <UserInfoSection data={data} onDataChange={onDataChange} />
+              <ContactInfoSection data={data} onDataChange={onDataChange} />
+              <PhotoSection
+                data={data}
+                onDataChange={onDataChange}
+                blocks={blocks}
+                onBlocksChange={onBlocksChange}
+              />
+              <SocialSection data={data} onDataChange={onDataChange} plan={plan} />
+              <AddOnsSection data={data} onDataChange={onDataChange} plan={plan} />
+            </>
+          ) : (
+            <DesignPanel
+              blocks={blocks}
+              data={data}
+              wrapperSettings={ws}
+              onBlocksChange={onBlocksChange}
+              onDataChange={onDataChange}
+              onWrapperSettingsChange={onWrapperSettingsChange}
+            />
+          )}
+        </div>
       </div>
 
-      {/* RIGHT: Live Preview + Copy */}
-      <div className="lg:col-span-3">
+      {/* ================================================================
+          RIGHT PANEL — 2 cols: live preview + copy button
+      ================================================================ */}
+      <div className="lg:col-span-2">
         <div className="sticky top-20 space-y-3">
-          <LivePreview blocks={blocks} data={data} wrapperSettings={ws} plan={plan} />
+          <LivePreview data={data} plan={plan} />
 
+          {/* Copy button */}
           <button
             type="button"
             onClick={handleCopy}
@@ -555,25 +1008,31 @@ export default function SignatureEditor({
                 ? "bg-emerald-500 text-white"
                 : copyState === "error"
                   ? "bg-red-500 text-white"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98]"
             }`}
           >
             {copyState === "copied" ? (
               <>
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
                 Copied! Paste in your email client
               </>
-            ) : copyState === "error" ? "Copy failed — try again" : (
+            ) : copyState === "error" ? (
+              "Copy failed — try again"
+            ) : (
               <>
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" /></svg>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+                </svg>
                 Copy Signature
               </>
             )}
           </button>
 
-          <div className="text-center">
-            <p className="text-xs text-slate-400">Works in Gmail, Outlook, Apple Mail & Yahoo</p>
-          </div>
+          <p className="text-center text-xs text-slate-400">
+            Works in Gmail, Outlook, Apple Mail &amp; Yahoo
+          </p>
         </div>
       </div>
     </div>
