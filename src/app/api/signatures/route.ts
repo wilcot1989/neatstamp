@@ -85,9 +85,9 @@ export async function POST(request: NextRequest) {
     if (user.plan === "free") {
       const count = await db.prepare("SELECT COUNT(*) as cnt FROM signatures WHERE user_id = ?")
         .bind(user.id).first<{ cnt: number }>();
-      if (count && count.cnt >= 3) {
+      if (count && count.cnt >= 1) {
         return NextResponse.json({
-          error: "Free plan allows up to 3 signatures. Upgrade to Pro for unlimited.",
+          error: "Free plan allows 1 signature. Upgrade to Pro for unlimited.",
         }, { status: 403 });
       }
     }

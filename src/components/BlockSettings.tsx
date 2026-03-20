@@ -414,7 +414,7 @@ function SocialSettings({
       {!isPro && (
         <p className="text-xs text-slate-500 bg-slate-50 rounded-md px-3 py-2">
           Free plan shows up to 2 social links. You have {filledLinks.length} filled in.{" "}
-          <a href="/pricing" className="text-blue-600 underline">Upgrade for unlimited.</a>
+          <a href="https://neatstamp.com/pricing" className="text-blue-600 underline">Upgrade for unlimited.</a>
         </p>
       )}
       <p className="text-xs text-slate-400">

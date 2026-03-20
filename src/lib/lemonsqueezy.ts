@@ -35,7 +35,7 @@ export async function createProCheckout(
       },
     },
     productOptions: {
-      redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?upgraded=true`,
+      redirectUrl: "https://app.neatstamp.com/dashboard?upgraded=true",
     },
   });
 

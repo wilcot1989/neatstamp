@@ -1,10 +1,9 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Pricing — Free Email Signature Generator",
   description:
-    "NeatStamp pricing: Free forever with 5 templates. Pro at $5/month for premium features. Team at $3/user/month. No hidden fees. 30-day money-back guarantee.",
+    "NeatStamp pricing: Free forever with 2 templates. Pro at $5/month for premium features. No hidden fees. 30-day money-back guarantee.",
   alternates: { canonical: "https://neatstamp.com/pricing" },
 };
 
@@ -25,8 +24,10 @@ const plans = [
     cta: "Get Started — Free",
     ctaLink: "https://app.neatstamp.com/editor",
     highlighted: false,
+    comingSoon: false,
     features: [
       "2 signature templates",
+      "1 saved signature",
       "Profile photo or logo (hosted by us)",
       "2 social media links",
       "Phone, email, website",
@@ -44,8 +45,9 @@ const plans = [
     yearlyPrice: "$39/year (save 35%)",
     description: "For professionals who want more templates and features.",
     cta: "Try Pro Free for 7 Days",
-    ctaLink: "/login",
+    ctaLink: "https://app.neatstamp.com/dashboard?upgrade=monthly",
     highlighted: true,
+    comingSoon: false,
     features: [
       "All 8+ templates",
       "Custom brand colors",
@@ -67,9 +69,10 @@ const plans = [
     price: "$3",
     period: "/user/month",
     description: "Consistent email branding for your entire team.",
-    cta: "Start Team Trial",
-    ctaLink: "/login",
+    cta: "Coming Soon",
+    ctaLink: "#",
     highlighted: false,
+    comingSoon: true,
     features: [
       "Everything in Pro, plus:",
       "Central signature management",
@@ -126,12 +129,17 @@ export default function PricingPage() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`rounded-2xl p-8 ${
+              className={`relative rounded-2xl p-8 ${
                 plan.highlighted
                   ? "bg-primary text-white shadow-xl ring-2 ring-primary scale-105"
                   : "bg-white border border-border shadow-sm"
-              }`}
+              } ${plan.comingSoon ? "opacity-80" : ""}`}
             >
+              {plan.comingSoon && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700 shadow-sm">Coming Soon</span>
+                </div>
+              )}
               <h3
                 className={`text-lg font-semibold ${
                   plan.highlighted ? "text-blue-100" : "text-muted"
@@ -171,16 +179,24 @@ export default function PricingPage() {
               >
                 {plan.description}
               </p>
-              <Link
-                href={plan.ctaLink}
-                className={`mt-6 block w-full rounded-lg px-4 py-3 text-center text-sm font-semibold transition-colors ${
-                  plan.highlighted
-                    ? "bg-white text-primary hover:bg-gray-100"
-                    : "bg-primary text-white hover:bg-primary-dark"
-                }`}
-              >
-                {plan.cta}
-              </Link>
+              {plan.comingSoon ? (
+                <span
+                  className="mt-6 block w-full rounded-lg px-4 py-3 text-center text-sm font-semibold bg-slate-100 text-slate-400 cursor-not-allowed"
+                >
+                  {plan.cta}
+                </span>
+              ) : (
+                <a
+                  href={plan.ctaLink}
+                  className={`mt-6 block w-full rounded-lg px-4 py-3 text-center text-sm font-semibold transition-colors ${
+                    plan.highlighted
+                      ? "bg-white text-primary hover:bg-gray-100"
+                      : "bg-primary text-white hover:bg-primary-dark"
+                  }`}
+                >
+                  {plan.cta}
+                </a>
+              )}
               {plan.highlighted && (
                 <div className="mt-3 flex items-center justify-center gap-1.5">
                   <svg className="h-4 w-4 text-blue-200" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -302,11 +318,11 @@ export default function PricingPage() {
               },
               {
                 q: "Is the free tier really free?",
-                a: "Completely free, forever. No credit card required. 5 templates, no watermarks, no time limits. We make money when you upgrade to Pro — not before.",
+                a: "Completely free, forever. No credit card required. 2 templates, 1 signature. Free signatures stay active for 90 days — upgrade to Pro for signatures that never expire.",
               },
               {
                 q: "What payment methods do you accept?",
-                a: "All major credit cards (Visa, Mastercard, Amex), and Apple Pay / Google Pay. Payments are processed securely by Stripe.",
+                a: "All major credit cards (Visa, Mastercard, Amex), and Apple Pay / Google Pay. Payments are processed securely via LemonSqueezy.",
               },
               {
                 q: "Can I switch plans?",

@@ -2,6 +2,7 @@ export const runtime = "edge";
 
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 
 const PRO_PLANS = ["pro", "team"];
 
@@ -18,41 +19,34 @@ interface BannerRow {
 }
 
 // ---------------------------------------------------------------------------
-// Shared auth + plan guard
+// Shared auth + plan guard (uses NextAuth JWT session)
 // ---------------------------------------------------------------------------
 async function authenticate(
-  request: NextRequest,
+  _request: NextRequest,
   db: D1Database
 ): Promise<{ userId: string } | NextResponse> {
-  const sessionToken = request.cookies.get("session")?.value;
-  if (!sessionToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const sessionRow = await db
-    .prepare(
-      "SELECT user_id FROM sessions WHERE token = ? AND expires_at > datetime('now')"
-    )
-    .bind(sessionToken)
-    .first<{ user_id: string }>();
-
-  if (!sessionRow) {
+  const session = await auth();
+  if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const user = await db
-    .prepare("SELECT plan FROM users WHERE id = ?")
-    .bind(sessionRow.user_id)
-    .first<{ plan: string }>();
+    .prepare("SELECT id, plan FROM users WHERE email = ?")
+    .bind(session.user.email)
+    .first<{ id: string; plan: string }>();
 
-  if (!user || !PRO_PLANS.includes(user.plan)) {
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  if (!PRO_PLANS.includes(user.plan)) {
     return NextResponse.json(
       { error: "Banner campaigns require a Pro or Team plan" },
       { status: 403 }
     );
   }
 
-  return { userId: sessionRow.user_id };
+  return { userId: user.id };
 }
 
 // ---------------------------------------------------------------------------

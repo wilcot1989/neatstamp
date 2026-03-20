@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import Link from "next/link";
 import { SignatureData, DEFAULT_SIGNATURE_DATA, TemplateName } from "@/lib/types";
 import { Block, getDefaultBlocks } from "@/lib/blocks";
@@ -128,7 +128,7 @@ function PlanCard({
 }: {
   plan: Plan;
   expiresAt?: string;
-  onUpgrade: (variant: "monthly" | "yearly") => void;
+  onUpgrade: () => void;
 }) {
   if (plan === "free") {
     return (
@@ -138,7 +138,7 @@ function PlanCard({
           <p className="text-sm text-muted">Free Plan</p>
         </div>
         <button
-          onClick={() => onUpgrade("monthly")}
+          onClick={onUpgrade}
           className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-dark transition-colors"
         >
           Upgrade to Pro
@@ -161,8 +161,8 @@ function PlanCard({
               {plan === "team" ? "Team Plan" : "Pro Plan"}
             </p>
             {expiresAt ? (
-              <p className="text-xs text-muted">
-                Renews {new Date(expiresAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+              <p className="text-xs text-amber-600">
+                Cancels {new Date(expiresAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
               </p>
             ) : (
               <p className="text-xs text-emerald-600 font-medium">Active subscription</p>
@@ -750,23 +750,85 @@ function BannersTab({
 
 function SettingsTab({
   plan,
+  planExpiresAt,
   teamMembers,
   loadingTeam,
   onInviteMember,
+  onUpgrade,
 }: {
   plan: Plan;
+  planExpiresAt?: string;
   teamMembers: TeamMember[];
   loadingTeam: boolean;
   onInviteMember: () => void;
+  onUpgrade: () => void;
 }) {
   const isTeam = plan === "team";
+  const isPro = plan === "pro" || plan === "team";
+  const [cancelStatus, setCancelStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+
+  const handleCancel = async () => {
+    if (!confirm("Are you sure you want to cancel your subscription? You'll keep Pro access until the end of your billing period.")) return;
+    setCancelStatus("loading");
+    try {
+      const res = await fetch("/api/user/cancel", { method: "POST" });
+      if (res.ok) {
+        setCancelStatus("done");
+      } else {
+        setCancelStatus("error");
+      }
+    } catch {
+      setCancelStatus("error");
+    }
+  };
 
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-foreground">Settings</h2>
 
+      {/* Billing / Subscription */}
+      <div className="rounded-xl border border-border bg-white p-5 shadow-sm">
+        <h3 className="text-sm font-semibold text-foreground mb-3">Subscription</h3>
+        {isPro ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-foreground font-medium">Pro Plan</p>
+                {planExpiresAt ? (
+                  <p className="text-xs text-amber-600">Cancels on {new Date(planExpiresAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
+                ) : (
+                  <p className="text-xs text-emerald-600">Active</p>
+                )}
+              </div>
+              <PlanBadge plan={plan} />
+            </div>
+            {cancelStatus === "done" || planExpiresAt ? (
+              <p className="text-xs text-muted">Your Pro features remain active until the end of your billing period.</p>
+            ) : (
+              <button
+                onClick={handleCancel}
+                disabled={cancelStatus === "loading"}
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
+              >
+                {cancelStatus === "loading" ? "Cancelling..." : cancelStatus === "error" ? "Failed — try again" : "Cancel subscription"}
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-muted">You&apos;re on the free plan.</p>
+            <button
+              onClick={onUpgrade}
+              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-dark transition-colors"
+            >
+              Upgrade to Pro
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* QR Code generator */}
-      {(plan === "pro" || plan === "team") && (
+      {isPro && (
         <div className="rounded-xl border border-border bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
@@ -993,19 +1055,64 @@ function DashboardContent() {
     }, 400);
   }, [plan, activeTab]);
 
-  const handleUpgrade = async (variant: "monthly" | "yearly" = "monthly") => {
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ variant }),
-      });
-      const result = await res.json() as { url?: string };
-      if (result.url) window.location.href = result.url;
-    } catch (err) {
-      console.error("Checkout error:", err);
-    }
+  // Redirect to pricing page for all upgrade actions
+  const handleUpgrade = () => {
+    window.location.href = "https://neatstamp.com/pricing";
   };
+
+  // Auto-trigger checkout when arriving from pricing page with ?upgrade param
+  const upgradeVariant = searchParams.get("upgrade");
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
+  const checkoutTriggered = useRef(false);
+
+  useEffect(() => {
+    if (!upgradeVariant || status !== "authenticated" || checkoutTriggered.current) return;
+    checkoutTriggered.current = true;
+    setCheckoutLoading(true);
+    const variant = upgradeVariant === "yearly" ? "yearly" : "monthly";
+    fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ variant }),
+    })
+      .then((r) => r.json())
+      .then((result) => {
+        const r = result as { url?: string; error?: string };
+        if (r.url) {
+          window.location.href = r.url;
+        } else {
+          setCheckoutError(r.error || "Failed to create checkout");
+          setCheckoutLoading(false);
+        }
+      })
+      .catch(() => {
+        setCheckoutError("Something went wrong. Please try again.");
+        setCheckoutLoading(false);
+      });
+  }, [upgradeVariant, status]);
+
+  // Poll for plan upgrade after returning from checkout
+  useEffect(() => {
+    if (!upgraded || plan !== "free") return;
+    let attempts = 0;
+    const maxAttempts = 20;
+    const interval = setInterval(() => {
+      attempts++;
+      fetch("/api/user/plan")
+        .then((r) => r.json())
+        .then((result) => {
+          const r = result as { plan?: string };
+          if (r.plan === "pro" || r.plan === "team") {
+            setPlan(r.plan as Plan);
+            clearInterval(interval);
+          }
+        })
+        .catch(() => {});
+      if (attempts >= maxAttempts) clearInterval(interval);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [upgraded, plan]);
 
   const handleDeleteSignature = async (id: string) => {
     if (!confirm("Delete this signature?")) return;
@@ -1058,6 +1165,22 @@ function DashboardContent() {
         </button>
       </div>
 
+      {/* Checkout loading overlay */}
+      {checkoutLoading && (
+        <div className="mb-6 rounded-xl bg-blue-50 border border-blue-200 p-4 flex items-center gap-3">
+          <svg className="h-5 w-5 text-blue-500 shrink-0 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+          <p className="text-sm text-blue-800 font-medium">Redirecting to checkout...</p>
+        </div>
+      )}
+
+      {/* Checkout error */}
+      {checkoutError && (
+        <div className="mb-6 rounded-xl bg-red-50 border border-red-200 p-4 flex items-center gap-3">
+          <svg className="h-5 w-5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+          <p className="text-sm text-red-800 font-medium">{checkoutError}</p>
+        </div>
+      )}
+
       {/* Upgrade success banner */}
       {upgraded && (
         <div className="mb-6 rounded-xl bg-emerald-50 border border-emerald-200 p-4 flex items-center gap-3">
@@ -1065,7 +1188,7 @@ function DashboardContent() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
           <p className="text-sm text-emerald-800 font-medium">
-            Welcome to NeatStamp Pro! All premium features are now unlocked.
+            {plan === "pro" ? "Welcome to NeatStamp Pro! All premium features are unlocked." : "Payment received! Activating your Pro features..."}
           </p>
         </div>
       )}
@@ -1106,7 +1229,7 @@ function DashboardContent() {
               }}
               onCopy={handleCopySignature}
               onDelete={handleDeleteSignature}
-              onUpgrade={() => handleUpgrade("monthly")}
+              onUpgrade={() => handleUpgrade()}
             />
           )}
           {activeTab === "editor" && (() => {
@@ -1136,7 +1259,7 @@ function DashboardContent() {
                       <p className="mt-2 text-sm text-slate-500">You already have a signature. Edit your existing one or upgrade to Pro for unlimited signatures.</p>
                       <div className="mt-5 flex flex-col gap-2">
                         <button
-                          onClick={() => handleUpgrade("monthly")}
+                          onClick={() => handleUpgrade()}
                           className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
                         >
                           Upgrade to Pro — $5/month
@@ -1340,7 +1463,7 @@ function DashboardContent() {
               analytics={analytics}
               plan={plan}
               loading={analyticsLoading}
-              onUpgrade={() => handleUpgrade("monthly")}
+              onUpgrade={() => handleUpgrade()}
             />
           )}
           {activeTab === "banners" && (
@@ -1349,15 +1472,17 @@ function DashboardContent() {
               plan={plan}
               loading={campaignsLoading}
               onCreateNew={() => {}}
-              onUpgrade={() => handleUpgrade("monthly")}
+              onUpgrade={() => handleUpgrade()}
             />
           )}
           {activeTab === "settings" && (
             <SettingsTab
               plan={plan}
+              planExpiresAt={planExpiresAt}
               teamMembers={teamMembers}
               loadingTeam={teamLoading}
               onInviteMember={() => {}}
+              onUpgrade={handleUpgrade}
             />
           )}
         </main>
