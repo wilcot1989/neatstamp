@@ -284,10 +284,14 @@ function CompactInput({
 function CompactSignatureForm({
   data,
   onChange,
+  plan,
 }: {
   data: SignatureData;
   onChange: (data: SignatureData) => void;
+  plan: "free" | "pro" | "team";
 }) {
+  const isPro = plan === "pro" || plan === "team";
+  const FREE_SOCIAL_LIMIT = 2;
   const update = (field: keyof SignatureData, value: string) => {
     onChange({ ...data, [field]: value });
   };
@@ -367,16 +371,31 @@ function CompactSignatureForm({
 
       <details className="group">
         <summary className="flex cursor-pointer items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-100 transition-colors">
-          Social Media
+          Social Media {!isPro && <span className="text-[10px] text-slate-400 font-normal ml-1">(2 free)</span>}
           <svg className="h-3.5 w-3.5 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
         </summary>
         <div className="mt-2 space-y-2 px-1">
-          <CompactInput label="LinkedIn" value={data.linkedin} onChange={(v) => update("linkedin", v)} placeholder="https://linkedin.com/in/..." />
-          <CompactInput label="X (Twitter)" value={data.twitter} onChange={(v) => update("twitter", v)} placeholder="https://x.com/..." />
-          <CompactInput label="Instagram" value={data.instagram} onChange={(v) => update("instagram", v)} placeholder="https://instagram.com/..." />
-          <CompactInput label="Facebook" value={data.facebook} onChange={(v) => update("facebook", v)} placeholder="https://facebook.com/..." />
-          <CompactInput label="GitHub" value={data.github} onChange={(v) => update("github", v)} placeholder="https://github.com/..." />
-          <CompactInput label="YouTube" value={data.youtube} onChange={(v) => update("youtube", v)} placeholder="https://youtube.com/@..." />
+          {([
+            { key: "linkedin" as keyof SignatureData, label: "LinkedIn", ph: "https://linkedin.com/in/..." },
+            { key: "twitter" as keyof SignatureData, label: "X (Twitter)", ph: "https://x.com/..." },
+            { key: "instagram" as keyof SignatureData, label: "Instagram", ph: "https://instagram.com/..." },
+            { key: "facebook" as keyof SignatureData, label: "Facebook", ph: "https://facebook.com/..." },
+            { key: "github" as keyof SignatureData, label: "GitHub", ph: "https://github.com/..." },
+            { key: "youtube" as keyof SignatureData, label: "YouTube", ph: "https://youtube.com/@..." },
+          ]).map((field, idx) => {
+            const isLocked = !isPro && idx >= FREE_SOCIAL_LIMIT && !data[field.key];
+            if (isLocked) {
+              return (
+                <div key={field.key} className="rounded-lg border border-dashed border-amber-200 bg-amber-50 px-2.5 py-2 flex items-center justify-between">
+                  <span className="text-[11px] text-amber-700 font-medium">{field.label}</span>
+                  <span className="text-[9px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full">PRO</span>
+                </div>
+              );
+            }
+            return (
+              <CompactInput key={field.key} label={field.label} value={data[field.key] as string} onChange={(v) => update(field.key, v)} placeholder={field.ph} />
+            );
+          })}
         </div>
       </details>
     </div>
@@ -1308,7 +1327,7 @@ function DashboardContent() {
                 <div className="lg:col-span-2">
                   <div className="sticky top-20">
                     <h3 className="text-sm font-semibold text-slate-800 mb-3">Your Details</h3>
-                    <CompactSignatureForm data={editorData} onChange={setEditorData} />
+                    <CompactSignatureForm data={editorData} onChange={setEditorData} plan={plan} />
                   </div>
                 </div>
                 <div className="lg:col-span-5">
