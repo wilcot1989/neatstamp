@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Block, BlockType, BlockConfig, BLOCK_CONFIGS, generateHtmlFromBlocks } from "@/lib/blocks";
+import { Block, BlockType, BlockConfig, BLOCK_CONFIGS } from "@/lib/blocks";
 import { SignatureData } from "@/lib/types";
 import { GenerateOptions, generateSignatureHtml } from "@/lib/generateSignature";
 import { copySignatureToClipboard } from "@/lib/clipboard";
@@ -332,11 +332,9 @@ function LivePreview({
     plan,
     signatureId: sigId,
   };
-  // Use block-based rendering for drag & drop preview + template-based for copy output
-  const blockHtml = generateHtmlFromBlocks(blocks, data, options);
+  // Template-based rendering — respects the selected template style
   const templateHtml = generateSignatureHtml(data, options);
-  // Preview shows the block arrangement; copy uses template output
-  const html = blockHtml;
+  const html = templateHtml;
 
   const handleCopy = async () => {
     let finalHtml = templateHtml;
