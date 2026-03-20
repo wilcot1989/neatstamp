@@ -1161,7 +1161,64 @@ function DashboardContent() {
               onUpgrade={() => handleUpgrade("monthly")}
             />
           )}
-          {activeTab === "editor" && (
+          {activeTab === "editor" && (() => {
+            const isNewSignature = !editingSignatureId;
+            const freeAndAtLimit = !isPro && signatures.length >= 1 && isNewSignature;
+
+            if (freeAndAtLimit) {
+              return (
+                <div className="relative">
+                  <div className="pointer-events-none select-none opacity-30 blur-[2px]">
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold text-foreground">Signature Editor</h2>
+                        <span className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-400">Save Signature</span>
+                      </div>
+                      <div className="h-64 rounded-xl border border-slate-200 bg-white" />
+                    </div>
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="rounded-2xl bg-white border border-slate-200 shadow-xl p-8 max-w-sm text-center">
+                      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
+                        <svg className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900">Free plan: 1 signature</h3>
+                      <p className="mt-2 text-sm text-slate-500">You already have a signature. Edit your existing one or upgrade to Pro for unlimited signatures.</p>
+                      <div className="mt-5 flex flex-col gap-2">
+                        <button
+                          onClick={() => handleUpgrade("monthly")}
+                          className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
+                        >
+                          Upgrade to Pro — $5/month
+                        </button>
+                        <button
+                          onClick={() => {
+                            const sig = signatures[0];
+                            try {
+                              const parsed = typeof sig.data === "string" ? JSON.parse(sig.data) : sig.data;
+                              const { _blocks, ...rest } = parsed;
+                              setEditorData({ ...DEFAULT_SIGNATURE_DATA, ...rest });
+                              setEditorBlocks(_blocks && Array.isArray(_blocks) ? _blocks : getDefaultBlocks());
+                            } catch {
+                              setEditorData(DEFAULT_SIGNATURE_DATA);
+                              setEditorBlocks(getDefaultBlocks());
+                            }
+                            setEditingSignatureId(sig.id);
+                          }}
+                          className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                          Edit existing signature
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-foreground">Signature Editor</h2>
@@ -1328,7 +1385,8 @@ function DashboardContent() {
                 </div>
               </div>
             </div>
-          )}
+          );
+          })()}
           {activeTab === "analytics" && (
             <AnalyticsTab
               analytics={analytics}
