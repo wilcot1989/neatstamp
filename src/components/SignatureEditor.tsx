@@ -2,7 +2,7 @@
 
 import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
-import { TextStyle, FontSize, Color } from "@tiptap/extension-text-style";
+import { TextStyleKit } from "@tiptap/extension-text-style";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { Link } from "@tiptap/extension-link";
 import { Placeholder } from "@tiptap/extension-placeholder";
@@ -354,36 +354,68 @@ export default function SignatureEditor({
   const ws = wrapperSettings ?? DEFAULT_WRAPPER_SETTINGS;
 
   // Build initial editor content from signature data
+  // Build editor HTML from signature data + block settings
   const buildContent = useCallback(() => {
+    // Find name block settings for colors/sizes
+    const nameBlock = blocks.find((b) => b.type === "name");
+    const ns = nameBlock?.settings ?? {};
+    const nameSize = Number(ns.nameSize ?? 16);
+    const nameColor = String(ns.nameColor ?? (ws.textOnDark ? "#ffffff" : "#1a1a1a"));
+    const nameWeight = String(ns.nameWeight ?? "bold");
+    const titleSize = Number(ns.titleSize ?? 13);
+    const titleColor = String(ns.titleColor ?? (ws.textOnDark ? "rgba(255,255,255,0.85)" : "#555555"));
+    const companyColor = String(ns.companyColor ?? (ws.textOnDark ? "rgba(255,255,255,0.6)" : "#555555"));
+
+    // Find contact block settings
+    const contactBlock = blocks.find((b) => b.type === "contact");
+    const cs = contactBlock?.settings ?? {};
+    const linkColor = String(cs.linkColor ?? data.primaryColor ?? "#2563eb");
+    const textColor = String(cs.textColor ?? (ws.textOnDark ? "rgba(255,255,255,0.7)" : "#555555"));
+
+    // Find divider block settings
+    const dividerBlock = blocks.find((b) => b.type === "divider");
+    const ds = dividerBlock?.settings ?? {};
+    const divColor = String(ds.color ?? data.primaryColor ?? "#2563eb");
+    const divStyle = String(ds.style ?? "solid");
+    const divThickness = Number(ds.thickness ?? 2);
+    const divWidth = Number(ds.width ?? 100);
+
     const lines: string[] = [];
 
     // Name
-    lines.push(`<p><strong style="font-size: 18px">${data.fullName || "Your Name"}</strong>${data.pronouns ? ` <span style="color: #888; font-size: 12px">(${data.pronouns})</span>` : ""}</p>`);
+    lines.push(`<p><span style="font-size: ${nameSize}px; font-weight: ${nameWeight}; color: ${nameColor}">${data.fullName || "Your Name"}</span>${data.pronouns ? ` <span style="color: #888; font-size: 12px">(${data.pronouns})</span>` : ""}</p>`);
 
     // Title + Company
-    if (data.jobTitle || data.company) {
-      const parts = [data.jobTitle, data.company].filter(Boolean);
-      lines.push(`<p style="font-size: 13px; color: #555">${parts.join(" at ")}</p>`);
+    if (data.jobTitle) {
+      lines.push(`<p><span style="font-size: ${titleSize}px; color: ${titleColor}">${data.jobTitle}${data.company ? ` at <span style="color: ${companyColor}">${data.company}</span>` : ""}</span></p>`);
+    } else if (data.company) {
+      lines.push(`<p><span style="font-size: 13px; color: ${companyColor}">${data.company}</span></p>`);
     }
 
     // Divider
-    lines.push(`<p>—</p>`);
+    if (dividerBlock?.visible !== false) {
+      if (divStyle === "decorative") {
+        lines.push(`<p style="color: ${divColor}">——  ·</p>`);
+      } else {
+        lines.push(`<p><span style="display: inline-block; width: ${divWidth}%; border-top: ${divThickness}px ${divStyle} ${divColor}; line-height: 0">&nbsp;</span></p>`);
+      }
+    }
 
     // Contact
     const contacts: string[] = [];
-    if (data.email) contacts.push(`<a href="mailto:${data.email}">${data.email}</a>`);
-    if (data.phone) contacts.push(data.phone);
-    if (data.website) contacts.push(`<a href="https://${data.website.replace(/^https?:\/\//, "")}">${data.website.replace(/^https?:\/\//, "")}</a>`);
+    if (data.email) contacts.push(`<a href="mailto:${data.email}" style="color: ${linkColor}; text-decoration: none">${data.email}</a>`);
+    if (data.phone) contacts.push(`<span style="color: ${textColor}">${data.phone}</span>`);
+    if (data.website) contacts.push(`<a href="https://${data.website.replace(/^https?:\/\//, "")}" style="color: ${linkColor}; text-decoration: none">${data.website.replace(/^https?:\/\//, "")}</a>`);
     if (contacts.length > 0) {
-      lines.push(`<p style="font-size: 12px">${contacts.join(" · ")}</p>`);
+      lines.push(`<p style="font-size: 12px">${contacts.join(' <span style="color: #ccc">·</span> ')}</p>`);
     }
 
     if (data.address) {
-      lines.push(`<p style="font-size: 12px; color: #888">${data.address}</p>`);
+      lines.push(`<p style="font-size: 12px; color: ${textColor}">${data.address}</p>`);
     }
 
     return lines.join("");
-  }, [data]);
+  }, [data, blocks, ws.textOnDark]);
 
   const editor = useEditor({
     extensions: [
@@ -397,9 +429,10 @@ export default function SignatureEditor({
         code: false,
         horizontalRule: false,
       }),
-      TextStyle,
-      FontSize,
-      Color,
+      TextStyleKit.configure({
+        lineHeight: false,
+        backgroundColor: false,
+      }),
       TextAlign.configure({ types: ["paragraph"] }),
       Link.configure({ openOnClick: false }),
       Placeholder.configure({ placeholder: "Start typing your signature..." }),
@@ -417,13 +450,20 @@ export default function SignatureEditor({
     },
   });
 
-  // Update editor styling when wrapper settings change
+  // Update editor content + styling when template/wrapper changes
+  const lastTemplate = useRef(data.template);
   useEffect(() => {
     if (!editor) return;
+    // Update base styling
     editor.view.dom.style.fontFamily = ws.fontFamily || "Arial,Helvetica,sans-serif";
     editor.view.dom.style.fontSize = `${ws.baseFontSize || 14}px`;
     editor.view.dom.style.color = ws.textOnDark ? "#fff" : "#333";
-  }, [editor, ws]);
+    // Reload content when template changes
+    if (data.template !== lastTemplate.current) {
+      lastTemplate.current = data.template;
+      editor.commands.setContent(buildContent());
+    }
+  }, [editor, ws, data.template, buildContent]);
 
   // Sync TipTap content back to SignatureData (basic extraction)
   const syncEditorToData = useCallback((ed: Editor) => {
