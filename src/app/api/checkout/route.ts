@@ -14,8 +14,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Check if LemonSqueezy is configured
+  if (!process.env.LEMONSQUEEZY_API_KEY || !process.env.LEMONSQUEEZY_STORE_ID) {
+    return NextResponse.json(
+      { error: "Pro subscriptions are not available yet. We're setting up payments — check back soon!" },
+      { status: 503 }
+    );
+  }
+
   const body = await request.json() as Record<string, unknown>;
-  const variant = (body as Record<string, unknown>).variant === "yearly" ? "yearly" : "monthly";
+  const variant = body.variant === "yearly" ? "yearly" : "monthly";
 
   try {
     const checkoutUrl = await createProCheckout(
@@ -26,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     if (!checkoutUrl) {
       return NextResponse.json(
-        { error: "Failed to create checkout" },
+        { error: "Could not create checkout session. Please try again." },
         { status: 500 }
       );
     }
@@ -35,7 +43,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Checkout error:", error);
     return NextResponse.json(
-      { error: "Failed to create checkout" },
+      { error: "Something went wrong creating your checkout. Please try again later." },
       { status: 500 }
     );
   }
