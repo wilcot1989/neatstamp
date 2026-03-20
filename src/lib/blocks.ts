@@ -1,4 +1,4 @@
-import { SignatureData, TemplateName } from "./types";
+import { SignatureData, TemplateName, WrapperSettings, DEFAULT_WRAPPER_SETTINGS } from "./types";
 import { GenerateOptions } from "./generateSignature";
 
 // ---------------------------------------------------------------------------
@@ -42,10 +42,11 @@ export const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
     icon: "🖼️",
     description: "Profile photo or company logo",
     defaultSettings: {
-      shape: "circle",    // circle | square | rounded
-      size: 80,           // px, 60–120
-      alignment: "left",  // left | center
-      position: "left",   // left | right — photo position relative to text
+      shape: "circle",
+      size: 80,
+      position: "left",
+      borderWidth: 0,
+      borderColor: "#2563eb",
     },
     proOnly: false,
   },
@@ -55,10 +56,20 @@ export const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
     icon: "👤",
     description: "Full name, job title, company, pronouns",
     defaultSettings: {
-      nameSize: 18,        // px, 16–24
+      nameSize: 16,
+      nameWeight: "bold",
+      nameColor: "#1a1a1a",
+      nameLetterSpacing: "",
       showTitle: true,
+      titleSize: 13,
+      titleColor: "#555555",
+      titleTransform: "none",
+      titleFontStyle: "normal",
       showCompany: true,
+      companyDisplay: "merged-title",
+      companyColor: "#555555",
       showPronouns: true,
+      pronounsStyle: "inline",
     },
     proOnly: false,
   },
@@ -68,8 +79,12 @@ export const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
     icon: "📞",
     description: "Phone, email, website, address",
     defaultSettings: {
-      layout: "stacked", // stacked | inline
+      layout: "stacked",
+      fontSize: 12,
+      linkColor: "#2563eb",
+      textColor: "#555555",
       showIcons: false,
+      fontFamily: "",
     },
     proOnly: false,
   },
@@ -79,8 +94,9 @@ export const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
     icon: "🔗",
     description: "Social media profile links",
     defaultSettings: {
-      style: "text",    // text | icons
-      maxLinks: 2,      // 2 for free; set to 99 for pro
+      iconSize: 20,
+      spacing: 8,
+      subset: false,
     },
     proOnly: false,
   },
@@ -90,10 +106,10 @@ export const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
     icon: "➖",
     description: "A horizontal separator line",
     defaultSettings: {
-      color: "#e2e8f0",
-      width: 100,       // %, 50–100
-      style: "solid",   // solid | dashed | dotted
-      thickness: 1,     // px, 1–3
+      color: "#2563eb",
+      width: 100,
+      style: "solid",
+      thickness: 2,
     },
     proOnly: false,
   },
@@ -107,6 +123,8 @@ export const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
       url: "",
       bgColor: "#2563eb",
       textColor: "#ffffff",
+      borderRadius: 4,
+      fontSize: 13,
     },
     proOnly: true,
   },
@@ -117,7 +135,8 @@ export const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
     description: "Legal disclaimer or confidentiality notice",
     defaultSettings: {
       text: "This email and any attachments are confidential.",
-      fontSize: 10, // px, 9–12
+      fontSize: 10,
+      color: "#94a3b8",
     },
     proOnly: true,
   },
@@ -127,7 +146,7 @@ export const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
     icon: "↕️",
     description: "Empty vertical space between blocks",
     defaultSettings: {
-      height: 8, // px, 4–20
+      height: 8,
     },
     proOnly: false,
   },
@@ -137,13 +156,13 @@ export const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
 // Default block arrangement
 // ---------------------------------------------------------------------------
 
-function makeBlock(type: BlockType, overrides?: Partial<Block>): Block {
+function makeBlock(type: BlockType, overrides?: Partial<Block> & { settings?: Record<string, unknown> }): Block {
   return {
     id: crypto.randomUUID(),
     type,
     visible: true,
-    settings: { ...BLOCK_CONFIGS[type].defaultSettings },
-    ...overrides,
+    settings: { ...BLOCK_CONFIGS[type].defaultSettings, ...(overrides?.settings ?? {}) },
+    ...(overrides ? { ...overrides, settings: { ...BLOCK_CONFIGS[type].defaultSettings, ...(overrides.settings ?? {}) } } : {}),
   };
 }
 
@@ -156,52 +175,8 @@ export function getDefaultBlocks(): Block[] {
   ];
 }
 
-// Templates that have a photo as part of their design
-const TEMPLATES_WITH_PHOTO: string[] = [
-  "minimal", "modern", "corporate", "creative", "bold", "elegant", "startup",
-  "executive", "gradient", "developer", "sales", "medical", "legal",
-  "academic", "realtor", "influencer", "photographer", "dark",
-];
-
-// Templates with NO photo: compact, simple
-
-export function getBlocksForTemplate(template: string): Block[] {
-  const hasPhoto = TEMPLATES_WITH_PHOTO.includes(template);
-  const blocks: Block[] = [];
-
-  if (hasPhoto) {
-    blocks.push(makeBlock("photo", { settings: { ...BLOCK_CONFIGS.photo.defaultSettings, position: "left" } }));
-  }
-
-  blocks.push(makeBlock("name"));
-  blocks.push(makeBlock("divider"));
-  blocks.push(makeBlock("contact"));
-  blocks.push(makeBlock("social"));
-
-  return blocks;
-}
-
-// Ensure blocks match the template — add/remove photo block as needed
-export function ensureBlocksForTemplate(existingBlocks: Block[], template: string): Block[] {
-  const needsPhoto = TEMPLATES_WITH_PHOTO.includes(template);
-  const hasPhotoBlock = existingBlocks.some((b) => b.type === "photo");
-
-  if (needsPhoto && !hasPhotoBlock) {
-    return [
-      makeBlock("photo", { settings: { ...BLOCK_CONFIGS.photo.defaultSettings, position: "left" } }),
-      ...existingBlocks,
-    ];
-  }
-
-  if (!needsPhoto && hasPhotoBlock) {
-    return existingBlocks.filter((b) => b.type !== "photo");
-  }
-
-  return existingBlocks;
-}
-
 // ---------------------------------------------------------------------------
-// HTML escape helper
+// HTML escape helpers
 // ---------------------------------------------------------------------------
 
 function esc(text: string): string {
@@ -225,515 +200,522 @@ function safeBool(val: unknown, fallback: boolean): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Template style system
+// Social constants
 // ---------------------------------------------------------------------------
 
-export interface TemplateStyle {
-  fontFamily: string;
-  baseFontSize: number;
-  // Name block
-  nameSize: number;
-  nameColor: "dark" | "primary";
-  nameWeight: string;
-  nameLetterSpacing: string;
-  pronounsStyle: "inline" | "separate" | "italic-separate";
-  // Title + company
-  titleSize: number;
-  titleColor: "muted" | "primary" | "accent" | "white-alpha";
-  titleTransform: "none" | "uppercase";
-  titleFontStyle: "normal" | "italic";
-  companyDisplay: "merged-title" | "separate" | "separate-bold" | "separate-uppercase" | "inline-name" | "merged-at";
-  // Divider
-  dividerStyle: "solid" | "dashed" | "thin-grey" | "decorative" | "none";
-  dividerColor: "primary" | "accent" | "grey";
-  dividerThickness: number;
-  // Contact
-  contactLayout: "stacked" | "stacked-labeled" | "stacked-emoji" | "inline-pipes" | "inline-middot" | "partial-inline";
-  contactFontFamily: string;
-  // Social
-  socialColor: "primary" | "white-alpha";
-  socialSubset: boolean; // compact only shows 3
-  // Photo defaults
-  photoSize: number;
-  photoShape: "circle" | "rounded" | "near-square" | "none";
-  photoBorder: string;
-  // Layout
-  outerBorderTop: string;
-  contentBorderLeft: string;
-  outerBackground: string; // "none", "primary", or a custom hex color
-  nameBarBackground: string; // background color for the name/photo section (e.g. executive dark header)
-  textOnDark: boolean;
-  // CTA
-  ctaStyle: "standard" | "inverted" | "gradient-pill" | "accent";
-}
+export const SOCIAL_LABELS: Record<string, string> = {
+  linkedin: "LinkedIn",
+  twitter: "X (Twitter)",
+  instagram: "Instagram",
+  facebook: "Facebook",
+  github: "GitHub",
+  youtube: "YouTube",
+};
 
-function getTemplateStyle(template: TemplateName, data: SignatureData): TemplateStyle {
+export const SOCIAL_ICON_URLS: Record<string, string> = {
+  linkedin: "https://neatstamp.com/icons/linkedin.svg",
+  twitter: "https://neatstamp.com/icons/twitter.svg",
+  instagram: "https://neatstamp.com/icons/instagram.svg",
+  facebook: "https://neatstamp.com/icons/facebook.svg",
+  github: "https://neatstamp.com/icons/github.svg",
+  youtube: "https://neatstamp.com/icons/youtube.svg",
+};
+
+export const SOCIAL_FIELDS: (keyof SignatureData)[] = [
+  "linkedin", "twitter", "instagram", "facebook", "github", "youtube",
+];
+
+// ---------------------------------------------------------------------------
+// getPresetForTemplate — returns fully-configured blocks + wrapperSettings
+// ---------------------------------------------------------------------------
+
+export function getPresetForTemplate(
+  template: TemplateName,
+  data: SignatureData
+): { blocks: Block[]; wrapperSettings: WrapperSettings } {
   const pc = data.primaryColor || "#2563eb";
   const ac = data.accentColor || "#f59e0b";
 
-  const base: TemplateStyle = {
-    fontFamily: "Arial,Helvetica,sans-serif",
-    baseFontSize: 14,
-    nameSize: 16,
-    nameColor: "dark",
-    nameWeight: "bold",
-    nameLetterSpacing: "",
-    pronounsStyle: "inline",
-    titleSize: 13,
-    titleColor: "muted",
-    titleTransform: "none",
-    titleFontStyle: "normal",
-    companyDisplay: "merged-title",
-    dividerStyle: "solid",
-    dividerColor: "primary",
-    dividerThickness: 2,
-    contactLayout: "stacked",
-    contactFontFamily: "Arial,Helvetica,sans-serif",
-    socialColor: "primary",
-    socialSubset: false,
-    photoSize: 72,
-    photoShape: "circle",
-    photoBorder: "",
-    outerBorderTop: "",
-    contentBorderLeft: "",
-    outerBackground: "none",
-    nameBarBackground: "",
-    textOnDark: false,
-    ctaStyle: "standard",
-  };
+  const defaultWrapper: WrapperSettings = { ...DEFAULT_WRAPPER_SETTINGS };
 
   switch (template) {
-    case "minimal":
-      return base;
 
+    // -----------------------------------------------------------------------
+    case "minimal":
+      return {
+        wrapperSettings: { ...defaultWrapper },
+        blocks: [
+          makeBlock("photo", { settings: { size: 80, shape: "circle", position: "left", borderWidth: 0, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 16, nameWeight: "bold", nameColor: "#1a1a1a",
+            showTitle: true, titleSize: 13, titleColor: "#555555", titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "merged-title", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("divider", { settings: { style: "solid", color: pc, thickness: 2, width: 100 } }),
+          makeBlock("contact", { settings: { layout: "stacked", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+        ],
+      };
+
+    // -----------------------------------------------------------------------
     case "modern":
       return {
-        ...base,
-        nameSize: 18,
-        nameColor: "primary",
-        titleColor: "accent",
-        titleTransform: "uppercase",
-        companyDisplay: "separate",
-        dividerStyle: "none",
-        contentBorderLeft: `3px solid ${pc}`,
-        contactLayout: "partial-inline",
-        photoSize: 80,
-        photoShape: "rounded",
+        wrapperSettings: { ...defaultWrapper, borderLeft: `3px solid ${pc}` },
+        blocks: [
+          makeBlock("photo", { settings: { size: 80, shape: "rounded", position: "left", borderWidth: 0, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 18, nameWeight: "bold", nameColor: pc,
+            showTitle: true, titleSize: 13, titleColor: ac, titleTransform: "uppercase", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "separate", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("contact", { settings: { layout: "partial-inline", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "corporate":
       return {
-        ...base,
-        nameSize: 17,
-        pronounsStyle: "separate",
-        titleSize: 13,
-        titleColor: "primary",
-        companyDisplay: "separate-bold",
-        dividerStyle: "none",
-        outerBorderTop: `3px solid ${pc}`,
-        contactLayout: "stacked-labeled",
-        photoSize: 70,
-        photoShape: "near-square",
+        wrapperSettings: { ...defaultWrapper, borderTop: `3px solid ${pc}` },
+        blocks: [
+          makeBlock("photo", { settings: { size: 70, shape: "near-square", position: "left", borderWidth: 0, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 17, nameWeight: "bold", nameColor: "#1a1a1a",
+            showTitle: true, titleSize: 13, titleColor: pc, titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "separate-bold", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "separate",
+          }}),
+          makeBlock("contact", { settings: { layout: "stacked-labeled", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "creative":
       return {
-        ...base,
-        nameSize: 20,
-        nameColor: "primary",
-        titleSize: 14,
-        companyDisplay: "separate-uppercase",
-        dividerStyle: "dashed",
-        dividerColor: "accent",
-        dividerThickness: 2,
-        contentBorderLeft: `2px dashed ${ac}`,
-        contactLayout: "stacked-emoji",
-        photoSize: 90,
-        photoShape: "circle",
-        photoBorder: `3px solid ${pc}`,
-        ctaStyle: "accent",
+        wrapperSettings: { ...defaultWrapper, borderLeft: `2px dashed ${ac}` },
+        blocks: [
+          makeBlock("photo", { settings: { size: 90, shape: "circle", position: "left", borderWidth: 3, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 20, nameWeight: "bold", nameColor: pc,
+            showTitle: true, titleSize: 14, titleColor: "#555555", titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "separate-uppercase", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("divider", { settings: { style: "dashed", color: ac, thickness: 2, width: 100 } }),
+          makeBlock("contact", { settings: { layout: "stacked-emoji", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+          makeBlock("cta", { settings: { text: "Book a Meeting", url: "", bgColor: ac, textColor: "#ffffff", borderRadius: 4, fontSize: 13 } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "bold":
       return {
-        ...base,
-        nameSize: 20,
-        nameColor: "dark",
-        titleColor: "white-alpha",
-        companyDisplay: "merged-title",
-        dividerStyle: "none",
-        socialColor: "white-alpha",
-        photoSize: 80,
-        photoShape: "rounded",
-        photoBorder: "2px solid rgba(255,255,255,0.3)",
-        outerBackground: "primary",
-        textOnDark: true,
-        ctaStyle: "inverted",
+        wrapperSettings: { ...defaultWrapper, backgroundColor: pc, backgroundRadius: 8, backgroundPadding: 16, textOnDark: true },
+        blocks: [
+          makeBlock("photo", { settings: { size: 80, shape: "rounded", position: "left", borderWidth: 2, borderColor: "rgba(255,255,255,0.3)" } }),
+          makeBlock("name", { settings: {
+            nameSize: 20, nameWeight: "bold", nameColor: "#ffffff",
+            showTitle: true, titleSize: 13, titleColor: "rgba(255,255,255,0.85)", titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "merged-title", companyColor: "rgba(255,255,255,0.6)",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("contact", { settings: { layout: "stacked", fontSize: 12, linkColor: "#ffffff", textColor: "rgba(255,255,255,0.85)", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+          makeBlock("cta", { settings: { text: "Book a Meeting", url: "", bgColor: "#ffffff", textColor: pc, borderRadius: 4, fontSize: 13 } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "elegant":
       return {
-        ...base,
-        fontFamily: "Georgia,'Times New Roman',serif",
-        nameSize: 18,
-        nameLetterSpacing: "0.5px",
-        pronounsStyle: "italic-separate",
-        titleSize: 12,
-        titleColor: "primary",
-        titleFontStyle: "italic",
-        companyDisplay: "separate-uppercase",
-        dividerStyle: "decorative",
-        dividerColor: "primary",
-        contactFontFamily: "Arial,Helvetica,sans-serif",
-        photoSize: 75,
-        photoShape: "circle",
+        wrapperSettings: { ...defaultWrapper, fontFamily: "Georgia,'Times New Roman',serif" },
+        blocks: [
+          makeBlock("photo", { settings: { size: 75, shape: "circle", position: "left", borderWidth: 0, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 18, nameWeight: "bold", nameColor: "#1a1a1a", nameLetterSpacing: "0.5px",
+            showTitle: true, titleSize: 13, titleColor: pc, titleTransform: "none", titleFontStyle: "italic",
+            showCompany: true, companyDisplay: "separate-uppercase", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "italic-separate",
+          }}),
+          makeBlock("divider", { settings: { style: "decorative", color: pc, thickness: 2, width: 100 } }),
+          makeBlock("contact", { settings: { layout: "stacked", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "Arial,Helvetica,sans-serif" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "startup":
       return {
-        ...base,
-        nameSize: 16,
-        titleColor: "primary",
-        companyDisplay: "merged-at",
-        dividerStyle: "thin-grey",
-        dividerThickness: 1,
-        contactLayout: "inline-pipes",
-        photoSize: 48,
-        photoShape: "circle",
-        ctaStyle: "gradient-pill",
+        wrapperSettings: { ...defaultWrapper },
+        blocks: [
+          makeBlock("photo", { settings: { size: 48, shape: "circle", position: "left", borderWidth: 0, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 16, nameWeight: "bold", nameColor: "#1a1a1a",
+            showTitle: true, titleSize: 13, titleColor: pc, titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "merged-at", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("divider", { settings: { style: "thin-grey", color: "#eeeeee", thickness: 1, width: 100 } }),
+          makeBlock("contact", { settings: { layout: "inline-pipes", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+          makeBlock("cta", { settings: { text: "Book a Meeting", url: "", bgColor: pc, textColor: "#ffffff", borderRadius: 20, fontSize: 13 } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "compact":
       return {
-        ...base,
-        baseFontSize: 13,
-        nameSize: 13,
-        companyDisplay: "inline-name",
-        dividerStyle: "none",
-        contactLayout: "inline-middot",
-        socialSubset: true,
-        photoSize: 0,
-        photoShape: "none",
+        wrapperSettings: { ...defaultWrapper, baseFontSize: 13 },
+        blocks: [
+          makeBlock("name", { settings: {
+            nameSize: 13, nameWeight: "bold", nameColor: "#1a1a1a",
+            showTitle: true, titleSize: 12, titleColor: "#555555", titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "inline-name", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("contact", { settings: { layout: "inline-middot", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: true } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "executive":
       return {
-        ...base,
-        nameSize: 20,
-        nameColor: "dark",
-        titleColor: "accent",
-        companyDisplay: "separate-uppercase",
-        dividerStyle: "none",
-        contactLayout: "stacked",
-        contentBorderLeft: `3px solid ${pc}`,
-        nameBarBackground: "#1e293b",
-        photoSize: 85,
-        photoShape: "rounded",
+        wrapperSettings: { ...defaultWrapper, headerBackground: "#1e293b", borderLeft: `3px solid ${pc}` },
+        blocks: [
+          makeBlock("photo", { settings: { size: 85, shape: "rounded", position: "left", borderWidth: 0, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 20, nameWeight: "bold", nameColor: "#ffffff",
+            showTitle: true, titleSize: 13, titleColor: ac, titleTransform: "uppercase", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "separate-uppercase", companyColor: "rgba(255,255,255,0.6)",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("contact", { settings: { layout: "stacked", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "gradient":
       return {
-        ...base,
-        nameSize: 18,
-        nameColor: "primary",
-        companyDisplay: "separate",
-        dividerStyle: "none",
-        contentBorderLeft: `8px solid ${pc}`,
-        contactLayout: "inline-pipes",
-        photoSize: 75,
-        photoShape: "circle",
+        wrapperSettings: { ...defaultWrapper, borderLeft: `8px solid ${pc}` },
+        blocks: [
+          makeBlock("photo", { settings: { size: 75, shape: "circle", position: "left", borderWidth: 0, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 18, nameWeight: "bold", nameColor: pc,
+            showTitle: true, titleSize: 13, titleColor: ac, titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "separate", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("contact", { settings: { layout: "inline-pipes", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "developer":
       return {
-        ...base,
-        fontFamily: "'Courier New',Courier,monospace",
-        nameSize: 16,
-        nameColor: "primary",
-        companyDisplay: "separate",
-        dividerStyle: "solid",
-        dividerThickness: 1,
-        dividerColor: "grey",
-        contactLayout: "stacked",
-        contactFontFamily: "'Courier New',Courier,monospace",
-        photoSize: 70,
-        photoShape: "rounded",
+        wrapperSettings: { ...defaultWrapper, fontFamily: "'Courier New',Courier,monospace" },
+        blocks: [
+          makeBlock("photo", { settings: { size: 70, shape: "rounded", position: "left", borderWidth: 0, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 16, nameWeight: "bold", nameColor: pc,
+            showTitle: true, titleSize: 13, titleColor: "#555555", titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "separate", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("divider", { settings: { style: "solid", color: "#eeeeee", thickness: 1, width: 100 } }),
+          makeBlock("contact", { settings: { layout: "stacked", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "'Courier New',Courier,monospace" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "sales":
       return {
-        ...base,
-        nameSize: 18,
-        titleColor: "muted",
-        companyDisplay: "separate",
-        dividerStyle: "solid",
-        dividerThickness: 2,
-        contactLayout: "stacked",
-        photoSize: 80,
-        photoShape: "circle",
-        ctaStyle: "standard",
+        wrapperSettings: { ...defaultWrapper },
+        blocks: [
+          makeBlock("photo", { settings: { size: 80, shape: "circle", position: "left", borderWidth: 0, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 18, nameWeight: "bold", nameColor: "#1a1a1a",
+            showTitle: true, titleSize: 13, titleColor: "#555555", titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "separate", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("divider", { settings: { style: "solid", color: pc, thickness: 2, width: 100 } }),
+          makeBlock("contact", { settings: { layout: "stacked", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+          makeBlock("cta", { settings: { text: "Book a Meeting", url: "", bgColor: "#16a34a", textColor: "#ffffff", borderRadius: 4, fontSize: 13 } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "medical":
       return {
-        ...base,
-        nameSize: 17,
-        titleColor: "primary",
-        companyDisplay: "separate",
-        dividerStyle: "solid",
-        dividerThickness: 2,
-        contactLayout: "stacked",
-        photoSize: 75,
-        photoShape: "circle",
-        photoBorder: `2px solid ${pc}`,
-        outerBorderTop: `3px solid ${pc}`,
+        wrapperSettings: { ...defaultWrapper, borderTop: `3px solid ${pc}` },
+        blocks: [
+          makeBlock("photo", { settings: { size: 75, shape: "circle", position: "left", borderWidth: 2, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 17, nameWeight: "bold", nameColor: "#1a1a1a",
+            showTitle: true, titleSize: 13, titleColor: pc, titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "separate", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("divider", { settings: { style: "solid", color: pc, thickness: 2, width: 100 } }),
+          makeBlock("contact", { settings: { layout: "stacked", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "legal":
       return {
-        ...base,
-        fontFamily: "Georgia,'Times New Roman',serif",
-        nameSize: 16,
-        nameLetterSpacing: "2px",
-        pronounsStyle: "separate",
-        titleColor: "muted",
-        titleFontStyle: "italic",
-        companyDisplay: "separate-bold",
-        dividerStyle: "solid",
-        dividerThickness: 2,
-        dividerColor: "grey",
-        contactLayout: "stacked-labeled",
-        contactFontFamily: "Arial,Helvetica,sans-serif",
-        photoSize: 70,
-        photoShape: "near-square",
+        wrapperSettings: { ...defaultWrapper, fontFamily: "Georgia,'Times New Roman',serif" },
+        blocks: [
+          makeBlock("photo", { settings: { size: 70, shape: "near-square", position: "left", borderWidth: 0, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 16, nameWeight: "bold", nameColor: "#1a1a1a", nameLetterSpacing: "2px",
+            showTitle: true, titleSize: 13, titleColor: "#555555", titleTransform: "none", titleFontStyle: "italic",
+            showCompany: true, companyDisplay: "separate-bold", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "separate",
+          }}),
+          makeBlock("divider", { settings: { style: "solid", color: "#555555", thickness: 2, width: 100 } }),
+          makeBlock("contact", { settings: { layout: "stacked-labeled", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "Arial,Helvetica,sans-serif" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "academic":
       return {
-        ...base,
-        nameSize: 17,
-        nameColor: "dark",
-        titleColor: "primary",
-        companyDisplay: "separate-bold",
-        dividerStyle: "thin-grey",
-        contactLayout: "stacked",
-        photoSize: 75,
-        photoShape: "circle",
+        wrapperSettings: { ...defaultWrapper },
+        blocks: [
+          makeBlock("photo", { settings: { size: 75, shape: "circle", position: "left", borderWidth: 0, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 17, nameWeight: "bold", nameColor: "#1a1a1a",
+            showTitle: true, titleSize: 13, titleColor: pc, titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "separate-bold", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("divider", { settings: { style: "thin-grey", color: "#eeeeee", thickness: 1, width: 100 } }),
+          makeBlock("contact", { settings: { layout: "stacked", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "realtor":
       return {
-        ...base,
-        nameSize: 22,
-        nameColor: "dark",
-        companyDisplay: "separate",
-        dividerStyle: "solid",
-        dividerThickness: 2,
-        contactLayout: "partial-inline",
-        photoSize: 100,
-        photoShape: "rounded",
-        photoBorder: `3px solid ${pc}`,
+        wrapperSettings: { ...defaultWrapper },
+        blocks: [
+          makeBlock("photo", { settings: { size: 100, shape: "rounded", position: "left", borderWidth: 3, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 22, nameWeight: "bold", nameColor: "#1a1a1a",
+            showTitle: true, titleSize: 13, titleColor: "#555555", titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "separate", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("divider", { settings: { style: "solid", color: pc, thickness: 2, width: 100 } }),
+          makeBlock("contact", { settings: { layout: "partial-inline", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "influencer":
       return {
-        ...base,
-        nameSize: 20,
-        nameColor: "primary",
-        companyDisplay: "separate",
-        dividerStyle: "none",
-        contactLayout: "stacked",
-        photoSize: 85,
-        photoShape: "circle",
-        photoBorder: `3px solid ${pc}`,
+        wrapperSettings: { ...defaultWrapper },
+        blocks: [
+          makeBlock("photo", { settings: { size: 85, shape: "circle", position: "left", borderWidth: 3, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 20, nameWeight: "bold", nameColor: pc,
+            showTitle: true, titleSize: 13, titleColor: "#555555", titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "separate", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("contact", { settings: { layout: "stacked", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 24, spacing: 8, subset: false } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "photographer":
       return {
-        ...base,
-        nameSize: 18,
-        nameColor: "dark",
-        nameWeight: "300",
-        companyDisplay: "separate",
-        dividerStyle: "thin-grey",
-        contactLayout: "stacked",
-        photoSize: 60,
-        photoShape: "near-square",
+        wrapperSettings: { ...defaultWrapper },
+        blocks: [
+          makeBlock("photo", { settings: { size: 60, shape: "near-square", position: "left", borderWidth: 0, borderColor: pc } }),
+          makeBlock("name", { settings: {
+            nameSize: 18, nameWeight: "300", nameColor: "#1a1a1a",
+            showTitle: true, titleSize: 13, titleColor: "#555555", titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "separate", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("divider", { settings: { style: "thin-grey", color: "#eeeeee", thickness: 1, width: 100 } }),
+          makeBlock("contact", { settings: { layout: "stacked", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "dark":
       return {
-        ...base,
-        nameSize: 18,
-        nameColor: "dark",
-        titleColor: "accent",
-        companyDisplay: "separate",
-        dividerStyle: "none",
-        socialColor: "white-alpha",
-        photoSize: 76,
-        photoShape: "rounded",
-        photoBorder: "2px solid #ffffff",
-        outerBackground: "#111827",
-        textOnDark: true,
-        ctaStyle: "inverted",
+        wrapperSettings: { ...defaultWrapper, backgroundColor: "#111827", backgroundRadius: 8, backgroundPadding: 16, textOnDark: true },
+        blocks: [
+          makeBlock("photo", { settings: { size: 76, shape: "rounded", position: "left", borderWidth: 2, borderColor: "#ffffff" } }),
+          makeBlock("name", { settings: {
+            nameSize: 18, nameWeight: "bold", nameColor: "#ffffff",
+            showTitle: true, titleSize: 13, titleColor: ac, titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "separate", companyColor: "rgba(255,255,255,0.5)",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("contact", { settings: { layout: "stacked", fontSize: 12, linkColor: pc, textColor: "rgba(255,255,255,0.7)", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: false } }),
+          makeBlock("cta", { settings: { text: "Book a Meeting", url: "", bgColor: "#ffffff", textColor: "#111827", borderRadius: 4, fontSize: 13 } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     case "simple":
       return {
-        ...base,
-        baseFontSize: 13,
-        nameSize: 14,
-        companyDisplay: "inline-name",
-        dividerStyle: "none",
-        contactLayout: "inline-middot",
-        photoSize: 0,
-        photoShape: "none",
+        wrapperSettings: { ...defaultWrapper, baseFontSize: 13 },
+        blocks: [
+          makeBlock("name", { settings: {
+            nameSize: 14, nameWeight: "bold", nameColor: "#1a1a1a",
+            showTitle: true, titleSize: 12, titleColor: "#555555", titleTransform: "none", titleFontStyle: "normal",
+            showCompany: true, companyDisplay: "inline-name", companyColor: "#555555",
+            showPronouns: true, pronounsStyle: "inline",
+          }}),
+          makeBlock("contact", { settings: { layout: "inline-middot", fontSize: 12, linkColor: pc, textColor: "#555555", showIcons: false, fontFamily: "" } }),
+          makeBlock("social", { settings: { iconSize: 20, spacing: 8, subset: true } }),
+        ],
       };
 
+    // -----------------------------------------------------------------------
     default:
-      return base;
+      return {
+        wrapperSettings: { ...defaultWrapper },
+        blocks: getDefaultBlocks(),
+      };
   }
 }
 
 // ---------------------------------------------------------------------------
-// Resolve style colors based on template settings
+// Per-block HTML renderers — read ALL settings from block.settings
 // ---------------------------------------------------------------------------
 
-function resolveColor(
-  token: "dark" | "primary" | "accent" | "muted" | "white-alpha" | string,
-  data: SignatureData,
-  ts: TemplateStyle
-): string {
-  if (ts.textOnDark) {
-    switch (token) {
-      case "dark": return "#ffffff";
-      case "primary": return "#ffffff";
-      case "muted": return "rgba(255,255,255,0.85)";
-      case "accent": return "rgba(255,255,255,0.85)";
-      case "white-alpha": return "rgba(255,255,255,0.8)";
-      default: return token;
-    }
-  }
-  switch (token) {
-    case "dark": return "#1a1a1a";
-    case "primary": return data.primaryColor || "#2563eb";
-    case "accent": return data.accentColor || "#f59e0b";
-    case "muted": return "#555555";
-    case "white-alpha": return "rgba(255,255,255,0.8)";
-    default: return token;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Per-block HTML generators — template-aware
-// ---------------------------------------------------------------------------
-
-function renderPhoto(block: Block, data: SignatureData, ts: TemplateStyle): string {
-  if (!data.photoUrl || ts.photoShape === "none") return "";
+function renderPhoto(block: Block, data: SignatureData): string {
+  if (!data.photoUrl) return "";
 
   const s = block.settings;
-  const size = safeNum(s.size, ts.photoSize);
-  const shape = safeStr(s.shape, ts.photoShape);
-  const alignment = safeStr(s.alignment, "left");
+  const size = safeNum(s.size, 80);
+  const shape = safeStr(s.shape, "circle");
+  const position = safeStr(s.position, "left");
+  const borderWidth = safeNum(s.borderWidth, 0);
+  const borderColor = safeStr(s.borderColor, "#2563eb");
+
+  if (shape === "none") return "";
 
   const borderRadius =
-    shape === "circle" ? "50%" : shape === "rounded" ? "8px" : shape === "near-square" ? "4px" : "0px";
+    shape === "circle" ? "50%" :
+    shape === "rounded" ? "8px" :
+    shape === "near-square" ? "4px" : "0px";
 
+  const borderStyle = borderWidth > 0 ? `border:${borderWidth}px solid ${borderColor};` : "";
   const src = esc(data.photoUrl);
-  const align = alignment === "center" ? "center" : "left";
-  const borderStyle = ts.photoBorder ? `border:${ts.photoBorder};` : "";
+  const align = position === "center" ? "center" : "left";
 
   return `<tr><td align="${align}" style="padding-bottom:8px;">
   <img src="${src}" alt="${esc(data.fullName)}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;border-radius:${borderRadius};object-fit:cover;display:block;${borderStyle}" />
 </td></tr>`;
 }
 
-function renderName(block: Block, data: SignatureData, ts: TemplateStyle): string {
+function renderName(block: Block, data: SignatureData, wrapperSettings: WrapperSettings): string {
   const s = block.settings;
-  const nameSize = safeNum(s.nameSize, ts.nameSize);
+  const nameSize = safeNum(s.nameSize, 16);
+  const nameWeight = safeStr(s.nameWeight, "bold");
+  const nameColor = safeStr(s.nameColor, "#1a1a1a");
+  const nameLetterSpacing = safeStr(s.nameLetterSpacing, "");
   const showTitle = safeBool(s.showTitle, true);
+  const titleSize = safeNum(s.titleSize, 13);
+  const titleColor = safeStr(s.titleColor, "#555555");
+  const titleTransform = safeStr(s.titleTransform, "none");
+  const titleFontStyle = safeStr(s.titleFontStyle, "normal");
   const showCompany = safeBool(s.showCompany, true);
+  const companyDisplay = safeStr(s.companyDisplay, "merged-title");
+  const companyColor = safeStr(s.companyColor, "#555555");
   const showPronouns = safeBool(s.showPronouns, true);
+  const pronounsStyle = safeStr(s.pronounsStyle, "inline");
 
-  const nameCol = resolveColor(ts.nameColor, data, ts);
-  const titleCol = resolveColor(ts.titleColor, data, ts);
-  const mutedCol = resolveColor("muted", data, ts);
-  const darkCol = resolveColor("dark", data, ts);
-  const letterSp = ts.nameLetterSpacing ? `letter-spacing:${ts.nameLetterSpacing};` : "";
+  const fontFamily = wrapperSettings.fontFamily || "Arial,Helvetica,sans-serif";
+  const letterSp = nameLetterSpacing ? `letter-spacing:${nameLetterSpacing};` : "";
 
   // Pronouns
   let pronounRow = "";
   if (showPronouns && data.pronouns) {
-    if (ts.pronounsStyle === "inline") {
-      // handled inline below
-    } else if (ts.pronounsStyle === "italic-separate") {
-      pronounRow = `<tr><td style="font-size:11px;color:${ts.textOnDark ? "rgba(255,255,255,0.6)" : "#888"};font-style:italic;">${esc(data.pronouns)}</td></tr>`;
-    } else {
-      pronounRow = `<tr><td style="font-size:11px;color:${ts.textOnDark ? "rgba(255,255,255,0.6)" : "#888"};">${esc(data.pronouns)}</td></tr>`;
+    if (pronounsStyle === "italic-separate") {
+      pronounRow = `<tr><td style="font-size:11px;color:#888;font-style:italic;">${esc(data.pronouns)}</td></tr>`;
+    } else if (pronounsStyle === "separate") {
+      pronounRow = `<tr><td style="font-size:11px;color:#888;">${esc(data.pronouns)}</td></tr>`;
     }
   }
 
   const pronounInline =
-    ts.pronounsStyle === "inline" && showPronouns && data.pronouns
-      ? ` <span style="font-size:12px;font-weight:normal;color:${ts.textOnDark ? "rgba(255,255,255,0.6)" : "#888"};">(${esc(data.pronouns)})</span>`
+    pronounsStyle === "inline" && showPronouns && data.pronouns
+      ? ` <span style="font-size:12px;font-weight:normal;color:#888;">(${esc(data.pronouns)})</span>`
       : "";
 
-  // Title + company rendering
+  // Title + company rows
   let titleRows = "";
-  if (ts.companyDisplay === "merged-title") {
+  if (companyDisplay === "merged-title") {
     if (showTitle && data.jobTitle) {
       const companyPart = showCompany && data.company ? ` at ${esc(data.company)}` : "";
-      const transform = ts.titleTransform === "uppercase" ? "text-transform:uppercase;letter-spacing:0.5px;" : "";
-      const fontStyle = ts.titleFontStyle === "italic" ? "font-style:italic;" : "";
-      titleRows = `<tr><td style="font-size:${ts.titleSize}px;color:${titleCol};padding-top:2px;${transform}${fontStyle}">${esc(data.jobTitle)}${companyPart}</td></tr>`;
+      const transform = titleTransform === "uppercase" ? "text-transform:uppercase;letter-spacing:0.5px;" : "";
+      const fStyle = titleFontStyle === "italic" ? "font-style:italic;" : "";
+      titleRows = `<tr><td style="font-size:${titleSize}px;color:${titleColor};padding-top:2px;${transform}${fStyle}">${esc(data.jobTitle)}${companyPart}</td></tr>`;
     }
-  } else if (ts.companyDisplay === "merged-at") {
+  } else if (companyDisplay === "merged-at") {
     const combined = [data.jobTitle, data.company].filter(Boolean);
     if (combined.length > 0 && (showTitle || showCompany)) {
       const text = showTitle && data.jobTitle && showCompany && data.company
         ? `${esc(data.jobTitle)} @ ${esc(data.company)}`
         : esc(combined[0]);
-      titleRows = `<tr><td style="font-size:12px;color:${titleCol};padding-top:2px;">${text}</td></tr>`;
+      titleRows = `<tr><td style="font-size:12px;color:${titleColor};padding-top:2px;">${text}</td></tr>`;
     }
-  } else if (ts.companyDisplay === "inline-name") {
-    // Compact: name | title | company all in one — handled in the name row itself
-    // title and company are part of the name <td>
-    const parts: string[] = [];
-    if (showTitle && data.jobTitle) parts.push(`<span style="color:${titleCol};">${esc(data.jobTitle)}</span>`);
-    if (showCompany && data.company) parts.push(esc(data.company));
-    if (parts.length > 0) {
-      titleRows = ""; // nothing separate
-    }
+  } else if (companyDisplay === "inline-name") {
+    // Compact: handled in name row as suffix
   } else {
     // separate, separate-bold, separate-uppercase
     if (showTitle && data.jobTitle) {
-      const transform = ts.titleTransform === "uppercase" ? "text-transform:uppercase;letter-spacing:0.5px;" : "";
-      const fontStyle = ts.titleFontStyle === "italic" ? "font-style:italic;" : "";
-      const weight = ts.companyDisplay === "separate-bold" ? "font-weight:600;" : "";
-      titleRows += `<tr><td style="font-size:${ts.titleSize}px;color:${titleCol};padding-top:2px;${transform}${fontStyle}${weight}">${esc(data.jobTitle)}</td></tr>`;
+      const transform = titleTransform === "uppercase" ? "text-transform:uppercase;letter-spacing:0.5px;" : "";
+      const fStyle = titleFontStyle === "italic" ? "font-style:italic;" : "";
+      const weight = companyDisplay === "separate-bold" ? "font-weight:600;" : "";
+      titleRows += `<tr><td style="font-size:${titleSize}px;color:${titleColor};padding-top:2px;${transform}${fStyle}${weight}">${esc(data.jobTitle)}</td></tr>`;
     }
     if (showCompany && data.company) {
-      if (ts.companyDisplay === "separate-bold") {
-        titleRows += `<tr><td style="font-size:13px;color:${mutedCol};font-weight:bold;padding-top:1px;">${esc(data.company)}</td></tr>`;
-      } else if (ts.companyDisplay === "separate-uppercase") {
-        titleRows += `<tr><td style="font-size:12px;color:${mutedCol};letter-spacing:1px;text-transform:uppercase;padding-top:2px;">${esc(data.company)}</td></tr>`;
+      if (companyDisplay === "separate-bold") {
+        titleRows += `<tr><td style="font-size:13px;color:${companyColor};font-weight:bold;padding-top:1px;">${esc(data.company)}</td></tr>`;
+      } else if (companyDisplay === "separate-uppercase") {
+        titleRows += `<tr><td style="font-size:12px;color:${companyColor};letter-spacing:1px;text-transform:uppercase;padding-top:2px;">${esc(data.company)}</td></tr>`;
       } else {
-        titleRows += `<tr><td style="font-size:13px;color:${mutedCol};padding-top:1px;">${esc(data.company)}</td></tr>`;
+        titleRows += `<tr><td style="font-size:13px;color:${companyColor};padding-top:1px;">${esc(data.company)}</td></tr>`;
       }
     }
   }
 
-  // Build the name cell content
+  // Build name row
   let nameHtml: string;
-  if (ts.companyDisplay === "inline-name") {
-    // Compact style: Name | Title | Company on one line
+  if (companyDisplay === "inline-name") {
     const inlineParts: string[] = [];
-    if (showTitle && data.jobTitle) inlineParts.push(`<span style="color:${titleCol};">${esc(data.jobTitle)}</span>`);
+    if (showTitle && data.jobTitle) inlineParts.push(`<span style="color:${titleColor};">${esc(data.jobTitle)}</span>`);
     if (showCompany && data.company) inlineParts.push(esc(data.company));
     const suffix = inlineParts.length > 0 ? " | " + inlineParts.join(" | ") : "";
-    nameHtml = `<tr><td style="font-size:${nameSize}px;font-weight:bold;color:${nameCol};font-family:${ts.fontFamily};${letterSp}"><strong style="color:${darkCol};">${esc(data.fullName)}</strong>${pronounInline}${suffix}</td></tr>`;
+    nameHtml = `<tr><td style="font-size:${nameSize}px;font-weight:${nameWeight};color:${nameColor};font-family:${fontFamily};${letterSp}"><strong style="color:${nameColor};">${esc(data.fullName)}</strong>${pronounInline}${suffix}</td></tr>`;
   } else {
-    nameHtml = `<tr><td style="font-size:${nameSize}px;font-weight:bold;color:${nameCol};font-family:${ts.fontFamily};${letterSp}">${esc(data.fullName)}${pronounInline}</td></tr>`;
+    nameHtml = `<tr><td style="font-size:${nameSize}px;font-weight:${nameWeight};color:${nameColor};font-family:${fontFamily};${letterSp}">${esc(data.fullName)}${pronounInline}</td></tr>`;
   }
 
   return `<tr><td style="padding-bottom:4px;">
@@ -745,11 +727,13 @@ function renderName(block: Block, data: SignatureData, ts: TemplateStyle): strin
 </td></tr>`;
 }
 
-function renderContact(block: Block, data: SignatureData, ts: TemplateStyle): string {
+function renderContact(block: Block, data: SignatureData, wrapperSettings: WrapperSettings): string {
   const s = block.settings;
-  const pc = data.primaryColor || "#2563eb";
-  const linkColor = resolveColor("primary", data, ts);
-  const textColor = resolveColor("muted", data, ts);
+  const layout = safeStr(s.layout, "stacked");
+  const linkColor = safeStr(s.linkColor, "#2563eb");
+  const textColor = safeStr(s.textColor, "#555555");
+  const showIcons = safeBool(s.showIcons, false);
+  const fontFamily = safeStr(s.fontFamily, "") || wrapperSettings.fontFamily || "Arial,Helvetica,sans-serif";
 
   const fields: { key: keyof SignatureData; icon: string; label: string; href: (v: string) => string }[] = [
     { key: "email", icon: "✉", label: "E", href: (v) => `mailto:${esc(v)}` },
@@ -761,10 +745,7 @@ function renderContact(block: Block, data: SignatureData, ts: TemplateStyle): st
   const items = fields.filter((f) => !!data[f.key]);
   if (items.length === 0) return "";
 
-  const layout = ts.contactLayout;
-  const cfont = ts.contactFontFamily;
-
-  // Inline layouts (pipes, middot, partial-inline)
+  // Inline layouts
   if (layout === "inline-pipes" || layout === "inline-middot" || layout === "partial-inline") {
     const separator = layout === "inline-middot"
       ? ' <span style="color:#ccc;">&middot;</span> '
@@ -773,7 +754,6 @@ function renderContact(block: Block, data: SignatureData, ts: TemplateStyle): st
     let inlineItems = items;
     let extraRows = "";
 
-    // partial-inline: email + phone inline, rest stacked
     if (layout === "partial-inline") {
       const inlineKeys = ["email", "phone"];
       inlineItems = items.filter((f) => inlineKeys.includes(f.key as string));
@@ -783,9 +763,9 @@ function renderContact(block: Block, data: SignatureData, ts: TemplateStyle): st
         const display = f.key === "website" ? val.replace(/^https?:\/\//, "") : val;
         const href = f.href(val);
         if (href) {
-          return `<tr><td style="padding-top:2px;font-size:12px;font-family:${cfont};"><a href="${href}" style="color:${linkColor};text-decoration:none;">${esc(display)}</a></td></tr>`;
+          return `<tr><td style="padding-top:2px;font-size:12px;font-family:${fontFamily};"><a href="${href}" style="color:${linkColor};text-decoration:none;">${esc(display)}</a></td></tr>`;
         }
-        return `<tr><td style="padding-top:2px;font-size:11px;color:${ts.textOnDark ? "rgba(255,255,255,0.6)" : "#888"};font-family:${cfont};">${esc(display)}</td></tr>`;
+        return `<tr><td style="padding-top:2px;font-size:11px;color:${textColor};font-family:${fontFamily};">${esc(display)}</td></tr>`;
       }).join("\n");
     }
 
@@ -794,9 +774,9 @@ function renderContact(block: Block, data: SignatureData, ts: TemplateStyle): st
       const display = f.key === "website" ? val.replace(/^https?:\/\//, "") : val;
       const href = f.href(val);
       if (href) {
-        return `<a href="${href}" style="color:${linkColor};text-decoration:none;font-size:12px;font-family:${cfont};">${esc(display)}</a>`;
+        return `<a href="${href}" style="color:${linkColor};text-decoration:none;font-size:12px;font-family:${fontFamily};">${esc(display)}</a>`;
       }
-      return `<span style="font-size:12px;color:${textColor};font-family:${cfont};">${esc(display)}</span>`;
+      return `<span style="font-size:12px;color:${textColor};font-family:${fontFamily};">${esc(display)}</span>`;
     });
 
     return `<tr><td style="padding-bottom:4px;">
@@ -807,18 +787,17 @@ function renderContact(block: Block, data: SignatureData, ts: TemplateStyle): st
 </td></tr>`;
   }
 
-  // Stacked with labels (corporate: T, E, W, A)
+  // Stacked with labels
   if (layout === "stacked-labeled") {
     const rows = items.map((f) => {
       const val = String(data[f.key]);
       const display = f.key === "website" ? val.replace(/^https?:\/\//, "") : val;
       const href = f.href(val);
-      const labelColor = ts.textOnDark ? "rgba(255,255,255,0.5)" : "#888";
-      const labelHtml = `<strong style="color:${labelColor};">${f.label}</strong>&nbsp;&nbsp;`;
+      const labelHtml = `<strong style="color:#888;">${f.label}</strong>&nbsp;&nbsp;`;
       if (href) {
-        return `<tr><td style="padding-bottom:2px;font-size:12px;font-family:${cfont};">${labelHtml}<a href="${href}" style="color:${f.key === "phone" ? textColor : linkColor};text-decoration:none;">${esc(display)}</a></td></tr>`;
+        return `<tr><td style="padding-bottom:2px;font-size:12px;font-family:${fontFamily};">${labelHtml}<a href="${href}" style="color:${f.key === "phone" ? textColor : linkColor};text-decoration:none;">${esc(display)}</a></td></tr>`;
       }
-      return `<tr><td style="padding-bottom:2px;font-size:12px;color:${textColor};font-family:${cfont};">${labelHtml}${esc(display)}</td></tr>`;
+      return `<tr><td style="padding-bottom:2px;font-size:12px;color:${textColor};font-family:${fontFamily};">${labelHtml}${esc(display)}</td></tr>`;
     });
 
     return `<tr><td style="padding-bottom:4px;">
@@ -828,16 +807,16 @@ function renderContact(block: Block, data: SignatureData, ts: TemplateStyle): st
 </td></tr>`;
   }
 
-  // Stacked with emoji icons (creative)
+  // Stacked with emoji icons
   if (layout === "stacked-emoji") {
     const rows = items.map((f) => {
       const val = String(data[f.key]);
       const display = f.key === "website" ? val.replace(/^https?:\/\//, "") : val;
       const href = f.href(val);
       if (href) {
-        return `<tr><td style="padding-bottom:3px;font-size:12px;font-family:${cfont};"><a href="${href}" style="color:${linkColor};text-decoration:none;">${f.icon} ${esc(display)}</a></td></tr>`;
+        return `<tr><td style="padding-bottom:3px;font-size:12px;font-family:${fontFamily};"><a href="${href}" style="color:${linkColor};text-decoration:none;">${f.icon} ${esc(display)}</a></td></tr>`;
       }
-      return `<tr><td style="padding-bottom:3px;font-size:12px;color:${textColor};font-family:${cfont};">${f.icon} ${esc(display)}</td></tr>`;
+      return `<tr><td style="padding-bottom:3px;font-size:12px;color:${textColor};font-family:${fontFamily};">${f.icon} ${esc(display)}</td></tr>`;
     });
 
     return `<tr><td style="padding-bottom:4px;">
@@ -847,17 +826,16 @@ function renderContact(block: Block, data: SignatureData, ts: TemplateStyle): st
 </td></tr>`;
   }
 
-  // Default: stacked (no icons, no labels)
-  const showIcons = safeBool(s.showIcons, false);
+  // Default: stacked
   const rows = items.map((f) => {
     const val = String(data[f.key]);
     const display = f.key === "website" ? val.replace(/^https?:\/\//, "") : val;
     const href = f.href(val);
     const iconHtml = showIcons ? `<span style="margin-right:4px;">${f.icon}</span>` : "";
     if (href) {
-      return `<tr><td style="padding-bottom:2px;font-size:12px;font-family:${cfont};">${iconHtml}<a href="${href}" style="color:${linkColor};text-decoration:none;">${esc(display)}</a></td></tr>`;
+      return `<tr><td style="padding-bottom:2px;font-size:12px;font-family:${fontFamily};">${iconHtml}<a href="${href}" style="color:${linkColor};text-decoration:none;">${esc(display)}</a></td></tr>`;
     }
-    return `<tr><td style="padding-bottom:2px;font-size:12px;color:${textColor};font-family:${cfont};">${iconHtml}${esc(display)}</td></tr>`;
+    return `<tr><td style="padding-bottom:2px;font-size:12px;color:${textColor};font-family:${fontFamily};">${iconHtml}${esc(display)}</td></tr>`;
   });
 
   return `<tr><td style="padding-bottom:4px;">
@@ -867,34 +845,17 @@ function renderContact(block: Block, data: SignatureData, ts: TemplateStyle): st
 </td></tr>`;
 }
 
-const SOCIAL_LABELS: Record<string, string> = {
-  linkedin: "LinkedIn",
-  twitter: "X (Twitter)",
-  instagram: "Instagram",
-  facebook: "Facebook",
-  github: "GitHub",
-  youtube: "YouTube",
-};
+function renderSocial(block: Block, data: SignatureData, plan: "free" | "pro" | "team"): string {
+  const s = block.settings;
+  const iconSize = safeNum(s.iconSize, 20);
+  const spacing = safeNum(s.spacing, 8);
+  const subset = safeBool(s.subset, false);
 
-const SOCIAL_ICON_URLS: Record<string, string> = {
-  linkedin: "https://neatstamp.com/icons/linkedin.svg",
-  twitter: "https://neatstamp.com/icons/twitter.svg",
-  instagram: "https://neatstamp.com/icons/instagram.svg",
-  facebook: "https://neatstamp.com/icons/facebook.svg",
-  github: "https://neatstamp.com/icons/github.svg",
-  youtube: "https://neatstamp.com/icons/youtube.svg",
-};
-
-const SOCIAL_FIELDS: (keyof SignatureData)[] = [
-  "linkedin", "twitter", "instagram", "facebook", "github", "youtube",
-];
-
-function renderSocial(block: Block, data: SignatureData, ts: TemplateStyle, plan: "free" | "pro" | "team"): string {
   const isPro = plan === "pro" || plan === "team";
   const maxLinks = isPro ? 99 : 2;
 
-  let fields = SOCIAL_FIELDS;
-  if (ts.socialSubset) {
+  let fields: (keyof SignatureData)[] = [...SOCIAL_FIELDS];
+  if (subset) {
     fields = ["linkedin", "twitter", "github"] as (keyof SignatureData)[];
   }
 
@@ -904,29 +865,24 @@ function renderSocial(block: Block, data: SignatureData, ts: TemplateStyle, plan
 
   if (links.length === 0) return "";
 
-  const iconSize = 20;
   const parts = links.map((f) => {
     const url = String(data[f]);
     const href = url.startsWith("http") ? url : `https://${url}`;
     const label = SOCIAL_LABELS[f] ?? String(f);
     const iconUrl = SOCIAL_ICON_URLS[f];
 
-    return `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-right:8px;text-decoration:none;" title="${esc(label)}"><img src="${iconUrl}" alt="${esc(label)}" width="${iconSize}" height="${iconSize}" style="width:${iconSize}px;height:${iconSize}px;display:block;border:0;" /></a>`;
+    return `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-right:${spacing}px;text-decoration:none;" title="${esc(label)}"><img src="${iconUrl}" alt="${esc(label)}" width="${iconSize}" height="${iconSize}" style="width:${iconSize}px;height:${iconSize}px;display:block;border:0;" /></a>`;
   });
 
   return `<tr><td style="padding-bottom:4px;">${parts.join("")}</td></tr>`;
 }
 
-function renderDivider(_block: Block, ts: TemplateStyle, data: SignatureData): string {
-  const pc = data.primaryColor || "#2563eb";
-  const ac = data.accentColor || "#f59e0b";
-
-  // If template has no divider style, render a subtle default line
-  // (the user explicitly enabled this block, so show something)
-  const style = ts.dividerStyle === "none" ? "solid" : ts.dividerStyle;
-  const thickness = ts.dividerStyle === "none" ? 1 : ts.dividerThickness;
-
-  const color = ts.dividerColor === "accent" ? ac : ts.dividerColor === "grey" ? "#eeeeee" : pc;
+function renderDivider(block: Block): string {
+  const s = block.settings;
+  const style = safeStr(s.style, "solid");
+  const color = safeStr(s.color, "#2563eb");
+  const thickness = safeNum(s.thickness, 2);
+  const width = safeNum(s.width, 100);
 
   if (style === "decorative") {
     return `<tr><td style="padding-top:4px;padding-bottom:4px;">
@@ -942,49 +898,36 @@ function renderDivider(_block: Block, ts: TemplateStyle, data: SignatureData): s
 </td></tr>`;
   }
 
-  const lineStyle = style === "dashed" ? "dashed" : "solid";
+  const lineStyle = style === "dashed" ? "dashed" : style === "dotted" ? "dotted" : "solid";
   return `<tr><td style="padding-top:4px;padding-bottom:4px;">
-  <table cellpadding="0" cellspacing="0" border="0" width="100%">
+  <table cellpadding="0" cellspacing="0" border="0" width="${width}%">
     <tr><td style="font-size:0;line-height:0;border-top:${thickness}px ${lineStyle} ${color};">&nbsp;</td></tr>
   </table>
 </td></tr>`;
 }
 
-function renderCta(block: Block, ts: TemplateStyle, data: SignatureData): string {
+function renderCta(block: Block): string {
   const s = block.settings;
   const text = safeStr(s.text, "Book a Meeting");
   const url = safeStr(s.url, "");
-  const pc = data.primaryColor || "#2563eb";
-  const ac = data.accentColor || "#f59e0b";
+  const bgColor = safeStr(s.bgColor, "#2563eb");
+  const textColor = safeStr(s.textColor, "#ffffff");
+  const borderRadius = safeNum(s.borderRadius, 4);
+  const fontSize = safeNum(s.fontSize, 13);
 
   if (!url) return "";
   const href = url.startsWith("http") ? url : `https://${url}`;
 
-  let style: string;
-  switch (ts.ctaStyle) {
-    case "inverted":
-      style = `background-color:#ffffff;color:${pc};`;
-      break;
-    case "gradient-pill":
-      style = `background:linear-gradient(135deg,${pc},${ac});color:#ffffff;border-radius:20px;`;
-      break;
-    case "accent":
-      style = `background-color:${ac};color:#ffffff;`;
-      break;
-    default:
-      style = `background-color:${pc};color:#ffffff;`;
-  }
-
   return `<tr><td style="padding-bottom:4px;">
-  <a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:7px 18px;${style}text-decoration:none;font-size:13px;font-family:Arial,Helvetica,sans-serif;border-radius:4px;font-weight:bold;">${esc(text)}</a>
+  <a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:7px 18px;background-color:${bgColor};color:${textColor};text-decoration:none;font-size:${fontSize}px;font-family:Arial,Helvetica,sans-serif;border-radius:${borderRadius}px;font-weight:bold;">${esc(text)}</a>
 </td></tr>`;
 }
 
-function renderDisclaimer(block: Block, ts: TemplateStyle): string {
+function renderDisclaimer(block: Block): string {
   const s = block.settings;
   const text = safeStr(s.text, "");
   const fontSize = safeNum(s.fontSize, 10);
-  const color = ts.textOnDark ? "rgba(255,255,255,0.4)" : "#94a3b8";
+  const color = safeStr(s.color, "#94a3b8");
 
   if (!text) return "";
 
@@ -999,131 +942,188 @@ function renderSpacer(block: Block): string {
 }
 
 // ---------------------------------------------------------------------------
-// Main HTML generator — template-aware
+// Main HTML generator
 // ---------------------------------------------------------------------------
 
 export function generateHtmlFromBlocks(
   blocks: Block[],
   data: SignatureData,
+  wrapperSettings: WrapperSettings,
   options?: GenerateOptions
 ): string {
   const plan = options?.plan ?? "free";
   const isPro = plan === "pro" || plan === "team";
-  const template = data.template || "minimal";
-  const ts = getTemplateStyle(template, data);
-  const pc = data.primaryColor || "#2563eb";
+
+  const ws = wrapperSettings ?? DEFAULT_WRAPPER_SETTINGS;
+  const fontFamily = ws.fontFamily || "Arial,Helvetica,sans-serif";
+  const baseFontSize = ws.baseFontSize || 14;
+  const textOnDark = ws.textOnDark ?? false;
+  const baseTextColor = textOnDark ? "#ffffff" : "#333333";
 
   const visibleBlocks = blocks.filter((b) => b.visible);
 
-  // Check if photo block has position left/right (side-by-side layout)
   const photoBlock = visibleBlocks.find((b) => b.type === "photo");
   const photoPosition = photoBlock ? safeStr(photoBlock.settings.position, "left") : "";
-  const photoIsSideBySide = photoBlock && (photoPosition === "left" || photoPosition === "right") && data.photoUrl && ts.photoShape !== "none";
+  const photoShape = photoBlock ? safeStr(photoBlock.settings.shape, "circle") : "";
+  const photoIsSideBySide =
+    photoBlock &&
+    (photoPosition === "left" || photoPosition === "right") &&
+    !!data.photoUrl &&
+    photoShape !== "none";
 
-  // Build content rows (everything except photo if it's side-by-side)
-  const contentBlocks = photoIsSideBySide
-    ? visibleBlocks.filter((b) => b.type !== "photo")
-    : visibleBlocks;
+  // Executive split: dark header row + light content row
+  if (photoIsSideBySide && ws.headerBackground) {
+    const size = safeNum(photoBlock!.settings.size, 80);
+    const shape = safeStr(photoBlock!.settings.shape, "circle");
+    const borderWidth = safeNum(photoBlock!.settings.borderWidth, 0);
+    const borderColor = safeStr(photoBlock!.settings.borderColor, "#ffffff");
+    const borderRadius =
+      shape === "circle" ? "50%" :
+      shape === "rounded" ? "8px" :
+      shape === "near-square" ? "4px" : "0px";
+    const borderStyle = borderWidth > 0 ? `border:${borderWidth}px solid ${borderColor};` : "";
+    const src = esc(data.photoUrl);
 
-  const contentRows = contentBlocks
+    const nameBlock = visibleBlocks.find((b) => b.type === "name");
+    const otherBlocks = visibleBlocks.filter((b) => b.type !== "photo" && b.type !== "name");
+
+    const nameHtml = nameBlock ? renderName(nameBlock, data, { ...ws, fontFamily }) : "";
+
+    const otherRows = otherBlocks
+      .map((b) => {
+        switch (b.type) {
+          case "contact": return renderContact(b, data, ws);
+          case "social": return renderSocial(b, data, plan);
+          case "divider": return renderDivider(b);
+          case "cta": return isPro ? renderCta(b) : "";
+          case "disclaimer": return isPro ? renderDisclaimer(b) : "";
+          case "spacer": return renderSpacer(b);
+          default: return "";
+        }
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    const photoTd = `<td style="vertical-align:middle;padding-right:14px;width:${size}px;">
+        <img src="${src}" alt="${esc(data.fullName)}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;border-radius:${borderRadius};object-fit:cover;display:block;${borderStyle}" />
+      </td>`;
+    const nameTd = `<td style="vertical-align:middle;">
+        <table cellpadding="0" cellspacing="0" border="0" style="font-family:${fontFamily};font-size:${baseFontSize}px;color:#ffffff;">
+          ${nameHtml}
+        </table>
+      </td>`;
+
+    const headerRow = `<tr><td style="background-color:${ws.headerBackground};padding:14px 18px;">
+        <table cellpadding="0" cellspacing="0" border="0"><tr>${photoTd}${nameTd}</tr></table>
+      </td></tr>`;
+
+    const contentBorderStyle = ws.borderLeft ? `border-left:${ws.borderLeft};padding-left:14px;` : "";
+    const contactRow = otherRows ? `<tr><td style="padding:12px 18px;${contentBorderStyle}">
+        <table cellpadding="0" cellspacing="0" border="0" style="font-family:${fontFamily};font-size:${baseFontSize}px;color:#333;">
+          ${otherRows}
+        </table>
+      </td></tr>` : "";
+
+    const branding = !isPro
+      ? `<tr><td style="padding-top:8px;"><a href="https://neatstamp.com?ref=sig" target="_blank" rel="noopener noreferrer" style="color:#94a3b8;font-size:10px;font-family:Arial,Helvetica,sans-serif;text-decoration:none;">Made with NeatStamp</a></td></tr>`
+      : "";
+
+    const pixel =
+      !isPro && options?.signatureId
+        ? `<tr><td><img src="https://neatstamp.com/api/images/${esc(options.signatureId)}/track" width="1" height="1" style="width:1px;height:1px;display:block;" alt="" /></td></tr>`
+        : "";
+
+    const outerStyles = buildOuterStyles(ws, fontFamily, baseFontSize, baseTextColor);
+
+    return `<table cellpadding="0" cellspacing="0" border="0" style="${outerStyles}">
+${headerRow}
+${contactRow}
+${branding}
+${pixel}
+</table>`;
+  }
+
+  // Standard side-by-side (photo left/right, no dark header)
+  if (photoIsSideBySide && photoBlock) {
+    const size = safeNum(photoBlock.settings.size, 80);
+    const shape = safeStr(photoBlock.settings.shape, "circle");
+    const borderWidth = safeNum(photoBlock.settings.borderWidth, 0);
+    const borderColor = safeStr(photoBlock.settings.borderColor, "#2563eb");
+    const borderRadius =
+      shape === "circle" ? "50%" :
+      shape === "rounded" ? "8px" :
+      shape === "near-square" ? "4px" : "0px";
+    const borderStyle = borderWidth > 0 ? `border:${borderWidth}px solid ${borderColor};` : "";
+    const src = esc(data.photoUrl);
+
+    const contentBlocks = visibleBlocks.filter((b) => b.type !== "photo");
+    const contentRows = contentBlocks
+      .map((b) => {
+        switch (b.type) {
+          case "name": return renderName(b, data, ws);
+          case "contact": return renderContact(b, data, ws);
+          case "social": return renderSocial(b, data, plan);
+          case "divider": return renderDivider(b);
+          case "cta": return isPro ? renderCta(b) : "";
+          case "disclaimer": return isPro ? renderDisclaimer(b) : "";
+          case "spacer": return renderSpacer(b);
+          default: return "";
+        }
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    const photoTd = `<td style="vertical-align:top;padding-${photoPosition === "left" ? "right" : "left"}:14px;width:${size}px;">
+        <img src="${src}" alt="${esc(data.fullName)}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;border-radius:${borderRadius};object-fit:cover;display:block;${borderStyle}" />
+      </td>`;
+
+    const contentBorderStyle = ws.borderLeft ? `border-left:${ws.borderLeft};padding-left:14px;` : "";
+    const contentTd = `<td style="vertical-align:top;${contentBorderStyle}">
+        <table cellpadding="0" cellspacing="0" border="0" style="font-family:${fontFamily};font-size:${baseFontSize}px;color:${baseTextColor};">
+          ${contentRows}
+        </table>
+      </td>`;
+
+    const rows = `<tr>${photoPosition === "left" ? photoTd + contentTd : contentTd + photoTd}</tr>`;
+
+    const branding = !isPro
+      ? `<tr><td style="padding-top:8px;"><a href="https://neatstamp.com?ref=sig" target="_blank" rel="noopener noreferrer" style="color:${textOnDark ? "rgba(255,255,255,0.4)" : "#94a3b8"};font-size:10px;font-family:Arial,Helvetica,sans-serif;text-decoration:none;">Made with NeatStamp</a></td></tr>`
+      : "";
+
+    const pixel =
+      !isPro && options?.signatureId
+        ? `<tr><td><img src="https://neatstamp.com/api/images/${esc(options.signatureId)}/track" width="1" height="1" style="width:1px;height:1px;display:block;" alt="" /></td></tr>`
+        : "";
+
+    const outerStyles = buildOuterStyles(ws, fontFamily, baseFontSize, baseTextColor);
+
+    return `<table cellpadding="0" cellspacing="0" border="0" style="${outerStyles}">
+${rows}
+${branding}
+${pixel}
+</table>`;
+  }
+
+  // Stacked layout (no side-by-side photo, or no photo)
+  const contentRows = visibleBlocks
     .map((b) => {
       switch (b.type) {
-        case "photo":
-          return renderPhoto(b, data, ts);
-        case "name":
-          return renderName(b, data, ts);
-        case "contact":
-          return renderContact(b, data, ts);
-        case "social":
-          return renderSocial(b, data, ts, plan);
-        case "divider":
-          return renderDivider(b, ts, data);
-        case "cta":
-          return isPro ? renderCta(b, ts, data) : "";
-        case "disclaimer":
-          return isPro ? renderDisclaimer(b, ts) : "";
-        case "spacer":
-          return renderSpacer(b);
-        default:
-          return "";
+        case "photo": return renderPhoto(b, data);
+        case "name": return renderName(b, data, ws);
+        case "contact": return renderContact(b, data, ws);
+        case "social": return renderSocial(b, data, plan);
+        case "divider": return renderDivider(b);
+        case "cta": return isPro ? renderCta(b) : "";
+        case "disclaimer": return isPro ? renderDisclaimer(b) : "";
+        case "spacer": return renderSpacer(b);
+        default: return "";
       }
     })
     .filter(Boolean)
     .join("\n");
 
-  // If photo is side-by-side, wrap in a two-column table
-  let rows: string;
-  if (photoIsSideBySide && photoBlock) {
-    const size = safeNum(photoBlock.settings.size, ts.photoSize);
-    const shape = safeStr(photoBlock.settings.shape, ts.photoShape);
-    const borderRadius = shape === "circle" ? "50%" : shape === "rounded" ? "8px" : shape === "near-square" ? "4px" : "0px";
-    const src = esc(data.photoUrl);
-    const borderStyle = ts.photoBorder ? `border:${ts.photoBorder};` : "";
-
-    // If nameBarBackground is set (executive style), split into header bar + contact section
-    if (ts.nameBarBackground) {
-      // Separate name block from contact/social/divider blocks
-      const nameBlock = contentBlocks.find((b) => b.type === "name");
-      const otherBlocks = contentBlocks.filter((b) => b.type !== "name");
-
-      const nameHtml = nameBlock ? renderName(nameBlock, data, { ...ts, nameColor: "dark", titleColor: "accent" } as TemplateStyle) : "";
-
-      const otherRows = otherBlocks
-        .map((b) => {
-          switch (b.type) {
-            case "contact": return renderContact(b, data, ts);
-            case "social": return renderSocial(b, data, ts, plan);
-            case "divider": return renderDivider(b, ts, data);
-            case "cta": return isPro ? renderCta(b, ts, data) : "";
-            case "disclaimer": return isPro ? renderDisclaimer(b, ts) : "";
-            case "spacer": return renderSpacer(b);
-            default: return "";
-          }
-        })
-        .filter(Boolean)
-        .join("\n");
-
-      const photoTd = `<td style="vertical-align:middle;padding-right:14px;width:${size}px;">
-        <img src="${src}" alt="${esc(data.fullName)}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;border-radius:${borderRadius};object-fit:cover;display:block;${borderStyle}" />
-      </td>`;
-      const nameTd = `<td style="vertical-align:middle;">
-        <table cellpadding="0" cellspacing="0" border="0" style="font-family:${ts.fontFamily};font-size:${ts.baseFontSize}px;color:#ffffff;">
-          ${nameHtml}
-        </table>
-      </td>`;
-
-      const headerRow = `<tr><td style="background-color:${ts.nameBarBackground};padding:14px 18px;">
-        <table cellpadding="0" cellspacing="0" border="0"><tr>${photoTd}${nameTd}</tr></table>
-      </td></tr>`;
-
-      const contentBorderStyle = ts.contentBorderLeft ? `border-left:${ts.contentBorderLeft};padding-left:14px;` : "";
-      const contactRow = otherRows ? `<tr><td style="padding:12px 18px;${contentBorderStyle}">
-        <table cellpadding="0" cellspacing="0" border="0" style="font-family:${ts.fontFamily};font-size:${ts.baseFontSize}px;color:#333;">
-          ${otherRows}
-        </table>
-      </td></tr>` : "";
-
-      rows = headerRow + contactRow;
-    } else {
-      const photoTd = `<td style="vertical-align:top;padding-${photoPosition === "left" ? "right" : "left"}:14px;width:${size}px;">
-        <img src="${src}" alt="${esc(data.fullName)}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;border-radius:${borderRadius};object-fit:cover;display:block;${borderStyle}" />
-      </td>`;
-
-      const contentBorderStyle = ts.contentBorderLeft ? `border-left:${ts.contentBorderLeft};padding-left:14px;` : "";
-      const contentTd = `<td style="vertical-align:top;${contentBorderStyle}">
-        <table cellpadding="0" cellspacing="0" border="0" style="font-family:${ts.fontFamily};font-size:${ts.baseFontSize}px;color:${ts.textOnDark ? "#ffffff" : "#333"};">
-          ${contentRows}
-        </table>
-      </td>`;
-
-      rows = `<tr>${photoPosition === "left" ? photoTd + contentTd : contentTd + photoTd}</tr>`;
-    }
-  } else {
-    rows = contentRows;
-  }
-
   const branding = !isPro
-    ? `<tr><td style="padding-top:8px;"><a href="https://neatstamp.com?ref=sig" target="_blank" rel="noopener noreferrer" style="color:${ts.textOnDark ? "rgba(255,255,255,0.4)" : "#94a3b8"};font-size:10px;font-family:Arial,Helvetica,sans-serif;text-decoration:none;">Made with NeatStamp</a></td></tr>`
+    ? `<tr><td style="padding-top:8px;"><a href="https://neatstamp.com?ref=sig" target="_blank" rel="noopener noreferrer" style="color:${textOnDark ? "rgba(255,255,255,0.4)" : "#94a3b8"};font-size:10px;font-family:Arial,Helvetica,sans-serif;text-decoration:none;">Made with NeatStamp</a></td></tr>`
     : "";
 
   const pixel =
@@ -1131,22 +1131,40 @@ export function generateHtmlFromBlocks(
       ? `<tr><td><img src="https://neatstamp.com/api/images/${esc(options.signatureId)}/track" width="1" height="1" style="width:1px;height:1px;display:block;" alt="" /></td></tr>`
       : "";
 
-  // Outer table styles
-  const outerStyles: string[] = [
-    `font-family:${ts.fontFamily}`,
-    `font-size:${ts.baseFontSize}px`,
-    `color:${ts.textOnDark ? "#ffffff" : "#333333"}`,
-  ];
-  if (ts.outerBorderTop) outerStyles.push(`border-top:${ts.outerBorderTop}`, "padding-top:12px");
-  if (ts.outerBackground === "primary") {
-    outerStyles.push(`background-color:${pc}`, "border-radius:8px", "padding:16px");
-  } else if (ts.outerBackground !== "none") {
-    outerStyles.push(`background-color:${ts.outerBackground}`, "border-radius:8px", "padding:16px");
-  }
+  const outerStyles = buildOuterStyles(ws, fontFamily, baseFontSize, baseTextColor);
 
-  return `<table cellpadding="0" cellspacing="0" border="0" style="${outerStyles.join(";") + ";"}">
-${rows}
+  return `<table cellpadding="0" cellspacing="0" border="0" style="${outerStyles}">
+${contentRows}
 ${branding}
 ${pixel}
 </table>`;
+}
+
+// ---------------------------------------------------------------------------
+// Helper: build outer table style string from WrapperSettings
+// ---------------------------------------------------------------------------
+
+function buildOuterStyles(
+  ws: WrapperSettings,
+  fontFamily: string,
+  baseFontSize: number,
+  baseTextColor: string
+): string {
+  const styles: string[] = [
+    `font-family:${fontFamily}`,
+    `font-size:${baseFontSize}px`,
+    `color:${baseTextColor}`,
+  ];
+
+  if (ws.borderTop) {
+    styles.push(`border-top:${ws.borderTop}`, "padding-top:12px");
+  }
+
+  if (ws.backgroundColor && ws.backgroundColor !== "none") {
+    styles.push(`background-color:${ws.backgroundColor}`);
+    if (ws.backgroundRadius) styles.push(`border-radius:${ws.backgroundRadius}px`);
+    if (ws.backgroundPadding) styles.push(`padding:${ws.backgroundPadding}px`);
+  }
+
+  return styles.join(";") + ";";
 }

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Block, BlockType, BlockConfig, BLOCK_CONFIGS, generateHtmlFromBlocks } from "@/lib/blocks";
+import { DEFAULT_WRAPPER_SETTINGS } from "@/lib/types";
 import { SignatureData } from "@/lib/types";
 import { GenerateOptions, generateSignatureHtml } from "@/lib/generateSignature";
 
@@ -14,6 +15,7 @@ interface BlockEditorProps {
   data: SignatureData;
   onDataChange: (data: SignatureData) => void;
   plan: "free" | "pro" | "team";
+  wrapperSettings?: import("@/lib/types").WrapperSettings;
 }
 
 // ---------------------------------------------------------------------------
@@ -320,10 +322,12 @@ function LivePreview({
   blocks,
   data,
   plan,
+  wrapperSettings,
 }: {
   blocks: Block[];
   data: SignatureData;
   plan: "free" | "pro" | "team";
+  wrapperSettings: import("@/lib/types").WrapperSettings;
 }) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
   const [sigId] = useState(() => crypto.randomUUID());
@@ -333,8 +337,7 @@ function LivePreview({
     plan,
     signatureId: sigId,
   };
-  // Always use block renderer for preview — respects drag & drop visibility/order
-  const blockHtml = generateHtmlFromBlocks(blocks, data, options);
+  const blockHtml = generateHtmlFromBlocks(blocks, data, wrapperSettings, options);
   const templateHtml = generateSignatureHtml(data, options);
   const html = blockHtml;
 
@@ -530,7 +533,9 @@ export default function BlockEditor({
   data,
   onDataChange,
   plan,
+  wrapperSettings,
 }: BlockEditorProps) {
+  const ws = wrapperSettings ?? DEFAULT_WRAPPER_SETTINGS;
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Drag state
@@ -769,7 +774,7 @@ export default function BlockEditor({
         <div className="sticky top-20">
           <h2 className="text-sm font-semibold text-slate-800 mb-1">Live preview</h2>
           <p className="text-xs text-slate-500 mb-4">Updates as you make changes.</p>
-          <LivePreview blocks={blocks} data={data} plan={plan} />
+          <LivePreview blocks={blocks} data={data} plan={plan} wrapperSettings={ws} />
         </div>
       </div>
 

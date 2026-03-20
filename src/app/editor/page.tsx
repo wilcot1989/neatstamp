@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { SignatureData, TemplateName, DEFAULT_SIGNATURE_DATA, TEMPLATES } from "@/lib/types";
+import { SignatureData, TemplateName, DEFAULT_SIGNATURE_DATA, TEMPLATES, WrapperSettings, DEFAULT_WRAPPER_SETTINGS } from "@/lib/types";
 import { generateSignatureHtml, generateCopyHtml } from "@/lib/generateSignature";
 import { copySignatureToClipboard } from "@/lib/clipboard";
-import { Block, getDefaultBlocks, getBlocksForTemplate, ensureBlocksForTemplate } from "@/lib/blocks";
+import { Block, getDefaultBlocks, getPresetForTemplate } from "@/lib/blocks";
 import BlockEditor from "@/components/BlockEditor";
 
 
@@ -708,7 +708,8 @@ export default function EditorPage() {
   const [planLoaded, setPlanLoaded] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "info" | "warning" | "success" } | null>(null);
   const [editorMode, setEditorMode] = useState<"templates" | "blocks">("templates");
-  const [blocks, setBlocks] = useState<Block[]>(() => getBlocksForTemplate("minimal"));
+  const [blocks, setBlocks] = useState<Block[]>(() => getDefaultBlocks());
+  const [wrapperSettings, setWrapperSettings] = useState<WrapperSettings>(DEFAULT_WRAPPER_SETTINGS);
   const previewRef = useRef<HTMLDivElement>(null);
 
   const isPro = userPlan === "pro" || userPlan === "team";
@@ -734,12 +735,13 @@ export default function EditorPage() {
   const handleTemplateSelect = (template: TemplateName) => {
     const tpl = TEMPLATES.find((t) => t.id === template);
     const updatedData = { ...data, template };
-    // If user has no photo and template has a preview photo, use it as placeholder
     if (!data.photoUrl && tpl?.previewPhoto) {
       updatedData.photoUrl = `https://neatstamp.com${tpl.previewPhoto}`;
     }
+    const preset = getPresetForTemplate(template, updatedData);
     setData(updatedData);
-    setBlocks(ensureBlocksForTemplate(blocks, template));
+    setBlocks(preset.blocks);
+    setWrapperSettings(preset.wrapperSettings);
   };
 
   const handleProTemplateClick = () => {
@@ -843,6 +845,7 @@ export default function EditorPage() {
             data={data}
             onDataChange={setData}
             plan={userPlan}
+            wrapperSettings={wrapperSettings}
           />
         </div>
       </div>

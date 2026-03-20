@@ -284,25 +284,29 @@ function PhotoSettings({
         onChange={(v) => set("size", v)}
       />
       <RadioGroup
-        label="Alignment"
-        value={String(s.alignment ?? "left")}
-        options={[
-          { value: "left", label: "Left" },
-          { value: "center", label: "Center" },
-        ]}
-        hint="Photo alignment when it's on its own row"
-        onChange={(v) => set("alignment", v)}
-      />
-      <RadioGroup
         label="Photo position"
         value={String(s.position ?? "left")}
         options={[
           { value: "left", label: "Left of text" },
           { value: "right", label: "Right of text" },
         ]}
-        hint="Place your photo to the left or right of your contact details"
         onChange={(v) => set("position", v)}
       />
+      <SliderField
+        label="Border width"
+        value={Number(s.borderWidth ?? 0)}
+        min={0}
+        max={4}
+        unit="px"
+        onChange={(v) => set("borderWidth", v)}
+      />
+      {Number(s.borderWidth ?? 0) > 0 && (
+        <ColorField
+          label="Border color"
+          value={String(s.borderColor ?? "#2563eb")}
+          onChange={(v) => set("borderColor", v)}
+        />
+      )}
     </div>
   );
 }
@@ -321,31 +325,111 @@ function NameSettings({
     <div className="space-y-3">
       <SliderField
         label="Name font size"
-        value={Number(s.nameSize ?? 18)}
-        min={16}
-        max={24}
+        value={Number(s.nameSize ?? 16)}
+        min={12}
+        max={26}
         unit="px"
-        hint="Font size for the full name"
         onChange={(v) => set("nameSize", v)}
+      />
+      <ColorField
+        label="Name color"
+        value={String(s.nameColor ?? "#1a1a1a")}
+        onChange={(v) => set("nameColor", v)}
+      />
+      <RadioGroup
+        label="Name weight"
+        value={String(s.nameWeight ?? "bold")}
+        options={[
+          { value: "300", label: "Light" },
+          { value: "normal", label: "Normal" },
+          { value: "bold", label: "Bold" },
+        ]}
+        onChange={(v) => set("nameWeight", v)}
       />
       <ToggleField
         label="Show job title"
         value={Boolean(s.showTitle ?? true)}
-        hint="Toggle visibility of the job title line"
         onChange={(v) => set("showTitle", v)}
       />
+      {Boolean(s.showTitle ?? true) && (
+        <>
+          <SliderField
+            label="Title font size"
+            value={Number(s.titleSize ?? 13)}
+            min={10}
+            max={16}
+            unit="px"
+            onChange={(v) => set("titleSize", v)}
+          />
+          <ColorField
+            label="Title color"
+            value={String(s.titleColor ?? "#555555")}
+            onChange={(v) => set("titleColor", v)}
+          />
+          <RadioGroup
+            label="Title style"
+            value={String(s.titleFontStyle ?? "normal")}
+            options={[
+              { value: "normal", label: "Normal" },
+              { value: "italic", label: "Italic" },
+            ]}
+            onChange={(v) => set("titleFontStyle", v)}
+          />
+          <RadioGroup
+            label="Title transform"
+            value={String(s.titleTransform ?? "none")}
+            options={[
+              { value: "none", label: "None" },
+              { value: "uppercase", label: "Uppercase" },
+            ]}
+            onChange={(v) => set("titleTransform", v)}
+          />
+        </>
+      )}
       <ToggleField
         label="Show company"
         value={Boolean(s.showCompany ?? true)}
-        hint="Toggle visibility of the company name"
         onChange={(v) => set("showCompany", v)}
       />
+      {Boolean(s.showCompany ?? true) && (
+        <>
+          <ColorField
+            label="Company color"
+            value={String(s.companyColor ?? "#555555")}
+            onChange={(v) => set("companyColor", v)}
+          />
+          <RadioGroup
+            label="Company display"
+            value={String(s.companyDisplay ?? "merged-title")}
+            options={[
+              { value: "merged-title", label: "With title" },
+              { value: "separate", label: "Separate" },
+              { value: "separate-bold", label: "Bold" },
+              { value: "separate-uppercase", label: "Uppercase" },
+              { value: "inline-name", label: "Inline" },
+              { value: "merged-at", label: "@ style" },
+            ]}
+            onChange={(v) => set("companyDisplay", v)}
+          />
+        </>
+      )}
       <ToggleField
         label="Show pronouns"
         value={Boolean(s.showPronouns ?? true)}
-        hint="Toggle visibility of pronouns in parentheses"
         onChange={(v) => set("showPronouns", v)}
       />
+      {Boolean(s.showPronouns ?? true) && (
+        <RadioGroup
+          label="Pronouns style"
+          value={String(s.pronounsStyle ?? "inline")}
+          options={[
+            { value: "inline", label: "Inline" },
+            { value: "separate", label: "Separate" },
+            { value: "italic-separate", label: "Italic" },
+          ]}
+          onChange={(v) => set("pronounsStyle", v)}
+        />
+      )}
     </div>
   );
 }
@@ -367,15 +451,28 @@ function ContactSettings({
         value={String(s.layout ?? "stacked")}
         options={[
           { value: "stacked", label: "Stacked" },
-          { value: "inline", label: "Inline" },
+          { value: "inline-pipes", label: "Inline |" },
+          { value: "inline-middot", label: "Inline ·" },
+          { value: "partial-inline", label: "Mixed" },
+          { value: "stacked-labeled", label: "Labels" },
+          { value: "stacked-emoji", label: "Emoji" },
         ]}
-        hint="Stacked puts each item on its own line; inline puts them side by side"
         onChange={(v) => set("layout", v)}
+      />
+      <ColorField
+        label="Link color"
+        value={String(s.linkColor ?? "#2563eb")}
+        onChange={(v) => set("linkColor", v)}
+      />
+      <ColorField
+        label="Text color"
+        value={String(s.textColor ?? "#555555")}
+        onChange={(v) => set("textColor", v)}
       />
       <ToggleField
         label="Show icons"
         value={Boolean(s.showIcons ?? false)}
-        hint="Show a small emoji icon before each contact item"
+        hint="Show emoji icons before each contact item (stacked mode)"
         onChange={(v) => set("showIcons", v)}
       />
     </div>

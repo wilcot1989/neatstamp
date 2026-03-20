@@ -4,8 +4,8 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useRef, Suspense } from "react";
 import Link from "next/link";
-import { SignatureData, DEFAULT_SIGNATURE_DATA, TemplateName, TEMPLATES } from "@/lib/types";
-import { Block, getDefaultBlocks, getBlocksForTemplate, ensureBlocksForTemplate } from "@/lib/blocks";
+import { SignatureData, DEFAULT_SIGNATURE_DATA, TemplateName, TEMPLATES, WrapperSettings, DEFAULT_WRAPPER_SETTINGS } from "@/lib/types";
+import { Block, getDefaultBlocks, getPresetForTemplate } from "@/lib/blocks";
 import BlockEditor from "@/components/BlockEditor";
 import { generateSignatureHtml } from "@/lib/generateSignature";
 
@@ -954,6 +954,7 @@ function DashboardContent() {
   // Editor state (shared)
   const [editorData, setEditorData] = useState<SignatureData>(DEFAULT_SIGNATURE_DATA);
   const [editorBlocks, setEditorBlocks] = useState<Block[]>(getDefaultBlocks());
+  const [editorWrapperSettings, setEditorWrapperSettings] = useState<WrapperSettings>(DEFAULT_WRAPPER_SETTINGS);
   const [editingSignatureId, setEditingSignatureId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
@@ -1202,7 +1203,7 @@ function DashboardContent() {
               signatures={signatures}
               plan={plan}
               loading={sigsLoading}
-              onCreateNew={() => { setEditorData(DEFAULT_SIGNATURE_DATA); setEditorBlocks(getBlocksForTemplate(DEFAULT_SIGNATURE_DATA.template)); setEditingSignatureId(null); setActiveTab("editor"); }}
+              onCreateNew={() => { setEditorData(DEFAULT_SIGNATURE_DATA); setEditorBlocks(getDefaultBlocks()); setEditingSignatureId(null); setActiveTab("editor"); }}
               onEdit={(sig) => {
                 try {
                   const parsed = typeof sig.data === "string" ? JSON.parse(sig.data) : sig.data;
@@ -1383,12 +1384,13 @@ function DashboardContent() {
                         onClick={() => {
                           if (!isLocked) {
                             const updatedData = { ...editorData, template: t };
-                            // If user has no photo and template has a preview photo, use it as placeholder
                             if (!editorData.photoUrl && tpl.previewPhoto) {
                               updatedData.photoUrl = `https://neatstamp.com${tpl.previewPhoto}`;
                             }
+                            const preset = getPresetForTemplate(t, updatedData);
                             setEditorData(updatedData);
-                            setEditorBlocks(ensureBlocksForTemplate(editorBlocks, t));
+                            setEditorBlocks(preset.blocks);
+                            setEditorWrapperSettings(preset.wrapperSettings);
                           }
                         }}
                         className={`relative rounded-xl border-2 overflow-hidden text-left transition-all flex-shrink-0 w-[140px] snap-start ${
@@ -1456,6 +1458,7 @@ function DashboardContent() {
                     data={editorData}
                     onDataChange={setEditorData}
                     plan={plan}
+                    wrapperSettings={editorWrapperSettings}
                   />
                 </div>
               </div>

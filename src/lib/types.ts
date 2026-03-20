@@ -22,6 +22,34 @@ export interface SignatureData {
   address: string;
 }
 
+// ---------------------------------------------------------------------------
+// Wrapper settings — global signature-level styling
+// ---------------------------------------------------------------------------
+
+export interface WrapperSettings {
+  fontFamily: string;
+  baseFontSize: number;
+  backgroundColor: string; // "none" or hex
+  backgroundRadius: number;
+  backgroundPadding: number;
+  textOnDark: boolean;
+  borderTop: string; // "" or "3px solid #2563eb"
+  borderLeft: string; // "" or "3px solid #2563eb"
+  headerBackground: string; // "" or "#1e293b" (executive dark header)
+}
+
+export const DEFAULT_WRAPPER_SETTINGS: WrapperSettings = {
+  fontFamily: "Arial,Helvetica,sans-serif",
+  baseFontSize: 14,
+  backgroundColor: "none",
+  backgroundRadius: 0,
+  backgroundPadding: 0,
+  textOnDark: false,
+  borderTop: "",
+  borderLeft: "",
+  headerBackground: "",
+};
+
 export type TemplateName =
   | "minimal"
   | "modern"
