@@ -56,6 +56,22 @@ function socialLinks(data: SignatureData): string {
   return `<tr><td style="padding-top:8px;">${links}</td></tr>`;
 }
 
+// ----------------------------------------------------------------
+// Shared helper: resolve photo src (handles free-tier proxy URL)
+// ----------------------------------------------------------------
+function resolvePhotoSrc(data: SignatureData, options?: GenerateOptions): string {
+  if (!data.photoUrl) return "";
+  const isPro = options?.plan === "pro" || options?.plan === "team";
+  if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
+    return `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
+  }
+  return escapeHtml(data.photoUrl);
+}
+
+// ----------------------------------------------------------------
+// photoCell: renders a <td> with the photo, respecting data overrides.
+// Used by templates that want the standard helper.
+// ----------------------------------------------------------------
 function photoCell(
   data: SignatureData,
   defaultSize: number,
@@ -64,18 +80,33 @@ function photoCell(
 ): string {
   if (!data.photoUrl) return "";
 
-  // User overrides from Design tab
   const size = data.photoSize ?? defaultSize;
   const shape = data.photoShape ?? "";
   const borderRadius = shape === "circle" ? "50%" : shape === "rounded" ? "8px" : shape === "square" ? "0" : defaultBorderRadius;
-
-  const isPro = options?.plan === "pro" || options?.plan === "team";
-  let src = escapeHtml(data.photoUrl);
-  if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
-    src = `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
-  }
+  const src = resolvePhotoSrc(data, options);
 
   return `<td style="vertical-align:top;padding-right:16px;">
+    <img src="${src}" alt="${escapeHtml(data.fullName)}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;border-radius:${borderRadius};object-fit:cover;display:block;" />
+  </td>`;
+}
+
+// ----------------------------------------------------------------
+// photoCellRight: same as photoCell but with left padding (for right-side photo)
+// ----------------------------------------------------------------
+function photoCellRight(
+  data: SignatureData,
+  defaultSize: number,
+  defaultBorderRadius: string,
+  options?: GenerateOptions
+): string {
+  if (!data.photoUrl) return "";
+
+  const size = data.photoSize ?? defaultSize;
+  const shape = data.photoShape ?? "";
+  const borderRadius = shape === "circle" ? "50%" : shape === "rounded" ? "8px" : shape === "square" ? "0" : defaultBorderRadius;
+  const src = resolvePhotoSrc(data, options);
+
+  return `<td style="vertical-align:top;padding-left:16px;">
     <img src="${src}" alt="${escapeHtml(data.fullName)}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;border-radius:${borderRadius};object-fit:cover;display:block;" />
   </td>`;
 }
@@ -110,6 +141,50 @@ function trackingPixel(signatureId: string): string {
   return `<tr><td><img src="https://neatstamp.com/api/images/${escapeHtml(signatureId)}/track" width="1" height="1" style="width:1px;height:1px;display:block;" alt="" /></td></tr>`;
 }
 
+// ----------------------------------------------------------------
+// Shared style-override helpers — called inside each template
+// ----------------------------------------------------------------
+
+/** Returns font-family string to use, respecting data.fontFamily override */
+function ff(data: SignatureData, templateDefault: string): string {
+  return data.fontFamily ?? templateDefault;
+}
+
+/** Build name inline style from data overrides. templateDefaults contain fallbacks. */
+function nameStyle(data: SignatureData, defaults: { size: number; color: string; bold?: boolean; italic?: boolean }): string {
+  const size = data.nameSize ?? defaults.size;
+  const color = data.nameColor ?? defaults.color;
+  const bold = data.nameBold !== undefined ? data.nameBold : (defaults.bold !== false);
+  const italic = data.nameItalic === true || (defaults.italic === true && data.nameItalic !== false);
+  const weight = bold ? "bold" : "normal";
+  const style = italic ? "font-style:italic;" : "";
+  return `font-size:${size}px;font-weight:${weight};color:${color};${style}`;
+}
+
+/** Build title inline style from data overrides. */
+function titleStyle(data: SignatureData, defaults: { size: number; color: string; bold?: boolean; italic?: boolean; extraCss?: string }): string {
+  const size = data.titleSize ?? defaults.size;
+  const color = data.titleColor ?? defaults.color;
+  const bold = data.titleBold === true || (defaults.bold === true && data.titleBold !== false);
+  const italic = data.titleItalic === true || (defaults.italic === true && data.titleItalic !== false);
+  const weight = bold ? "bold" : "normal";
+  const style = italic ? "font-style:italic;" : "";
+  const extra = defaults.extraCss ?? "";
+  return `font-size:${size}px;font-weight:${weight};color:${color};${style}${extra}`;
+}
+
+/** Build company inline style from data overrides. */
+function companyStyle(data: SignatureData, defaults: { size: number; color: string; bold?: boolean; italic?: boolean; extraCss?: string }): string {
+  const size = data.companySize ?? defaults.size;
+  const color = data.companyColor ?? defaults.color;
+  const bold = data.companyBold === true || (defaults.bold === true && data.companyBold !== false);
+  const italic = data.companyItalic === true || (defaults.italic === true && data.companyItalic !== false);
+  const weight = bold ? "bold" : "normal";
+  const style = italic ? "font-style:italic;" : "";
+  const extra = defaults.extraCss ?? "";
+  return `font-size:${size}px;font-weight:${weight};color:${color};${style}${extra}`;
+}
+
 // ============================================================
 // TEMPLATES
 // ============================================================
@@ -117,18 +192,23 @@ function trackingPixel(signatureId: string): string {
 function generateMinimal(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
   const contact = [
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
     data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="color:#ccc;padding:0 6px;">·</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;">
-  <tr>
-    ${photoCell(data, 70, "50%", options)}
-    <td style="vertical-align:middle;">
+
+  const photoPosition = data.photoPosition ?? "left";
+  const photo = photoPosition === "right"
+    ? photoCellRight(data, 70, "50%", options)
+    : photoCell(data, 70, "50%", options);
+
+  const contentTd = `<td style="vertical-align:middle;">
       <table cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="font-size:17px;font-weight:bold;color:#1a1a1a;padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#999;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-        ${(data.jobTitle || data.company) ? `<tr><td style="font-size:12px;color:#666;padding-bottom:6px;">${data.jobTitle ? escapeHtml(data.jobTitle) : ""}${data.jobTitle && data.company ? " &mdash; " : ""}${data.company ? `<span style="color:#999;">${escapeHtml(data.company)}</span>` : ""}</td></tr>` : ""}
+        <tr><td style="${nameStyle(data, { size: 17, color: "#1a1a1a", bold: true })};padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#999;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+        ${(data.jobTitle || data.company) ? `<tr><td style="padding-bottom:6px;">${data.jobTitle ? `<span style="${titleStyle(data, { size: 12, color: "#666" })}">${escapeHtml(data.jobTitle)}</span>` : ""}${data.jobTitle && data.company ? " &mdash; " : ""}${data.company ? `<span style="${companyStyle(data, { size: 12, color: "#999" })}">${escapeHtml(data.company)}</span>` : ""}</td></tr>` : ""}
         <tr><td style="border-top:1px solid #e5e7eb;padding-top:7px;font-size:12px;color:#555;">${contact}</td></tr>
         ${data.address ? `<tr><td style="font-size:11px;color:#aaa;padding-top:3px;">${escapeHtml(data.address)}</td></tr>` : ""}
         ${socialLinks(data)}
@@ -137,7 +217,11 @@ function generateMinimal(data: SignatureData, options?: GenerateOptions): string
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
-    </td>
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  <tr>
+    ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
 </table>`;
 }
@@ -146,18 +230,23 @@ function generateModern(data: SignatureData, options?: GenerateOptions): string 
   const c = data.primaryColor;
   const a = data.accentColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
   const contact = [
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
     data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 8px;">|</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;">
-  <tr>
-    ${photoCell(data, 75, "8px", options)}
-    <td style="vertical-align:top;border-left:4px solid ${c};padding-left:16px;">
+
+  const photoPosition = data.photoPosition ?? "left";
+  const photo = photoPosition === "right"
+    ? photoCellRight(data, 75, "8px", options)
+    : photoCell(data, 75, "8px", options);
+
+  const contentTd = `<td style="vertical-align:top;border-left:4px solid ${c};padding-left:16px;">
       <table cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="font-size:18px;font-weight:bold;color:${c};padding-bottom:1px;">${escapeHtml(data.fullName)}</td></tr>
-        ${(data.jobTitle || data.company) ? `<tr><td style="font-size:12px;padding-bottom:7px;">${data.jobTitle ? `<span style="color:${a};font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">${escapeHtml(data.jobTitle)}</span>` : ""}${data.jobTitle && data.company ? `<span style="color:#d1d5db;"> &nbsp;|&nbsp; </span>` : ""}${data.company ? `<span style="color:#666;">${escapeHtml(data.company)}</span>` : ""}</td></tr>` : ""}
+        <tr><td style="${nameStyle(data, { size: 18, color: c, bold: true })};padding-bottom:1px;">${escapeHtml(data.fullName)}</td></tr>
+        ${(data.jobTitle || data.company) ? `<tr><td style="padding-bottom:7px;">${data.jobTitle ? `<span style="${titleStyle(data, { size: 12, color: a, bold: true, extraCss: "text-transform:uppercase;letter-spacing:0.8px;" })}">${escapeHtml(data.jobTitle)}</span>` : ""}${data.jobTitle && data.company ? `<span style="color:#d1d5db;"> &nbsp;|&nbsp; </span>` : ""}${data.company ? `<span style="${companyStyle(data, { size: 12, color: "#666" })}">${escapeHtml(data.company)}</span>` : ""}</td></tr>` : ""}
         ${data.pronouns ? `<tr><td style="font-size:11px;color:#999;padding-bottom:5px;">${escapeHtml(data.pronouns)}</td></tr>` : ""}
         <tr><td style="font-size:12px;color:#555;padding-bottom:4px;">${contact}</td></tr>
         ${data.address ? `<tr><td style="font-size:11px;color:#aaa;padding-bottom:2px;">${escapeHtml(data.address)}</td></tr>` : ""}
@@ -167,7 +256,11 @@ function generateModern(data: SignatureData, options?: GenerateOptions): string 
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
-    </td>
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  <tr>
+    ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
 </table>`;
 }
@@ -175,14 +268,17 @@ function generateModern(data: SignatureData, options?: GenerateOptions): string 
 function generateCorporate(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;border-top:3px solid ${c};">
-  <tr><td colspan="2" style="height:10px;"></td></tr>
-  <tr>
-    ${photoCell(data, 65, "4px", options)}
-    <td style="vertical-align:top;padding-left:${data.photoUrl ? "0" : "0"};">
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
+  const photoPosition = data.photoPosition ?? "left";
+  const photo = photoPosition === "right"
+    ? photoCellRight(data, 65, "4px", options)
+    : photoCell(data, 65, "4px", options);
+
+  const contentTd = `<td style="vertical-align:top;">
       <table cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="font-size:17px;font-weight:bold;color:#1a1a1a;padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#999;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-        ${(data.jobTitle || data.company) ? `<tr><td style="font-size:12px;padding-bottom:7px;">${data.jobTitle ? `<span style="color:${c};font-weight:600;">${escapeHtml(data.jobTitle)}</span>` : ""}${data.jobTitle && data.company ? `<span style="color:#ccc;"> &nbsp;&bull;&nbsp; </span>` : ""}${data.company ? `<span style="color:#444;font-weight:600;">${escapeHtml(data.company)}</span>` : ""}</td></tr>` : ""}
+        <tr><td style="${nameStyle(data, { size: 17, color: "#1a1a1a", bold: true })};padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#999;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+        ${(data.jobTitle || data.company) ? `<tr><td style="padding-bottom:7px;">${data.jobTitle ? `<span style="${titleStyle(data, { size: 12, color: c, bold: true })}">${escapeHtml(data.jobTitle)}</span>` : ""}${data.jobTitle && data.company ? `<span style="color:#ccc;"> &nbsp;&bull;&nbsp; </span>` : ""}${data.company ? `<span style="${companyStyle(data, { size: 12, color: "#444", bold: true })}">${escapeHtml(data.company)}</span>` : ""}</td></tr>` : ""}
         <tr><td style="font-size:12px;color:#555;">
           <table cellpadding="0" cellspacing="0" border="0">
             ${data.phone ? `<tr><td style="padding-bottom:2px;white-space:nowrap;"><span style="color:#999;font-weight:bold;font-size:10px;letter-spacing:0.5px;">T&nbsp;</span><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#444;text-decoration:none;">${escapeHtml(data.phone)}</a></td></tr>` : ""}
@@ -197,7 +293,12 @@ function generateCorporate(data: SignatureData, options?: GenerateOptions): stri
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
-    </td>
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;border-top:3px solid ${c};">
+  <tr><td colspan="2" style="height:10px;"></td></tr>
+  <tr>
+    ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
 </table>`;
 }
@@ -206,24 +307,30 @@ function generateCreative(data: SignatureData, options?: GenerateOptions): strin
   const c = data.primaryColor;
   const a = data.accentColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
+  const photoSize = data.photoSize ?? 90;
+  const photoShape = data.photoShape ?? "circle";
+  const photoBr = photoShape === "circle" ? "50%" : photoShape === "rounded" ? "8px" : "0";
+
+  const photoPosition = data.photoPosition ?? "left";
+
   let photoPart = "";
   if (data.photoUrl) {
-    let src = escapeHtml(data.photoUrl);
-    if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
-      src = `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
-    }
-    photoPart = `<td style="vertical-align:top;padding-right:18px;text-align:center;">
-      <img src="${src}" alt="${escapeHtml(data.fullName)}" width="90" height="90" style="width:90px;height:90px;border-radius:50%;object-fit:cover;display:block;border:3px solid ${c};" />
-      ${data.company ? `<p style="margin:5px 0 0;font-size:10px;font-weight:bold;color:${a};text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;width:90px;text-align:center;">${escapeHtml(data.company)}</p>` : ""}
+    const src = resolvePhotoSrc(data, options);
+    const paddingStyle = photoPosition === "right"
+      ? "padding-left:18px;"
+      : "padding-right:18px;";
+    photoPart = `<td style="vertical-align:top;${paddingStyle}text-align:center;">
+      <img src="${src}" alt="${escapeHtml(data.fullName)}" width="${photoSize}" height="${photoSize}" style="width:${photoSize}px;height:${photoSize}px;border-radius:${photoBr};object-fit:cover;display:block;border:3px solid ${c};" />
+      ${data.company ? `<p style="margin:5px 0 0;font-size:10px;font-weight:bold;color:${a};text-transform:uppercase;letter-spacing:1px;font-family:${font};width:${photoSize}px;text-align:center;">${escapeHtml(data.company)}</p>` : ""}
     </td>`;
   }
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;">
-  <tr>
-    ${photoPart}
-    <td style="vertical-align:top;border-left:2px dashed ${a};padding-left:18px;">
+
+  const contentTd = `<td style="vertical-align:top;border-left:2px dashed ${a};padding-left:18px;">
       <table cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="font-size:20px;font-weight:bold;color:${c};padding-bottom:2px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-        ${data.jobTitle ? `<tr><td style="font-size:13px;color:#555;padding-bottom:8px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
+        <tr><td style="${nameStyle(data, { size: 20, color: c, bold: true })};padding-bottom:2px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+        ${data.jobTitle ? `<tr><td style="${titleStyle(data, { size: 13, color: "#555" })};padding-bottom:8px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
         <tr><td style="font-size:12px;">
           ${data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">&#9993;&nbsp;${escapeHtml(data.email)}</a>` : ""}
           ${data.email && data.phone ? `&nbsp;&nbsp;` : ""}
@@ -237,7 +344,11 @@ function generateCreative(data: SignatureData, options?: GenerateOptions): strin
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
-    </td>
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  <tr>
+    ${photoPosition === "right" ? contentTd + photoPart : photoPart + contentTd}
   </tr>
 </table>`;
 }
@@ -245,34 +356,42 @@ function generateCreative(data: SignatureData, options?: GenerateOptions): strin
 function generateBold(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
+  const photoSize = data.photoSize ?? 75;
+  const photoShape = data.photoShape ?? "rounded";
+  const photoBr = photoShape === "circle" ? "50%" : photoShape === "square" ? "0" : "8px";
+  const photoPosition = data.photoPosition ?? "left";
+
   let photoPart = "";
   if (data.photoUrl) {
-    let src = escapeHtml(data.photoUrl);
-    if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
-      src = `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
-    }
-    photoPart = `<td style="vertical-align:middle;padding-right:16px;"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="75" height="75" style="width:75px;height:75px;border-radius:8px;object-fit:cover;display:block;border:2px solid rgba(255,255,255,0.4);" /></td>`;
+    const src = resolvePhotoSrc(data, options);
+    const paddingStyle = photoPosition === "right" ? "padding-left:16px;" : "padding-right:16px;";
+    photoPart = `<td style="vertical-align:middle;${paddingStyle}"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="${photoSize}" height="${photoSize}" style="width:${photoSize}px;height:${photoSize}px;border-radius:${photoBr};object-fit:cover;display:block;border:2px solid rgba(255,255,255,0.4);" /></td>`;
   }
+
   const contactInline = [
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:#fff;text-decoration:none;opacity:0.9;">${escapeHtml(data.email)}</a>` : "",
     data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#fff;text-decoration:none;opacity:0.85;">${escapeHtml(data.phone)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:#fff;text-decoration:none;opacity:0.9;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="opacity:0.4;padding:0 8px;">|</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;background-color:${c};border-radius:8px;">
-  <tr><td style="padding:18px 20px;">
-    <table cellpadding="0" cellspacing="0" border="0" width="100%">
-      <tr>
-        ${photoPart}
-        <td style="vertical-align:middle;">
+
+  const contentTd = `<td style="vertical-align:middle;">
           <table cellpadding="0" cellspacing="0" border="0">
-            <tr><td style="font-size:20px;font-weight:bold;color:#fff;padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;opacity:0.6;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-            ${(data.jobTitle || data.company) ? `<tr><td style="font-size:12px;color:rgba(255,255,255,0.8);padding-bottom:8px;">${data.jobTitle ? escapeHtml(data.jobTitle) : ""}${data.jobTitle && data.company ? " &nbsp;|&nbsp; " : ""}${data.company ? escapeHtml(data.company) : ""}</td></tr>` : ""}
+            <tr><td style="${nameStyle(data, { size: 20, color: "#fff", bold: true })};padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;opacity:0.6;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+            ${(data.jobTitle || data.company) ? `<tr><td style="${titleStyle(data, { size: 12, color: "rgba(255,255,255,0.8)" })};padding-bottom:8px;">${data.jobTitle ? escapeHtml(data.jobTitle) : ""}${data.jobTitle && data.company ? " &nbsp;|&nbsp; " : ""}${data.company ? escapeHtml(data.company) : ""}</td></tr>` : ""}
             <tr><td style="font-size:12px;padding-bottom:4px;">${contactInline}</td></tr>
             ${data.address ? `<tr><td style="font-size:11px;color:rgba(255,255,255,0.6);padding-bottom:4px;">${escapeHtml(data.address)}</td></tr>` : ""}
             ${socialLinks(data)}
             ${data.calendlyUrl ? `<tr><td style="padding-top:10px;"><a href="${escapeHtml(data.calendlyUrl.startsWith("http") ? data.calendlyUrl : `https://${data.calendlyUrl}`)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:7px 18px;background:#fff;color:${c};text-decoration:none;font-size:12px;font-family:Arial,sans-serif;border-radius:4px;font-weight:bold;">Book a Meeting</a></td></tr>` : ""}
           </table>
-        </td>
+        </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};background-color:${c};border-radius:8px;">
+  <tr><td style="padding:18px 20px;">
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        ${photoPosition === "right" ? contentTd + photoPart : photoPart + contentTd}
       </tr>
     </table>
     <table cellpadding="0" cellspacing="0" border="0">
@@ -287,19 +406,24 @@ function generateBold(data: SignatureData, options?: GenerateOptions): string {
 function generateElegant(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Georgia,'Times New Roman',serif");
+
   const contact = [
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;font-family:Arial,sans-serif;">${escapeHtml(data.email)}</a>` : "",
     data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#666;text-decoration:none;font-family:Arial,sans-serif;">${escapeHtml(data.phone)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;font-family:Arial,sans-serif;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="color:#ccc;padding:0 6px;">&mdash;</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#333;">
-  <tr>
-    ${photoCell(data, 70, "50%", options)}
-    <td style="vertical-align:middle;">
+
+  const photoPosition = data.photoPosition ?? "left";
+  const photo = photoPosition === "right"
+    ? photoCellRight(data, 70, "50%", options)
+    : photoCell(data, 70, "50%", options);
+
+  const contentTd = `<td style="vertical-align:middle;">
       <table cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="font-size:18px;font-weight:bold;color:#1a1a1a;letter-spacing:0.5px;padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;font-style:italic;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-        ${data.jobTitle ? `<tr><td style="font-size:12px;color:${c};font-style:italic;padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
-        ${data.company ? `<tr><td style="font-size:11px;color:#777;letter-spacing:1.5px;text-transform:uppercase;padding-bottom:7px;">${escapeHtml(data.company)}</td></tr>` : ""}
+        <tr><td style="${nameStyle(data, { size: 18, color: "#1a1a1a", bold: true })};letter-spacing:0.5px;padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;font-style:italic;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+        ${data.jobTitle ? `<tr><td style="${titleStyle(data, { size: 12, color: c, italic: true })};padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
+        ${data.company ? `<tr><td style="${companyStyle(data, { size: 11, color: "#777", extraCss: "letter-spacing:1.5px;text-transform:uppercase;" })};padding-bottom:7px;">${escapeHtml(data.company)}</td></tr>` : ""}
         <tr><td style="padding-bottom:7px;">
           <table cellpadding="0" cellspacing="0" border="0"><tr>
             <td style="width:36px;height:1px;background-color:${c};font-size:0;line-height:0;">&nbsp;</td>
@@ -317,7 +441,11 @@ function generateElegant(data: SignatureData, options?: GenerateOptions): string
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
-    </td>
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  <tr>
+    ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
 </table>`;
 }
@@ -325,26 +453,34 @@ function generateElegant(data: SignatureData, options?: GenerateOptions): string
 function generateStartup(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
+  const photoSize = data.photoSize ?? 44;
+  const photoShape = data.photoShape ?? "circle";
+  const photoBr = photoShape === "circle" ? "50%" : photoShape === "square" ? "0" : "8px";
+  const photoPosition = data.photoPosition ?? "left";
+
   let avatarCell = "";
   if (data.photoUrl) {
-    let src = escapeHtml(data.photoUrl);
-    if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
-      src = `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
-    }
-    avatarCell = `<td style="vertical-align:middle;padding-right:12px;"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="44" height="44" style="width:44px;height:44px;border-radius:50%;object-fit:cover;display:block;" /></td>`;
+    const src = resolvePhotoSrc(data, options);
+    const paddingStyle = photoPosition === "right" ? "padding-left:12px;" : "padding-right:12px;";
+    avatarCell = `<td style="vertical-align:middle;${paddingStyle}"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="${photoSize}" height="${photoSize}" style="width:${photoSize}px;height:${photoSize}px;border-radius:${photoBr};object-fit:cover;display:block;" /></td>`;
   }
+
   const contact = [
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
     data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 7px;">·</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#333;">
+
+  const nameTd = `<td style="vertical-align:middle;">
+      <span style="${nameStyle(data, { size: 15, color: "#1a1a1a", bold: true })}">${escapeHtml(data.fullName)}</span>${data.pronouns ? ` <span style="font-size:11px;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}
+      ${(data.jobTitle || data.company) ? `&nbsp;<span style="color:#d1d5db;">|</span>&nbsp;<span style="${titleStyle(data, { size: 12, color: c })}">${data.jobTitle ? escapeHtml(data.jobTitle) : ""}${data.jobTitle && data.company ? `<span style="color:#aaa;"> @ </span>` : ""}${data.company ? escapeHtml(data.company) : ""}</span>` : ""}
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:13px;color:#333;">
   <tr>
-    ${avatarCell}
-    <td style="vertical-align:middle;">
-      <span style="font-size:15px;font-weight:bold;color:#1a1a1a;">${escapeHtml(data.fullName)}</span>${data.pronouns ? ` <span style="font-size:11px;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}
-      ${(data.jobTitle || data.company) ? `&nbsp;<span style="color:#d1d5db;">|</span>&nbsp;<span style="font-size:12px;color:${c};">${data.jobTitle ? escapeHtml(data.jobTitle) : ""}${data.jobTitle && data.company ? `<span style="color:#aaa;"> @ </span>` : ""}${data.company ? escapeHtml(data.company) : ""}</span>` : ""}
-    </td>
+    ${photoPosition === "right" ? nameTd + avatarCell : avatarCell + nameTd}
   </tr>
   <tr><td colspan="2" style="border-top:1px solid #f0f0f0;padding-top:7px;font-size:12px;color:#555;">${contact}</td></tr>
   ${data.address ? `<tr><td colspan="2" style="font-size:11px;color:#aaa;padding-top:3px;">${escapeHtml(data.address)}</td></tr>` : ""}
@@ -359,14 +495,17 @@ function generateStartup(data: SignatureData, options?: GenerateOptions): string
 function generateCompact(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
   const contact = [
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
     data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 5px;">&middot;</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#333;">
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:13px;color:#333;">
   <tr><td style="white-space:nowrap;">
-    <strong style="color:#1a1a1a;">${escapeHtml(data.fullName)}</strong>${data.pronouns ? ` <span style="font-size:11px;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}${data.jobTitle ? ` <span style="color:#ccc;">|</span> <span style="color:${c};">${escapeHtml(data.jobTitle)}</span>` : ""}${data.company ? ` <span style="color:#ccc;">|</span> <span style="color:#555;">${escapeHtml(data.company)}</span>` : ""}
+    <strong style="${nameStyle(data, { size: 13, color: "#1a1a1a", bold: true })}">${escapeHtml(data.fullName)}</strong>${data.pronouns ? ` <span style="font-size:11px;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}${data.jobTitle ? ` <span style="color:#ccc;">|</span> <span style="${titleStyle(data, { size: 13, color: c })}">${escapeHtml(data.jobTitle)}</span>` : ""}${data.company ? ` <span style="color:#ccc;">|</span> <span style="${companyStyle(data, { size: 13, color: "#555" })}">${escapeHtml(data.company)}</span>` : ""}
   </td></tr>
   <tr><td style="font-size:12px;padding-top:3px;color:#555;">${contact}</td></tr>
   ${data.address ? `<tr><td style="font-size:11px;color:#aaa;padding-top:2px;">${escapeHtml(data.address)}</td></tr>` : ""}
@@ -381,24 +520,33 @@ function generateExecutive(data: SignatureData, options?: GenerateOptions): stri
   const c = data.primaryColor;
   const a = data.accentColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
   const contact = [
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
     data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#444;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 8px;">|</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;">
+
+  const photoPosition = data.photoPosition ?? "left";
+  const photo = photoPosition === "right"
+    ? photoCellRight(data, 80, "6px", options)
+    : photoCell(data, 80, "6px", options);
+
+  const headerContent = `<td style="vertical-align:middle;">
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr><td style="${nameStyle(data, { size: 20, color: "#fff", bold: true })};padding-bottom:2px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:rgba(255,255,255,0.45);">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+              ${data.jobTitle ? `<tr><td style="${titleStyle(data, { size: 13, color: a, bold: true })};letter-spacing:0.3px;padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
+              ${data.company ? `<tr><td style="${companyStyle(data, { size: 11, color: "rgba(255,255,255,0.55)", extraCss: "letter-spacing:1px;text-transform:uppercase;" })}">${escapeHtml(data.company)}</td></tr>` : ""}
+            </table>
+          </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
   <tr>
     <td style="background-color:#1e293b;padding:16px 20px;border-radius:4px 4px 0 0;">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          ${photoCell(data, 80, "6px", options)}
-          <td style="vertical-align:middle;">
-            <table cellpadding="0" cellspacing="0" border="0">
-              <tr><td style="font-size:20px;font-weight:bold;color:#fff;padding-bottom:2px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:rgba(255,255,255,0.45);">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-              ${data.jobTitle ? `<tr><td style="font-size:13px;color:${a};font-weight:700;letter-spacing:0.3px;padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
-              ${data.company ? `<tr><td style="font-size:11px;color:rgba(255,255,255,0.55);letter-spacing:1px;text-transform:uppercase;">${escapeHtml(data.company)}</td></tr>` : ""}
-            </table>
-          </td>
+          ${photoPosition === "right" ? headerContent + photo : photo + headerContent}
         </tr>
       </table>
     </td>
@@ -423,23 +571,23 @@ function generateGradient(data: SignatureData, options?: GenerateOptions): strin
   const c = data.primaryColor;
   const a = data.accentColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
   const contact = [
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
     data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${a};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="color:#cbd5e1;padding:0 7px;">|</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;">
-  <tr>
-    <td style="width:8px;background-color:${c};padding:0;font-size:0;line-height:0;">&nbsp;</td>
-    <td style="width:4px;background-color:${a};padding:0;font-size:0;line-height:0;">&nbsp;</td>
-    <td style="padding:14px 18px;background-color:#f8fafc;">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          ${photoCell(data, 70, "50%", options)}
-          <td style="vertical-align:middle;">
+
+  const photoPosition = data.photoPosition ?? "left";
+  const photo = photoPosition === "right"
+    ? photoCellRight(data, 70, "50%", options)
+    : photoCell(data, 70, "50%", options);
+
+  const contentTd = `<td style="vertical-align:middle;">
             <table cellpadding="0" cellspacing="0" border="0">
-              <tr><td style="font-size:19px;font-weight:bold;color:${c};padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#999;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-              ${(data.jobTitle || data.company) ? `<tr><td style="font-size:12px;padding-bottom:7px;">${data.jobTitle ? `<span style="color:${a};font-weight:700;">${escapeHtml(data.jobTitle)}</span>` : ""}${data.jobTitle && data.company ? `<span style="color:#cbd5e1;padding:0 6px;">·</span>` : ""}${data.company ? `<span style="color:#666;">${escapeHtml(data.company)}</span>` : ""}</td></tr>` : ""}
+              <tr><td style="${nameStyle(data, { size: 19, color: c, bold: true })};padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#999;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+              ${(data.jobTitle || data.company) ? `<tr><td style="padding-bottom:7px;">${data.jobTitle ? `<span style="${titleStyle(data, { size: 12, color: a, bold: true })}">${escapeHtml(data.jobTitle)}</span>` : ""}${data.jobTitle && data.company ? `<span style="color:#cbd5e1;padding:0 6px;">·</span>` : ""}${data.company ? `<span style="${companyStyle(data, { size: 12, color: "#666" })}">${escapeHtml(data.company)}</span>` : ""}</td></tr>` : ""}
               <tr><td style="font-size:12px;color:#555;padding-bottom:3px;">${contact}</td></tr>
               ${data.address ? `<tr><td style="font-size:11px;color:#aaa;padding-bottom:2px;">${escapeHtml(data.address)}</td></tr>` : ""}
               ${socialLinks(data)}
@@ -448,7 +596,16 @@ function generateGradient(data: SignatureData, options?: GenerateOptions): strin
               ${!isPro ? neatstampBranding() : ""}
               ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
             </table>
-          </td>
+          </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  <tr>
+    <td style="width:8px;background-color:${c};padding:0;font-size:0;line-height:0;">&nbsp;</td>
+    <td style="width:4px;background-color:${a};padding:0;font-size:0;line-height:0;">&nbsp;</td>
+    <td style="padding:14px 18px;background-color:#f8fafc;">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
         </tr>
       </table>
     </td>
@@ -460,13 +617,17 @@ function generateDeveloper(data: SignatureData, options?: GenerateOptions): stri
   const c = data.primaryColor;
   const a = data.accentColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:'Courier New',Courier,monospace;font-size:13px;color:#334155;border-bottom:2px solid #e2e8f0;">
-  <tr>
-    ${photoCell(data, 64, "4px", options)}
-    <td style="vertical-align:top;padding-bottom:10px;">
+  const font = ff(data, "'Courier New',Courier,monospace");
+
+  const photoPosition = data.photoPosition ?? "left";
+  const photo = photoPosition === "right"
+    ? photoCellRight(data, 64, "4px", options)
+    : photoCell(data, 64, "4px", options);
+
+  const contentTd = `<td style="vertical-align:top;padding-bottom:10px;">
       <table cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="font-size:15px;font-weight:bold;color:${c};padding-bottom:1px;"><span style="color:#94a3b8;">// </span>${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#94a3b8;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-        ${data.jobTitle ? `<tr><td style="font-size:11px;color:${a};padding-bottom:1px;"><span style="color:#94a3b8;">const </span><span style="color:#334155;">role</span><span style="color:#94a3b8;"> = </span>'${escapeHtml(data.jobTitle)}${data.company ? ` @ ${escapeHtml(data.company)}` : ""}'</td></tr>` : ""}
+        <tr><td style="${nameStyle(data, { size: 15, color: c, bold: true })};padding-bottom:1px;"><span style="color:#94a3b8;">// </span>${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#94a3b8;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+        ${data.jobTitle ? `<tr><td style="${titleStyle(data, { size: 11, color: a })};padding-bottom:1px;"><span style="color:#94a3b8;">const </span><span style="color:#334155;">role</span><span style="color:#94a3b8;"> = </span>'${escapeHtml(data.jobTitle)}${data.company ? ` @ ${escapeHtml(data.company)}` : ""}'</td></tr>` : ""}
         <tr><td style="padding-top:6px;">
           <table cellpadding="0" cellspacing="0" border="0" style="font-size:12px;">
             ${data.email ? `<tr><td style="padding-bottom:2px;color:#64748b;"><span style="color:#94a3b8;">&gt; </span><a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a></td></tr>` : ""}
@@ -482,7 +643,11 @@ function generateDeveloper(data: SignatureData, options?: GenerateOptions): stri
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
-    </td>
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:13px;color:#334155;border-bottom:2px solid #e2e8f0;">
+  <tr>
+    ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
 </table>`;
 }
@@ -490,18 +655,23 @@ function generateDeveloper(data: SignatureData, options?: GenerateOptions): stri
 function generateSales(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
   const contact = [
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 7px;">·</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;">
-  <tr>
-    ${photoCell(data, 72, "50%", options)}
-    <td style="vertical-align:top;">
+
+  const photoPosition = data.photoPosition ?? "left";
+  const photo = photoPosition === "right"
+    ? photoCellRight(data, 72, "50%", options)
+    : photoCell(data, 72, "50%", options);
+
+  const contentTd = `<td style="vertical-align:top;">
       <table cellpadding="0" cellspacing="0" border="0">
         ${data.phone ? `<tr><td style="font-size:18px;font-weight:bold;color:#16a34a;padding-bottom:3px;"><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#16a34a;text-decoration:none;">${escapeHtml(data.phone)}</a></td></tr>` : ""}
-        <tr><td style="font-size:16px;font-weight:bold;color:#1a1a1a;padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-        ${(data.jobTitle || data.company) ? `<tr><td style="font-size:12px;color:${c};font-weight:600;padding-bottom:6px;">${data.jobTitle ? escapeHtml(data.jobTitle) : ""}${data.jobTitle && data.company ? " &mdash; " : ""}${data.company ? escapeHtml(data.company) : ""}</td></tr>` : ""}
+        <tr><td style="${nameStyle(data, { size: 16, color: "#1a1a1a", bold: true })};padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+        ${(data.jobTitle || data.company) ? `<tr><td style="${titleStyle(data, { size: 12, color: c, bold: true })};padding-bottom:6px;">${data.jobTitle ? escapeHtml(data.jobTitle) : ""}${data.jobTitle && data.company ? " &mdash; " : ""}${data.company ? escapeHtml(data.company) : ""}</td></tr>` : ""}
         <tr><td style="font-size:12px;color:#555;padding-bottom:3px;">${contact}</td></tr>
         ${data.address ? `<tr><td style="font-size:11px;color:#aaa;padding-bottom:4px;">${escapeHtml(data.address)}</td></tr>` : ""}
         ${socialLinks(data)}
@@ -510,36 +680,43 @@ function generateSales(data: SignatureData, options?: GenerateOptions): string {
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
-    </td>
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  <tr>
+    ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
 </table>`;
 }
 
 function generateMedical(data: SignatureData, options?: GenerateOptions): string {
-  const c = "#0d9488";
+  const c = data.primaryColor !== "#2563eb" ? data.primaryColor : "#0d9488";
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
+  const photoSize = data.photoSize ?? 72;
+  const photoShape = data.photoShape ?? "circle";
+  const photoBr = photoShape === "circle" ? "50%" : photoShape === "square" ? "0" : "8px";
+  const photoPosition = data.photoPosition ?? "left";
+
   let photoCell2 = "";
   if (data.photoUrl) {
-    let src = escapeHtml(data.photoUrl);
-    if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
-      src = `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
-    }
-    photoCell2 = `<td style="vertical-align:top;padding-right:16px;"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="72" height="72" style="width:72px;height:72px;border-radius:50%;object-fit:cover;display:block;border:2px solid ${c};" /></td>`;
+    const src = resolvePhotoSrc(data, options);
+    const paddingStyle = photoPosition === "right" ? "padding-left:16px;" : "padding-right:16px;";
+    photoCell2 = `<td style="vertical-align:top;${paddingStyle}"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="${photoSize}" height="${photoSize}" style="width:${photoSize}px;height:${photoSize}px;border-radius:${photoBr};object-fit:cover;display:block;border:2px solid ${c};" /></td>`;
   }
+
   const contact = [
     data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#333;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 7px;">·</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1a1a1a;border-top:3px solid ${c};">
-  <tr><td colspan="2" style="height:10px;"></td></tr>
-  <tr>
-    ${photoCell2}
-    <td style="vertical-align:top;">
+
+  const contentTd = `<td style="vertical-align:top;">
       <table cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="font-size:17px;font-weight:bold;color:#1a1a1a;padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-        ${data.jobTitle ? `<tr><td style="font-size:12px;color:${c};font-weight:600;padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
-        ${data.company ? `<tr><td style="font-size:12px;color:#555;padding-bottom:6px;">${escapeHtml(data.company)}</td></tr>` : ""}
+        <tr><td style="${nameStyle(data, { size: 17, color: "#1a1a1a", bold: true })};padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+        ${data.jobTitle ? `<tr><td style="${titleStyle(data, { size: 12, color: c, bold: true })};padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
+        ${data.company ? `<tr><td style="${companyStyle(data, { size: 12, color: "#555" })};padding-bottom:6px;">${escapeHtml(data.company)}</td></tr>` : ""}
         <tr><td style="font-size:12px;color:#555;padding-bottom:3px;">${contact}</td></tr>
         ${data.address ? `<tr><td style="font-size:11px;color:#aaa;padding-bottom:2px;">${escapeHtml(data.address)}</td></tr>` : ""}
         ${socialLinks(data)}
@@ -548,7 +725,12 @@ function generateMedical(data: SignatureData, options?: GenerateOptions): string
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
-    </td>
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#1a1a1a;border-top:3px solid ${c};">
+  <tr><td colspan="2" style="height:10px;"></td></tr>
+  <tr>
+    ${photoPosition === "right" ? contentTd + photoCell2 : photoCell2 + contentTd}
   </tr>
 </table>`;
 }
@@ -556,14 +738,18 @@ function generateMedical(data: SignatureData, options?: GenerateOptions): string
 function generateLegal(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#1a1a1a;">
-  <tr>
-    ${photoCell(data, 72, "2px", options)}
-    <td style="vertical-align:top;">
+  const font = ff(data, "Georgia,'Times New Roman',serif");
+
+  const photoPosition = data.photoPosition ?? "left";
+  const photo = photoPosition === "right"
+    ? photoCellRight(data, 72, "2px", options)
+    : photoCell(data, 72, "2px", options);
+
+  const contentTd = `<td style="vertical-align:top;">
       <table cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="font-size:16px;font-weight:bold;color:#1a1a1a;letter-spacing:2px;text-transform:uppercase;padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:10px;font-weight:normal;letter-spacing:0;font-style:italic;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-        ${data.jobTitle ? `<tr><td style="font-size:12px;color:${c};font-style:italic;padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
-        ${data.company ? `<tr><td style="font-size:13px;color:#1a1a1a;font-weight:bold;padding-bottom:7px;">${escapeHtml(data.company)}</td></tr>` : ""}
+        <tr><td style="${nameStyle(data, { size: 16, color: "#1a1a1a", bold: true })};letter-spacing:2px;text-transform:uppercase;padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:10px;font-weight:normal;letter-spacing:0;font-style:italic;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+        ${data.jobTitle ? `<tr><td style="${titleStyle(data, { size: 12, color: c, italic: true })};padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
+        ${data.company ? `<tr><td style="${companyStyle(data, { size: 13, color: "#1a1a1a", bold: true })};padding-bottom:7px;">${escapeHtml(data.company)}</td></tr>` : ""}
         <tr><td style="border-top:2px solid #334155;padding-top:8px;">
           <table cellpadding="0" cellspacing="0" border="0" style="font-size:12px;font-family:Arial,Helvetica,sans-serif;color:#555;">
             ${data.phone ? `<tr><td style="padding-bottom:3px;"><span style="color:#94a3b8;font-size:10px;letter-spacing:0.5px;font-weight:bold;">T&nbsp;</span><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#333;text-decoration:none;">${escapeHtml(data.phone)}</a></td></tr>` : ""}
@@ -578,7 +764,11 @@ function generateLegal(data: SignatureData, options?: GenerateOptions): string {
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
-    </td>
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#1a1a1a;">
+  <tr>
+    ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
   <tr><td colspan="2" style="border-bottom:3px solid #334155;padding-top:10px;"></td></tr>
 </table>`;
@@ -588,21 +778,30 @@ function generateAcademic(data: SignatureData, options?: GenerateOptions): strin
   const c = data.primaryColor;
   const a = data.accentColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
   const contact = [
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
     data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${a};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 8px;">·</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;">
-  <tr>
-    ${photoCell(data, 68, "4px", options)}
-    <td style="vertical-align:middle;">
+
+  const photoPosition = data.photoPosition ?? "left";
+  const photo = photoPosition === "right"
+    ? photoCellRight(data, 68, "4px", options)
+    : photoCell(data, 68, "4px", options);
+
+  const contentTd = `<td style="vertical-align:middle;">
       <table cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="font-size:18px;font-weight:bold;color:#1e3a5f;padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-        ${data.jobTitle ? `<tr><td style="font-size:12px;color:${c};font-style:italic;padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
-        ${data.company ? `<tr><td style="font-size:13px;color:#1e3a5f;font-weight:bold;">${escapeHtml(data.company)}</td></tr>` : ""}
+        <tr><td style="${nameStyle(data, { size: 18, color: "#1e3a5f", bold: true })};padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+        ${data.jobTitle ? `<tr><td style="${titleStyle(data, { size: 12, color: c, italic: true })};padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
+        ${data.company ? `<tr><td style="${companyStyle(data, { size: 13, color: "#1e3a5f", bold: true })}">${escapeHtml(data.company)}</td></tr>` : ""}
       </table>
-    </td>
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  <tr>
+    ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
   <tr><td colspan="2" style="border-top:1px solid #cbd5e1;padding-top:8px;">
     <table cellpadding="0" cellspacing="0" border="0">
@@ -622,22 +821,25 @@ function generateRealtor(data: SignatureData, options?: GenerateOptions): string
   const c = data.primaryColor;
   const a = data.accentColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
+  const photoSize = data.photoSize ?? 100;
+  const photoShape = data.photoShape ?? "rounded";
+  const photoBr = photoShape === "circle" ? "50%" : photoShape === "square" ? "0" : "10px";
+  const photoPosition = data.photoPosition ?? "left";
+
   let photoCell2 = "";
   if (data.photoUrl) {
-    let src = escapeHtml(data.photoUrl);
-    if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
-      src = `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
-    }
-    photoCell2 = `<td style="vertical-align:top;padding-right:18px;"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="100" height="100" style="width:100px;height:100px;border-radius:10px;object-fit:cover;display:block;border:3px solid ${c};" /></td>`;
+    const src = resolvePhotoSrc(data, options);
+    const paddingStyle = photoPosition === "right" ? "padding-left:18px;" : "padding-right:18px;";
+    photoCell2 = `<td style="vertical-align:top;${paddingStyle}"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="${photoSize}" height="${photoSize}" style="width:${photoSize}px;height:${photoSize}px;border-radius:${photoBr};object-fit:cover;display:block;border:3px solid ${c};" /></td>`;
   }
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;">
-  <tr>
-    ${photoCell2}
-    <td style="vertical-align:top;border-left:4px solid ${c};padding-left:18px;">
+
+  const contentTd = `<td style="vertical-align:top;border-left:4px solid ${c};padding-left:18px;">
       <table cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="font-size:22px;font-weight:bold;color:#1a1a1a;padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:12px;font-weight:normal;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-        ${data.jobTitle ? `<tr><td style="font-size:13px;color:${c};font-weight:700;padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
-        ${data.company ? `<tr><td style="font-size:14px;color:#333;font-weight:700;padding-bottom:7px;">${escapeHtml(data.company)}</td></tr>` : ""}
+        <tr><td style="${nameStyle(data, { size: 22, color: "#1a1a1a", bold: true })};padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:12px;font-weight:normal;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+        ${data.jobTitle ? `<tr><td style="${titleStyle(data, { size: 13, color: c, bold: true })};padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
+        ${data.company ? `<tr><td style="${companyStyle(data, { size: 14, color: "#333", bold: true })};padding-bottom:7px;">${escapeHtml(data.company)}</td></tr>` : ""}
         <tr><td style="font-size:13px;padding-bottom:3px;">
           ${data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#1a1a1a;text-decoration:none;font-weight:bold;">${escapeHtml(data.phone)}</a>` : ""}
           ${data.phone && data.email ? `<span style="color:#d1d5db;padding:0 10px;">|</span>` : ""}
@@ -651,7 +853,11 @@ function generateRealtor(data: SignatureData, options?: GenerateOptions): string
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
-    </td>
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  <tr>
+    ${photoPosition === "right" ? contentTd + photoCell2 : photoCell2 + contentTd}
   </tr>
 </table>`;
 }
@@ -660,32 +866,37 @@ function generateInfluencer(data: SignatureData, options?: GenerateOptions): str
   const c = data.primaryColor;
   const a = data.accentColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
+  const photoSize = data.photoSize ?? 85;
+  const photoShape = data.photoShape ?? "circle";
+  const photoBr = photoShape === "circle" ? "50%" : photoShape === "square" ? "0" : "8px";
+  const photoPosition = data.photoPosition ?? "left";
+
   let photoCell2 = "";
   if (data.photoUrl) {
-    let src = escapeHtml(data.photoUrl);
-    if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
-      src = `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
-    }
-    photoCell2 = `<td style="vertical-align:top;padding-right:18px;"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="85" height="85" style="width:85px;height:85px;border-radius:50%;object-fit:cover;display:block;border:3px solid ${c};outline:3px solid ${a};outline-offset:2px;" /></td>`;
+    const src = resolvePhotoSrc(data, options);
+    const paddingStyle = photoPosition === "right" ? "padding-left:18px;" : "padding-right:18px;";
+    photoCell2 = `<td style="vertical-align:top;${paddingStyle}"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="${photoSize}" height="${photoSize}" style="width:${photoSize}px;height:${photoSize}px;border-radius:${photoBr};object-fit:cover;display:block;border:3px solid ${c};outline:3px solid ${a};outline-offset:2px;" /></td>`;
   }
+
   const bigSocials = [
     data.instagram ? socialLink(data.instagram, "instagram") : "",
     data.twitter ? socialLink(data.twitter, "twitter") : "",
     data.youtube ? socialLink(data.youtube, "youtube") : "",
     data.facebook ? socialLink(data.facebook, "facebook") : "",
   ].filter(Boolean).join("").replace(/width="20" height="20" style="width:20px;height:20px/g, `width="24" height="24" style="width:24px;height:24px`);
+
   const contact = [
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 8px;">·</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;">
-  <tr>
-    ${photoCell2}
-    <td style="vertical-align:top;">
+
+  const contentTd = `<td style="vertical-align:top;">
       <table cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="font-size:21px;font-weight:bold;color:${c};padding-bottom:1px;">${escapeHtml(data.fullName)}</td></tr>
-        ${data.jobTitle ? `<tr><td style="font-size:13px;color:${a};font-weight:700;padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
-        ${data.company ? `<tr><td style="font-size:12px;color:#999;padding-bottom:6px;">@${escapeHtml(data.company)}</td></tr>` : ""}
+        <tr><td style="${nameStyle(data, { size: 21, color: c, bold: true })};padding-bottom:1px;">${escapeHtml(data.fullName)}</td></tr>
+        ${data.jobTitle ? `<tr><td style="${titleStyle(data, { size: 13, color: a, bold: true })};padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
+        ${data.company ? `<tr><td style="${companyStyle(data, { size: 12, color: "#999" })};padding-bottom:6px;">@${escapeHtml(data.company)}</td></tr>` : ""}
         ${bigSocials ? `<tr><td style="padding-bottom:7px;">${bigSocials}</td></tr>` : ""}
         <tr><td style="font-size:12px;color:#555;padding-bottom:3px;">${contact}</td></tr>
         ${data.phone ? `<tr><td style="font-size:12px;color:#555;padding-bottom:2px;"><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a></td></tr>` : ""}
@@ -694,7 +905,11 @@ function generateInfluencer(data: SignatureData, options?: GenerateOptions): str
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
-    </td>
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  <tr>
+    ${photoPosition === "right" ? contentTd + photoCell2 : photoCell2 + contentTd}
   </tr>
 </table>`;
 }
@@ -702,21 +917,24 @@ function generateInfluencer(data: SignatureData, options?: GenerateOptions): str
 function generatePhotographer(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
+  const photoSize = data.photoSize ?? 55;
+  const photoShape = data.photoShape ?? "square";
+  const photoBr = photoShape === "circle" ? "50%" : photoShape === "rounded" ? "8px" : "0";
+  const photoPosition = data.photoPosition ?? "left";
+
   let photoCell2 = "";
   if (data.photoUrl) {
-    let src = escapeHtml(data.photoUrl);
-    if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
-      src = `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
-    }
-    photoCell2 = `<td style="vertical-align:top;padding-right:22px;"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="55" height="55" style="width:55px;height:55px;border-radius:0;object-fit:cover;display:block;" /></td>`;
+    const src = resolvePhotoSrc(data, options);
+    const paddingStyle = photoPosition === "right" ? "padding-left:22px;" : "padding-right:22px;";
+    photoCell2 = `<td style="vertical-align:top;${paddingStyle}"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="${photoSize}" height="${photoSize}" style="width:${photoSize}px;height:${photoSize}px;border-radius:${photoBr};object-fit:cover;display:block;" /></td>`;
   }
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;">
-  <tr>
-    ${photoCell2}
-    <td style="vertical-align:middle;">
+
+  const contentTd = `<td style="vertical-align:middle;">
       <table cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="font-size:18px;font-weight:300;color:#1a1a1a;letter-spacing:1.5px;padding-bottom:2px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;color:#ccc;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-        ${(data.jobTitle || data.company) ? `<tr><td style="font-size:11px;color:#aaa;letter-spacing:0.5px;padding-bottom:8px;">${data.jobTitle ? escapeHtml(data.jobTitle) : ""}${data.jobTitle && data.company ? " &bull; " : ""}${data.company ? escapeHtml(data.company) : ""}</td></tr>` : ""}
+        <tr><td style="${nameStyle(data, { size: 18, color: "#1a1a1a", bold: false })};letter-spacing:1.5px;padding-bottom:2px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;color:#ccc;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+        ${(data.jobTitle || data.company) ? `<tr><td style="${titleStyle(data, { size: 11, color: "#aaa" })};letter-spacing:0.5px;padding-bottom:8px;">${data.jobTitle ? escapeHtml(data.jobTitle) : ""}${data.jobTitle && data.company ? " &bull; " : ""}${data.company ? escapeHtml(data.company) : ""}</td></tr>` : ""}
         <tr><td style="border-top:1px solid #e5e7eb;padding-top:7px;">
           <table cellpadding="0" cellspacing="0" border="0" style="font-size:12px;">
             <tr>
@@ -733,7 +951,11 @@ function generatePhotographer(data: SignatureData, options?: GenerateOptions): s
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
-    </td>
+    </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  <tr>
+    ${photoPosition === "right" ? contentTd + photoCell2 : photoCell2 + contentTd}
   </tr>
 </table>`;
 }
@@ -742,35 +964,43 @@ function generateDark(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const a = data.accentColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
+  const photoSize = data.photoSize ?? 76;
+  const photoShape = data.photoShape ?? "rounded";
+  const photoBr = photoShape === "circle" ? "50%" : photoShape === "square" ? "0" : "8px";
+  const photoPosition = data.photoPosition ?? "left";
+
   let photoCell2 = "";
   if (data.photoUrl) {
-    let src = escapeHtml(data.photoUrl);
-    if (!isPro && options?.signatureId && !data.photoUrl.startsWith("https://neatstamp.com")) {
-      src = `https://neatstamp.com/api/images/${escapeHtml(options.signatureId)}/photo`;
-    }
-    photoCell2 = `<td style="vertical-align:middle;padding-right:18px;"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="76" height="76" style="width:76px;height:76px;border-radius:8px;object-fit:cover;display:block;border:2px solid rgba(255,255,255,0.2);" /></td>`;
+    const src = resolvePhotoSrc(data, options);
+    const paddingStyle = photoPosition === "right" ? "padding-left:18px;" : "padding-right:18px;";
+    photoCell2 = `<td style="vertical-align:middle;${paddingStyle}"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="${photoSize}" height="${photoSize}" style="width:${photoSize}px;height:${photoSize}px;border-radius:${photoBr};object-fit:cover;display:block;border:2px solid rgba(255,255,255,0.2);" /></td>`;
   }
+
   const contact = [
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
     data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:rgba(255,255,255,0.7);text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="color:rgba(255,255,255,0.2);padding:0 8px;">|</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;background-color:#111827;border-radius:8px;">
-  <tr><td style="padding:18px 22px;">
-    <table cellpadding="0" cellspacing="0" border="0" width="100%">
-      <tr>
-        ${photoCell2}
-        <td style="vertical-align:middle;">
+
+  const contentTd = `<td style="vertical-align:middle;">
           <table cellpadding="0" cellspacing="0" border="0">
-            <tr><td style="font-size:19px;font-weight:bold;color:#f1f5f9;padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:rgba(255,255,255,0.35);">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
-            ${data.jobTitle ? `<tr><td style="font-size:12px;color:${a};font-weight:700;padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
-            ${data.company ? `<tr><td style="font-size:12px;color:rgba(255,255,255,0.45);padding-bottom:8px;">${escapeHtml(data.company)}</td></tr>` : ""}
+            <tr><td style="${nameStyle(data, { size: 19, color: "#f1f5f9", bold: true })};padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:rgba(255,255,255,0.35);">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
+            ${data.jobTitle ? `<tr><td style="${titleStyle(data, { size: 12, color: a, bold: true })};padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
+            ${data.company ? `<tr><td style="${companyStyle(data, { size: 12, color: "rgba(255,255,255,0.45)" })};padding-bottom:8px;">${escapeHtml(data.company)}</td></tr>` : ""}
             <tr><td style="font-size:12px;padding-bottom:3px;">${contact}</td></tr>
             ${data.address ? `<tr><td style="font-size:11px;color:rgba(255,255,255,0.35);padding-bottom:4px;">${escapeHtml(data.address)}</td></tr>` : ""}
             ${socialLinks(data)}
             ${data.calendlyUrl ? `<tr><td style="padding-top:8px;"><a href="${escapeHtml(data.calendlyUrl.startsWith("http") ? data.calendlyUrl : `https://${data.calendlyUrl}`)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:7px 18px;background-color:${c};color:#111827;text-decoration:none;font-size:12px;font-family:Arial,sans-serif;border-radius:4px;font-weight:bold;">Book a Meeting</a></td></tr>` : ""}
           </table>
-        </td>
+        </td>`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};background-color:#111827;border-radius:8px;">
+  <tr><td style="padding:18px 22px;">
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <tr>
+        ${photoPosition === "right" ? contentTd + photoCell2 : photoCell2 + contentTd}
       </tr>
     </table>
     <table cellpadding="0" cellspacing="0" border="0">
@@ -785,14 +1015,17 @@ function generateDark(data: SignatureData, options?: GenerateOptions): string {
 function generateSimple(data: SignatureData, options?: GenerateOptions): string {
   const c = data.primaryColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
+  const font = ff(data, "Arial,Helvetica,sans-serif");
+
   const contact = [
     data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
     data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
     data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
   ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 5px;">&middot;</span>`);
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#333;">
+
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:13px;color:#333;">
   <tr><td style="white-space:nowrap;padding-bottom:2px;">
-    <strong style="font-size:14px;color:#1a1a1a;">${escapeHtml(data.fullName)}</strong>${data.pronouns ? ` <span style="font-size:11px;color:#bbb;">(${escapeHtml(data.pronouns)})</span>` : ""}${data.jobTitle ? ` <span style="color:#d1d5db;">|</span> <span style="color:${c};">${escapeHtml(data.jobTitle)}</span>` : ""}${data.company ? ` <span style="color:#d1d5db;">|</span> <span style="color:#555;">${escapeHtml(data.company)}</span>` : ""}
+    <strong style="${nameStyle(data, { size: 14, color: "#1a1a1a", bold: true })}">${escapeHtml(data.fullName)}</strong>${data.pronouns ? ` <span style="font-size:11px;color:#bbb;">(${escapeHtml(data.pronouns)})</span>` : ""}${data.jobTitle ? ` <span style="color:#d1d5db;">|</span> <span style="${titleStyle(data, { size: 13, color: c })}">${escapeHtml(data.jobTitle)}</span>` : ""}${data.company ? ` <span style="color:#d1d5db;">|</span> <span style="${companyStyle(data, { size: 13, color: "#555" })}">${escapeHtml(data.company)}</span>` : ""}
   </td></tr>
   <tr><td style="font-size:12px;padding-bottom:3px;color:#555;">${contact}</td></tr>
   ${data.address ? `<tr><td style="font-size:11px;color:#bbb;padding-bottom:3px;">${escapeHtml(data.address)}</td></tr>` : ""}
@@ -842,66 +1075,10 @@ export function generateSignatureHtml(
   const generator = templateGenerators[data.template] || generateMinimal;
   let html = generator(data, options);
 
-  // Apply user styling overrides from Design tab (data.nameSize, data.nameColor, etc.)
-  html = applyStyleOverrides(html, data);
-
-  return html;
-}
-
-function applyStyleOverrides(html: string, data: SignatureData): string {
-  // Font family override — replace all font-family declarations
-  if (data.fontFamily) {
-    html = html.replace(/font-family:[^;"]+/g, `font-family:${data.fontFamily}`);
-  }
-
-  // Name styling: find the fullName text and apply overrides
-  if (data.fullName) {
-    const nameEscaped = escapeHtml(data.fullName);
-    const nameStyles: string[] = [];
-    if (data.nameSize) nameStyles.push(`font-size:${data.nameSize}px`);
-    if (data.nameColor) nameStyles.push(`color:${data.nameColor}`);
-    if (data.nameBold === false) nameStyles.push("font-weight:normal");
-    if (data.nameBold === true) nameStyles.push("font-weight:bold");
-    if (data.nameItalic) nameStyles.push("font-style:italic");
-
-    if (nameStyles.length > 0) {
-      // Replace the name element's inline styles
-      const namePattern = new RegExp(`(style="[^"]*)(">\\s*${nameEscaped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "g");
-      html = html.replace(namePattern, (match, stylePart, rest) => {
-        let newStyle = stylePart;
-        nameStyles.forEach((s) => {
-          const prop = s.split(":")[0];
-          const re = new RegExp(`${prop}:[^;]+;?`);
-          if (re.test(newStyle)) {
-            newStyle = newStyle.replace(re, `${s};`);
-          } else {
-            newStyle += `;${s}`;
-          }
-        });
-        return newStyle + rest;
-      });
-    }
-  }
-
-  // Title color override
-  if (data.titleColor && data.jobTitle) {
-    const titleEscaped = escapeHtml(data.jobTitle);
-    const titlePattern = new RegExp(`(style="[^"]*color:)[^;"]+([^"]*">\\s*${titleEscaped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "g");
-    html = html.replace(titlePattern, `$1${data.titleColor}$2`);
-  }
-
-  // Title size override
-  if (data.titleSize && data.jobTitle) {
-    const titleEscaped = escapeHtml(data.jobTitle);
-    const titleSizePattern = new RegExp(`(style="[^"]*font-size:)[^;"]+([^"]*">\\s*${titleEscaped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "g");
-    html = html.replace(titleSizePattern, `$1${data.titleSize}px$2`);
-  }
-
-  // Background color wrapper
+  // Background color wrapper — the only post-processing still needed
   if (data.backgroundColor && data.backgroundColor !== "#ffffff") {
     const textColor = data.textOnDark ? "#ffffff" : "#333333";
     html = `<table cellpadding="0" cellspacing="0" border="0" style="background-color:${escapeHtml(data.backgroundColor)};border-radius:8px;"><tr><td style="padding:16px 20px;color:${textColor};">${html}</td></tr></table>`;
-    // If textOnDark, also override text colors inside
     if (data.textOnDark) {
       html = html.replace(/color:#1a1a1a/g, "color:#ffffff");
       html = html.replace(/color:#333/g, "color:#ffffff");

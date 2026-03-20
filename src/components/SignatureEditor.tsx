@@ -28,8 +28,8 @@ function DragHandle({ onDragStart }: { onDragStart?: (e: React.MouseEvent) => vo
   return (
     <span
       onMouseDown={onDragStart}
-      className="cursor-grab active:cursor-grabbing select-none text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0 px-0.5"
-      title="Drag to reorder"
+      className="cursor-default select-none text-slate-300 hover:text-slate-400 transition-colors flex-shrink-0 px-0.5"
+      title="Use arrows to reorder"
     >
       <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor">
         <circle cx="2" cy="2" r="1.5" />
