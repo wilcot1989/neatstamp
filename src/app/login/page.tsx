@@ -192,8 +192,8 @@ function LoginForm() {
 
         <p className="mt-6 text-center text-xs text-slate-400">
           By signing in, you agree to our{" "}
-          <Link href="/terms" className="text-blue-600 hover:underline">Terms</Link> and{" "}
-          <Link href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>.
+          <a href="https://neatstamp.com/terms" className="text-blue-600 hover:underline">Terms</a> and{" "}
+          <a href="https://neatstamp.com/privacy" className="text-blue-600 hover:underline">Privacy Policy</a>.
         </p>
 
         {/* Free editor escape */}

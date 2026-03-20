@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+
 
 const CONSENT_KEY = "neatstamp-consent";
 
@@ -38,12 +38,12 @@ export default function CookieConsent() {
           measure signature performance.
         </p>
         <div className="flex items-center gap-3 shrink-0">
-          <Link
-            href="/privacy"
+          <a
+            href="https://neatstamp.com/privacy"
             className="text-xs text-slate-400 hover:text-slate-200 transition-colors underline underline-offset-2"
           >
             Learn more
-          </Link>
+          </a>
           <button
             onClick={handleAccept}
             className="px-4 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-md hover:bg-blue-700 transition-colors"
