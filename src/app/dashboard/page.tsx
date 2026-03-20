@@ -541,114 +541,59 @@ function SignaturesTab({
   onUpgrade: () => void;
 }) {
   const isPro = plan === "pro" || plan === "team";
+  const canCreate = isPro || signatures.length === 0;
 
   if (loading) return <LoadingSpinner />;
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">
-          {isPro ? "Your Signatures" : "Your Signature"}
-        </h2>
-        {isPro ? (
-          <button
-            onClick={onCreateNew}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition-colors shadow-sm"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Create new signature
-          </button>
-        ) : (
-          <button
-            onClick={onCreateNew}
-            className="text-xs text-primary underline"
-          >
-            Edit in editor
-          </button>
-        )}
+      <h2 className="text-lg font-semibold text-foreground">My Signatures</h2>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {/* Existing signature cards */}
+        {signatures.map((sig) => (
+          <SignatureCard
+            key={sig.id}
+            sig={sig}
+            onEdit={() => onEdit(sig)}
+            onCopy={() => onCopy(sig)}
+            onDelete={() => onDelete(sig.id)}
+          />
+        ))}
+
+        {/* Create new card */}
+        <button
+          onClick={canCreate ? onCreateNew : onUpgrade}
+          className={`rounded-xl border-2 border-dashed p-8 flex flex-col items-center justify-center gap-3 transition-colors min-h-[180px] ${
+            canCreate
+              ? "border-slate-300 hover:border-primary hover:bg-blue-50 text-slate-500 hover:text-primary cursor-pointer"
+              : "border-slate-200 bg-slate-50 text-slate-400 cursor-pointer"
+          }`}
+        >
+          <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span className="text-sm font-medium">
+            {canCreate ? "Create new signature" : "Upgrade to Pro for more"}
+          </span>
+          {!canCreate && (
+            <span className="text-xs text-slate-400">Free plan: 1 signature</span>
+          )}
+        </button>
       </div>
 
-      {/* Free plan — single signature view */}
+      {/* Free upgrade CTA */}
       {!isPro && (
-        <>
-          {signatures.length === 0 ? (
-            <EmptyState
-              icon={
-                <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
-                </svg>
-              }
-              title="No signature yet"
-              description="Create your first email signature in the editor."
-              cta={
-                <button
-                  onClick={onCreateNew}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
-                >
-                  Create signature
-                </button>
-              }
-            />
-          ) : (
-            <SignatureCard
-              sig={signatures[0]}
-              onEdit={() => onEdit(signatures[0])}
-              onCopy={() => onCopy(signatures[0])}
-              onDelete={() => onDelete(signatures[0].id)}
-            />
-          )}
-
-          {/* Free upgrade CTA */}
-          <div className="rounded-xl bg-gradient-to-r from-primary to-blue-700 p-5 text-white">
-            <p className="font-semibold">Unlock custom colors, unlimited signatures, and more</p>
-            <p className="mt-1 text-sm text-blue-100">Analytics, Calendly buttons, CTA banners, and Pro templates.</p>
-            <button
-              onClick={onUpgrade}
-              className="mt-3 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-primary hover:bg-gray-100 transition-colors"
-            >
-              Upgrade to Pro — $5/month
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Pro / Team signature list */}
-      {isPro && (
-        <>
-          {signatures.length === 0 ? (
-            <EmptyState
-              icon={
-                <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
-                </svg>
-              }
-              title="No signatures yet"
-              description="Create your first signature to get started."
-              cta={
-                <button
-                  onClick={onCreateNew}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
-                >
-                  Create signature
-                </button>
-              }
-            />
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {signatures.map((sig) => (
-                <SignatureCard
-                  key={sig.id}
-                  sig={sig}
-                  onEdit={() => onEdit(sig)}
-                  onCopy={() => onCopy(sig)}
-                  onDelete={() => onDelete(sig.id)}
-                />
-              ))}
-            </div>
-          )}
-        </>
+        <div className="rounded-xl bg-gradient-to-r from-primary to-blue-700 p-5 text-white">
+          <p className="font-semibold">Unlock custom colors, unlimited signatures, and more</p>
+          <p className="mt-1 text-sm text-blue-100">Analytics, Calendly buttons, CTA banners, and Pro templates.</p>
+          <button
+            onClick={onUpgrade}
+            className="mt-3 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-primary hover:bg-gray-100 transition-colors"
+          >
+            Upgrade to Pro — $5/month
+          </button>
+        </div>
       )}
     </div>
   );
