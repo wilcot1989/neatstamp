@@ -16,6 +16,55 @@ import { copySignatureToClipboard } from "@/lib/clipboard";
 // Toolbar
 // ---------------------------------------------------------------------------
 
+// Text color picker with preset colors + custom picker
+function TextColorPicker({ editor, currentColor }: { editor: Editor; currentColor: string }) {
+  const [open, setOpen] = useState(false);
+  const presets = ["#000000", "#1a1a1a", "#555555", "#888888", "#ffffff", "#2563eb", "#dc2626", "#16a34a", "#f59e0b", "#8b5cf6", "#ec4899", "#0d9488"];
+
+  const applyColor = (color: string) => {
+    editor.chain().focus().setColor(color).run();
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex h-7 w-7 items-center justify-center rounded hover:bg-slate-200 transition-colors"
+        title="Text color"
+      >
+        <span className="text-sm font-bold" style={{ color: currentColor }}>A</span>
+        <div className="absolute bottom-0.5 left-1 right-1 h-0.5 rounded" style={{ backgroundColor: currentColor }} />
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 rounded-lg border border-slate-200 bg-white shadow-xl p-2 w-[168px]" onMouseDown={(e) => e.preventDefault()}>
+          <div className="grid grid-cols-6 gap-1 mb-2">
+            {presets.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => applyColor(c)}
+                className={`h-5 w-5 rounded border ${currentColor === c ? "ring-2 ring-blue-500 ring-offset-1" : "border-slate-200 hover:border-slate-400"}`}
+                style={{ backgroundColor: c }}
+              />
+            ))}
+          </div>
+          <label className="flex items-center gap-2 text-[10px] text-slate-500 cursor-pointer">
+            Custom
+            <input
+              type="color"
+              value={currentColor}
+              onChange={(e) => applyColor(e.target.value)}
+              className="h-5 w-5 rounded border border-slate-200 cursor-pointer"
+            />
+          </label>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EditorToolbar({
   editor,
   wrapperSettings: ws,
@@ -76,19 +125,8 @@ function EditorToolbar({
 
       <div className="w-px h-5 bg-slate-200 mx-1" />
 
-      {/* Text color */}
-      <label className="relative cursor-pointer" title="Text color">
-        <div className="flex h-7 w-7 items-center justify-center rounded hover:bg-slate-200 transition-colors">
-          <span className="text-sm font-bold" style={{ color: currentColor }}>A</span>
-          <div className="absolute bottom-0.5 left-1 right-1 h-0.5 rounded" style={{ backgroundColor: currentColor }} />
-        </div>
-        <input
-          type="color"
-          value={currentColor}
-          onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
-          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-        />
-      </label>
+      {/* Text color — quick color buttons + picker */}
+      <TextColorPicker editor={editor} currentColor={currentColor} />
 
       <div className="w-px h-5 bg-slate-200 mx-1" />
 
