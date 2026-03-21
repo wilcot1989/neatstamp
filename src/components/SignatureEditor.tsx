@@ -14,6 +14,7 @@ import DynamicSignature from "./DynamicSignature";
 import BannerScheduler from "./BannerScheduler";
 import DeliverabilityScore from "./DeliverabilityScore";
 import DarkModePreview from "./DarkModePreview";
+import OutlookPreviewTester from "./OutlookPreviewTester";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -1059,6 +1060,9 @@ export default function SignatureEditor({
 
           {/* Deliverability Score — UNIQUE feature */}
           <DeliverabilityScore data={data} plan={plan} />
+
+          {/* Outlook Compatibility Tester — UNIQUE feature */}
+          <OutlookPreviewTester data={data} plan={plan} />
 
           {/* Dark Mode Preview — UNIQUE feature */}
           <DarkModePreview data={data} plan={plan} />
