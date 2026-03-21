@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature with Logo — Free Guide (2026)",
   description:
-    "A logo makes your email signature look 10x more professional. Here's exactly how to add it, size it correctly, and fix the common problems (blurry logo, attachment icon, broken in Outlook).",
+    "Add a logo to your email signature: correct sizing, how to fix a blurry logo, the attachment icon problem, and why it breaks in Outlook.",
   alternates: { canonical: "https://neatstamp.com/email-signature-with-logo" },
 };
 

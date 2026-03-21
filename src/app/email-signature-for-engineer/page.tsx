@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature for Engineers — Free Generator",
   description:
-    "What engineers should include in their email signature — PE license, GitHub, technical credentials, and minimal clean design. Practical guide with examples.",
+    "What engineers should include in their email signature — PE license, GitHub, technical credentials, and clean minimal design.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-engineer" },
 };
 

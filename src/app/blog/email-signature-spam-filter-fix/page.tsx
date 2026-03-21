@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature Spam Filter Fix (7 Causes)",
   description:
-    "Your email signature might be sending emails to spam. Here are 7 specific causes — image hosting reputation, base64 bloat, too many links, HTML complexity — and how to fix each one.",
+    "Your email signature might be sending emails to spam. 7 causes and fixes: image hosting, base64 bloat, link count, HTML size.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-spam-filter-fix",
   },

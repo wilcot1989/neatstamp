@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "What to Include in Your Email Signature (2026)",
   description:
-    "The definitive checklist for email signatures: must-haves, should-haves, nice-to-haves, and what to leave out entirely. Includes per-industry recommendations.",
+    "The definitive email signature checklist: must-haves, should-haves, nice-to-haves, what to leave out, and per-industry tips.",
   alternates: {
     canonical: "https://neatstamp.com/blog/what-to-include-email-signature",
   },

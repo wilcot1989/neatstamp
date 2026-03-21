@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature A/B Testing: A Practical Guide",
   description:
-    "How to run real A/B tests on your email signature. What to measure, how long to run tests, which variants move the needle, and what the data actually looks like.",
+    "How to A/B test your email signature: what to measure, how long to run tests, which variants move the needle, and what data shows.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-ab-testing-guide",
   },

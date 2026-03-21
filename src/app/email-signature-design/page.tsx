@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature Design — Ideas & Templates (2026)",
   description:
-    "Good email signature design isn't about being flashy — it's about being clear. Covers templates, typography, colors, image sizing, mobile rendering, and common mistakes.",
+    "Email signature design guide: templates, typography, colors, image sizing, mobile rendering, and the most common mistakes to avoid.",
   alternates: {
     canonical: "https://neatstamp.com/email-signature-design",
   },

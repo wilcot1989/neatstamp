@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature Banner Ideas — 20+ Examples",
   description:
-    "20+ email signature banner ideas organized by type: product launches, events, hiring, social proof, seasonal campaigns. Sizing guide, design tips, and how to track clicks.",
+    "20+ email signature banner ideas: product launches, events, hiring, social proof, and seasonal campaigns. Sizing guide, design tips, and click tracking.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-banner-ideas",
   },

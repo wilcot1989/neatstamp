@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "100+ Email Signature Quotes by Profession (2026)",
   description:
-    "A curated list of email signature quotes organized by profession and tone — professional, funny, for teachers, for sales, for leaders, for creatives, and more. Plus honest advice on when quotes work and when they don't.",
+    "100+ email signature quotes by profession and tone — professional, funny, for teachers, sales, and leaders. Plus when they work.",
   alternates: {
     canonical: "https://neatstamp.com/email-signature-quotes",
   },

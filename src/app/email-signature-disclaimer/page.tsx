@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature Disclaimer — Templates & Guide",
   description:
-    "What email signature disclaimers are, when you actually need one, copy-paste templates for confidentiality, GDPR, HIPAA, and liability — plus the honest answer about whether they hold up legally.",
+    "Email signature disclaimer templates for confidentiality, GDPR, HIPAA, and liability. When you actually need one and whether disclaimers hold up legally.",
   alternates: {
     canonical: "https://neatstamp.com/email-signature-disclaimer",
   },

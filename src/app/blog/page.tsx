@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Blog | NeatStamp — Email Signature Tips & Guides",
   description:
-    "Email signature best practices, troubleshooting guides, size specs, and tool comparisons from the NeatStamp team.",
+    "Email signature best practices, troubleshooting guides, size specs, and tool comparisons. Tips and tutorials from NeatStamp.",
   alternates: { canonical: "https://neatstamp.com/blog" },
 };
 

@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Company-Wide Email Signature Management Guide",
   description:
-    "Managing email signatures for 10–200 employees is an IT nightmare when done manually. Here's how to centralize it with CSV upload, master templates, and Google Workspace or M365 deployment.",
+    "Manage company-wide email signatures without the IT nightmare. Centralize with CSV upload, master templates, and Google Workspace or M365 deployment.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-company-wide-management",
   },

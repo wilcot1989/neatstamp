@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Best Email Sign-Offs — 50+ Professional Options (2026)",
   description:
-    "Formal, semi-formal, casual, and industry-specific sign-offs. Which to use, which to avoid, cultural differences, and a quick-reference table of 50+ options.",
+    "50+ email sign-offs: formal, casual, and industry-specific. Which to use, which to avoid, and cultural differences explained.",
   alternates: {
     canonical: "https://neatstamp.com/blog/best-email-sign-offs",
   },

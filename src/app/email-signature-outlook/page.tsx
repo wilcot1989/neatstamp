@@ -5,7 +5,7 @@ import { FAQStructuredData, BreadcrumbStructuredData } from "@/components/Struct
 export const metadata: Metadata = {
   title: "Outlook Email Signature: The Complete 2025 Guide | NeatStamp",
   description:
-    "Outlook breaks email signatures more than any other client. Here's why it happens, how to fix it, and how to create an Outlook-proof signature that actually works — in every version.",
+    "Outlook breaks email signatures more than any other client. Why it happens, how to fix it, and how to create an Outlook-proof signature that works.",
   alternates: { canonical: "https://neatstamp.com/email-signature-outlook" },
 };
 

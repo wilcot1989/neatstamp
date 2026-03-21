@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature Trends in 2026 — What's Changed | NeatStamp",
   description:
-    "What's actually trending in email signatures in 2026 — and what's fading out. Dark mode, minimal design, Calendly links, AI layouts, QR codes, and what to ditch.",
+    "Email signature trends in 2026: dark mode, minimal design, Calendly links, AI layouts, QR codes — and what to ditch.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-trends-2026",
   },

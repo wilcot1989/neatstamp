@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature for Personal Email — Do You Need One?",
   description:
-    "Honest take on personal email signatures. When you need one, when you don't, what to include, what to leave out, and examples for job seekers, freelancers, and networkers.",
+    "Do you need a personal email signature? When it helps, what to include, and examples for job seekers, freelancers, and networkers.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-personal-email",
   },

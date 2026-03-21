@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Changing Your Email Signature When Leaving a Job | NeatStamp",
   description:
-    "What to update before you leave, what to put in your farewell signature, what to use between jobs, and when to switch to your new one. The transition nobody talks about.",
+    "What to put in your email signature when leaving a job, what to use between jobs, and when to switch to your new one. The transition nobody talks about.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-when-leaving-job",
   },

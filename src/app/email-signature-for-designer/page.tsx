@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature for Designers & Creatives",
   description:
-    "How designers should balance creativity and professionalism in email signatures — portfolio links, Behance, Dribbble, and showing work without overdoing it.",
+    "How designers should balance creativity and professionalism in email signatures — portfolio, Behance, Dribbble, and more.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-designer" },
 };
 

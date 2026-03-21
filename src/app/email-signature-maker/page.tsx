@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Free Email Signature Maker — No Signup Needed",
   description:
-    "Create a professional email signature in under a minute. NeatStamp is free, requires no account, and works in Gmail, Outlook, Apple Mail and more. No watermarks, no hidden fees.",
+    "Free email signature maker. Create a professional signature in under a minute — no account needed, works in Gmail, Outlook, and Apple Mail.",
   alternates: { canonical: "https://neatstamp.com/email-signature-maker" },
 };
 

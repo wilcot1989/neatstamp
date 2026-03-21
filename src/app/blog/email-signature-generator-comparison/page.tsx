@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "I Tested 8 Email Signature Generators — Here's What I Found",
   description:
-    "Honest comparison of NeatStamp, WiseStamp, MySignature, HubSpot, Canva, Signaturely, Newoldstamp, and Mail-signatures. Pricing, Outlook compatibility, and verdict.",
+    "Honest comparison of NeatStamp, WiseStamp, MySignature, HubSpot, Canva, and more. Pricing, Outlook compatibility, and verdict.",
   alternates: {
     canonical:
       "https://neatstamp.com/blog/email-signature-generator-comparison",

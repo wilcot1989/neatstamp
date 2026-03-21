@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature Size Guide — Dimensions & Limits (2026)",
   description:
-    "Exact email signature size specs: max width 600px, image sizes for Gmail and Outlook, logo dimensions, file size limits, and what breaks when you exceed them.",
+    "Email signature size specs: max width 600px, image sizes for Gmail and Outlook, logo dimensions, and file size limits.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-size",
   },

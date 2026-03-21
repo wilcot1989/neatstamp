@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature Marketing ROI Calculator (2026)",
   description:
-    "Calculate the real marketing value of your email signature. At 40 emails/day × 250 days = 10,000 impressions per year per employee. Here's how to turn that into measurable ROI.",
+    "Calculate the real ROI of your email signature. 40 emails/day × 250 days = 10,000 impressions per employee per year. Here's how to measure it.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-roi-calculator",
   },

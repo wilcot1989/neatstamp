@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature for Musicians & Artists | NeatStamp",
   description:
-    "What musicians should include in their email signature — Spotify links, booking info, social following, and creative design. Practical guide with real examples.",
+    "What musicians should include in their email signature — Spotify links, booking info, social following, and creative design.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-musician" },
 };
 

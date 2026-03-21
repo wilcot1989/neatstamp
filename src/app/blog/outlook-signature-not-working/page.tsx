@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Outlook Signature Not Working? Here's How to Fix It (2026)",
   description:
-    "Complete troubleshooting guide: signature disappeared, images as attachments, formatting stripped, new Outlook vs classic, admin policies, registry fixes, and more.",
+    "Fix Outlook signature issues: disappeared signatures, images as attachments, formatting stripped, admin policies, and registry fixes.",
   alternates: {
     canonical: "https://neatstamp.com/blog/outlook-signature-not-working",
   },

@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature Marketing — Campaign Guide (2026)",
   description:
-    "Your team sends thousands of emails a month. That's free advertising space most companies completely ignore. Here's how to turn email signatures into a real marketing channel.",
+    "Your team sends thousands of emails a month — that's free ad space most companies ignore. How to turn email signature marketing into a real channel.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-marketing",
   },

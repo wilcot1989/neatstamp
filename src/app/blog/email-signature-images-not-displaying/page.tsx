@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature Images Not Showing? Fix Guide",
   description:
-    "Logo not showing in your email signature? Photo missing? I've diagnosed every cause — recipient blocks, broken URLs, wrong DPI, dark mode, and more. Here are the fixes.",
+    "Logo or photo missing from your email signature? Fix recipient blocks, broken URLs, wrong DPI, dark mode issues, and more.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-images-not-displaying",
   },

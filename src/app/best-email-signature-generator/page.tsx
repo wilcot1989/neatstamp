@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Best Email Signature Generator (2026) — 8 Compared",
   description:
-    "I spent a week testing every email signature generator I could find — free tiers, Outlook compatibility, cancellation flows, and load times. Here's the honest verdict.",
+    "Honest comparison of 8 email signature generators — free tiers, Outlook compatibility, pricing, and load times. Here's the verdict.",
   alternates: { canonical: "https://neatstamp.com/best-email-signature-generator" },
 };
 

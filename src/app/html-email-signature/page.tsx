@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "HTML Email Signature — Works in Every Client",
   description:
-    "A practical guide to writing HTML that actually renders correctly in Gmail, Outlook, and Apple Mail. Includes a working template, a CSS support table, and an explanation of why email HTML is still stuck in 2003.",
+    "HTML email signature guide: write code that renders correctly in Gmail, Outlook, and Apple Mail. Includes a working template and CSS support table.",
   alternates: { canonical: "https://neatstamp.com/html-email-signature" },
 };
 

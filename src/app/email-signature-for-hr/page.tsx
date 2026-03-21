@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature for HR Professionals | NeatStamp",
   description:
-    "How to build an HR email signature that reinforces company branding, supports recruiting, and works across multiple roles. Practical guide with examples for HR teams.",
+    "Build an HR email signature that reinforces company branding, supports recruiting, and works across roles. Guide with examples.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-hr" },
 };
 

@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature Etiquette — Unwritten Rules (2026)",
   description:
-    "When to include your signature, how long is too long, reply chain etiquette, internal vs external, industry norms, and the phone number debate. Real examples included.",
+    "Email signature etiquette: when to include it, how long is too long, reply chains, internal vs external, and industry norms.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-etiquette",
   },

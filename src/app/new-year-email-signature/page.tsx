@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "New Year Email Signature — Start 2027 Right | NeatStamp",
   description:
-    "How to update your email signature for the New Year — what to change, when to switch back to normal, combining with holiday closure, and fresh-start templates for January 2027.",
+    "Update your email signature for the New Year — what to change, when to switch back, and fresh-start templates for January 2027.",
   alternates: {
     canonical: "https://neatstamp.com/new-year-email-signature",
   },

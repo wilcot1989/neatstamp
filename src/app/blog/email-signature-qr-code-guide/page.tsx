@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "QR Code in Email Signature: When and How to Use One",
   description:
-    "When does a QR code in an email signature actually make sense? Real estate, business cards, vCard downloads. How to create one, right size, right placement, common mistakes.",
+    "When does a QR code in an email signature make sense? Real estate, vCard downloads, and business cards. How to create one and avoid common mistakes.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-qr-code-guide",
   },

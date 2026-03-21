@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature for Yahoo Mail — Guide (2026)",
   description:
-    "How to add an email signature in Yahoo Mail, what rich text and HTML options are available, common problems, and how Yahoo compares to Gmail for signatures.",
+    "How to add an email signature in Yahoo Mail, rich text and HTML options, common problems, and how Yahoo compares to Gmail.",
   alternates: { canonical: "https://neatstamp.com/email-signature-yahoo" },
 };
 

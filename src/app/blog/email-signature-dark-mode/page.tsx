@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signatures in Dark Mode — How to Make Them Work",
   description:
-    "Dark mode breaks email signatures in predictable ways. Transparent PNGs go invisible, dark text disappears, Gmail auto-inverts. Here's exactly how to fix each problem.",
+    "Dark mode breaks email signatures. Transparent PNGs go invisible, dark text disappears. Here's how to fix each problem.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-dark-mode",
   },

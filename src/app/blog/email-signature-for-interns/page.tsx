@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature for Interns — First Impression",
   description:
-    "Your first professional email signature as an intern. What to include, what to skip, real examples for summer, co-op, and graduate interns, and what hiring managers actually notice.",
+    "Your first professional email signature as an intern. What to include, what to skip, and real examples for summer, co-op, and graduate interns.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-for-interns",
   },

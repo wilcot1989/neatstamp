@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature for Startups | NeatStamp",
   description:
-    "How startups build credible, on-brand email signatures that impress investors, win early customers, and look like a real company — even before you've fully figured out what the company is.",
+    "Build a credible startup email signature that impresses investors and early customers — and makes you look like a real company from day one.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-startup" },
 };
 

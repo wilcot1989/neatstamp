@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Professional Email Signature Guide (2026)",
   description:
-    "Your email signature gets seen thousands of times a year. Learn what belongs in a professional signature, what to cut, and how to build one that works in every email client.",
+    "Build a professional email signature that works in every email client. What to include, what to cut, and how to get it right the first time.",
   alternates: {
     canonical: "https://neatstamp.com/professional-email-signature",
   },

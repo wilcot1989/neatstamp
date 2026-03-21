@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature with Credentials — MD, PhD, CPA",
   description:
-    "How to list credentials correctly in your email signature. Ordering rules, real examples for medical, legal, financial, academic, and tech fields. Avoid the alphabet soup problem.",
+    "How to list credentials in your email signature. Ordering rules and examples for medical, legal, financial, and academic fields. Avoid alphabet soup.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-with-credentials",
   },

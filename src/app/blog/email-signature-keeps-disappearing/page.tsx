@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature Keeps Disappearing? Stop It Now",
   description:
-    "Your email signature keeps disappearing, changing, or deleting itself? I've tracked down every cause — Outlook roaming signatures, Gmail cache, Apple Mail font settings, and more. Here's how to stop it for good.",
+    "Email signature keeps disappearing? Every cause tracked down — Outlook roaming signatures, Gmail cache, Apple Mail settings — with fixes for each one.",
   alternates: {
     canonical:
       "https://neatstamp.com/blog/email-signature-keeps-disappearing",

@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature on iPhone & Android — Setup Guide",
   description:
-    "How to set up an email signature on iPhone and Android. Native apps, Gmail, Outlook, Samsung Mail. The honest truth about mobile HTML signature limitations and the best workarounds.",
+    "Set up an email signature on iPhone and Android. Covers Gmail, Outlook, and native mail apps — plus the honest truth about mobile HTML limitations.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-on-phone",
   },

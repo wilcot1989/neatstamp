@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Animated GIF in Email Signature — Worth It?",
   description:
-    "The honest answer on animated GIFs in email signatures. Gmail, Outlook, and Apple Mail support compared. File size limits, accessibility concerns, and when they actually work.",
+    "Animated GIF in email signature: Gmail, Outlook, and Apple Mail support compared. File size limits, accessibility concerns, and when they work.",
   alternates: {
     canonical: "https://neatstamp.com/blog/email-signature-animated-gif",
   },

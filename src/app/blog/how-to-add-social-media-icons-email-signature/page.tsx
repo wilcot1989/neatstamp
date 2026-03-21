@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "How to Add Social Media Icons to Your Email Signature (2026)",
   description:
-    "Which social icons to include, how to add them in NeatStamp, image vs text links, correct icon sizing, and common mistakes like broken links and too many icons.",
+    "Which social media icons to add to your email signature, how to size them, and how to avoid broken links and common mistakes.",
   alternates: {
     canonical:
       "https://neatstamp.com/blog/how-to-add-social-media-icons-email-signature",

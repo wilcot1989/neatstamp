@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Email Signature for Accountants & CPAs | NeatStamp",
   description:
-    "What to include in an accountant's email signature — CPA credentials, firm branding, compliance notes, and client trust signals. Practical guide with examples.",
+    "What to include in an accountant's email signature — CPA credentials, firm branding, compliance notes, and client trust signals.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-accountant" },
 };
 
