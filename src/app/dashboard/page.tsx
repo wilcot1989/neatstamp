@@ -9,6 +9,9 @@ import { Block, getDefaultBlocks, getPresetForTemplate } from "@/lib/blocks";
 import SignatureEditor from "@/components/SignatureEditor";
 import TemplateSelector from "@/components/TemplateSelector";
 import { generateSignatureHtml } from "@/lib/generateSignature";
+import CRMIntegrations from "@/components/CRMIntegrations";
+import AgencyWorkspace from "@/components/AgencyWorkspace";
+import MasterTemplate from "@/components/MasterTemplate";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -918,6 +921,11 @@ function SettingsTab({
           </button>
         </div>
       </div>
+
+      {/* Enterprise Features */}
+      <CRMIntegrations plan={plan} />
+      <AgencyWorkspace plan={plan} />
+      <MasterTemplate masterData={DEFAULT_SIGNATURE_DATA} plan={plan} />
     </div>
   );
 }

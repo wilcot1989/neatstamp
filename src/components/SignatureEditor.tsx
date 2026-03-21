@@ -8,6 +8,9 @@ import { copySignatureToClipboard } from "@/lib/clipboard";
 import SignatureScore from "./SignatureScore";
 import QRCodeGenerator from "./QRCodeGenerator";
 import InstallGuide from "./InstallGuide";
+import EmailClientPreview from "./EmailClientPreview";
+import ReplySignature from "./ReplySignature";
+import DynamicSignature from "./DynamicSignature";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -1041,6 +1044,15 @@ export default function SignatureEditor({
           {data.website && (
             <QRCodeGenerator url={data.website.startsWith("http") ? data.website : `https://${data.website}`} />
           )}
+
+          {/* Email Client Preview (Pro) */}
+          <EmailClientPreview data={data} plan={plan} />
+
+          {/* Reply/Forward Signature (Pro) */}
+          <ReplySignature data={data} plan={plan} />
+
+          {/* Dynamic Signatures (Pro) */}
+          <DynamicSignature data={data} plan={plan} onDataChange={onDataChange} />
         </div>
       </div>
     </div>
