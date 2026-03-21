@@ -50,6 +50,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: "/email-signature-for-consultant", priority: 0.6, changeFrequency: "monthly" },
     { url: "/email-signature-for-photographer", priority: 0.6, changeFrequency: "monthly" },
     { url: "/email-signature-for-job-seekers", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-accountant", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-engineer", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-hr", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-startup", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/email-signature-for-sales", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/email-signature-for-musician", priority: 0.5, changeFrequency: "monthly" },
+
+    // Strategic pages (from competitive analysis)
+    { url: "/email-signature-dark-mode-compatible", priority: 0.8, changeFrequency: "monthly" },
+    { url: "/email-signature-outlook-compatible", priority: 0.9, changeFrequency: "monthly" },
+    { url: "/email-signature-mobile-friendly", priority: 0.8, changeFrequency: "monthly" },
+    { url: "/email-signature-deliverability", priority: 0.8, changeFrequency: "monthly" },
+    { url: "/email-signature-for-teams", priority: 0.8, changeFrequency: "monthly" },
 
     // Seasonal
     { url: "/christmas-email-signature", priority: 0.6, changeFrequency: "monthly" },
@@ -64,6 +77,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: "/alternative-to-hubspot-signature", priority: 0.6, changeFrequency: "monthly" },
     { url: "/alternative-to-newoldstamp", priority: 0.6, changeFrequency: "monthly" },
     { url: "/alternative-to-canva-signature", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/alternative-to-codetwo", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/alternative-to-letsignit", priority: 0.5, changeFrequency: "monthly" },
+    { url: "/alternative-to-gimmio", priority: 0.5, changeFrequency: "monthly" },
+    { url: "/alternative-to-rocketseed", priority: 0.5, changeFrequency: "monthly" },
 
     // Blog
     { url: "/blog", priority: 0.7, changeFrequency: "weekly" },
@@ -91,6 +108,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: "/blog/email-signature-when-leaving-job", priority: 0.5, changeFrequency: "monthly" },
     { url: "/blog/email-signature-remote-workers", priority: 0.5, changeFrequency: "monthly" },
     { url: "/blog/email-signature-trends-2026", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-spam-filter-fix", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-company-wide-management", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-ab-testing-guide", priority: 0.5, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-roi-calculator", priority: 0.5, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-qr-code-guide", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-chrome-extension-guide", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/cancel-wisestamp-subscription", priority: 0.7, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-onboarding-employees", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-gdpr-compliance", priority: 0.6, changeFrequency: "monthly" },
+    { url: "/blog/email-signature-deliverability-guide", priority: 0.7, changeFrequency: "monthly" },
 
     // Other
     { url: "/about", priority: 0.4, changeFrequency: "monthly" },
