@@ -289,6 +289,16 @@ function generateCorporate(data: SignatureData, options?: GenerateOptions): stri
   const font = ff(data, "Arial,Helvetica,sans-serif");
 
   // Custom layout: stacked T/E/W/A labels — intentionally not using orderedContact()
+  const corporateOrder = data.contactOrder ?? ["phone", "email", "website"];
+  const corporateFieldRows: Record<string, string> = {
+    phone: data.phone ? `<tr><td style="padding-bottom:2px;white-space:nowrap;"><span style="color:#999;font-weight:bold;font-size:10px;letter-spacing:0.5px;">T&nbsp;</span><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#444;text-decoration:none;">${escapeHtml(data.phone)}</a></td></tr>` : "",
+    email: data.email ? `<tr><td style="padding-bottom:2px;white-space:nowrap;"><span style="color:#999;font-weight:bold;font-size:10px;letter-spacing:0.5px;">E&nbsp;</span><a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a></td></tr>` : "",
+    website: data.website ? `<tr><td style="padding-bottom:2px;white-space:nowrap;"><span style="color:#999;font-weight:bold;font-size:10px;letter-spacing:0.5px;">W&nbsp;</span><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>` : "",
+    address: data.address ? `<tr><td style="padding-bottom:2px;color:#888;"><span style="color:#999;font-weight:bold;font-size:10px;letter-spacing:0.5px;">A&nbsp;</span>${escapeHtml(data.address)}</td></tr>` : "",
+  };
+  const corporateContactRows = [...corporateOrder, ...(!corporateOrder.includes("address") ? ["address"] : [])]
+    .map((k) => corporateFieldRows[k] ?? "").filter(Boolean).join("\n            ");
+
   const photoPosition = data.photoPosition ?? "left";
   const photo = photoPosition === "right"
     ? photoCellRight(data, 65, "4px", options)
@@ -300,10 +310,7 @@ function generateCorporate(data: SignatureData, options?: GenerateOptions): stri
         ${(data.jobTitle || data.company) ? `<tr><td style="padding-bottom:7px;">${data.jobTitle ? `<span style="${titleStyle(data, { size: 12, color: c, bold: true })}">${escapeHtml(data.jobTitle)}</span>` : ""}${data.jobTitle && data.company ? `<span style="color:#ccc;"> &nbsp;&bull;&nbsp; </span>` : ""}${data.company ? `<span style="${companyStyle(data, { size: 12, color: "#444", bold: true })}">${escapeHtml(data.company)}</span>` : ""}</td></tr>` : ""}
         <tr><td style="font-size:12px;color:#555;">
           <table cellpadding="0" cellspacing="0" border="0">
-            ${data.phone ? `<tr><td style="padding-bottom:2px;white-space:nowrap;"><span style="color:#999;font-weight:bold;font-size:10px;letter-spacing:0.5px;">T&nbsp;</span><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#444;text-decoration:none;">${escapeHtml(data.phone)}</a></td></tr>` : ""}
-            ${data.email ? `<tr><td style="padding-bottom:2px;white-space:nowrap;"><span style="color:#999;font-weight:bold;font-size:10px;letter-spacing:0.5px;">E&nbsp;</span><a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a></td></tr>` : ""}
-            ${data.website ? `<tr><td style="padding-bottom:2px;white-space:nowrap;"><span style="color:#999;font-weight:bold;font-size:10px;letter-spacing:0.5px;">W&nbsp;</span><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>` : ""}
-            ${data.address ? `<tr><td style="padding-bottom:2px;color:#888;"><span style="color:#999;font-weight:bold;font-size:10px;letter-spacing:0.5px;">A&nbsp;</span>${escapeHtml(data.address)}</td></tr>` : ""}
+            ${corporateContactRows}
           </table>
         </td></tr>
         ${socialLinks(data)}
@@ -348,17 +355,25 @@ function generateCreative(data: SignatureData, options?: GenerateOptions): strin
     </td>`;
   }
 
+  const creativeOrder = data.contactOrder ?? ["phone", "email", "website"];
+  const creativeFieldRows: Record<string, string> = {
+    phone: data.phone ? `<tr><td style="font-size:12px;padding-bottom:2px;"><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">&#9742;&nbsp;${escapeHtml(data.phone)}</a></td></tr>` : "",
+    email: data.email ? `<tr><td style="font-size:12px;padding-bottom:2px;"><a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">&#9993;&nbsp;${escapeHtml(data.email)}</a></td></tr>` : "",
+    website: data.website ? `<tr><td style="font-size:12px;padding-bottom:2px;"><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">&#127760;&nbsp;${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>` : "",
+    address: data.address ? `<tr><td style="font-size:11px;color:#aaa;padding-bottom:2px;">&#128205;&nbsp;${escapeHtml(data.address)}</td></tr>` : "",
+  };
+  const creativeContactRows = [...creativeOrder, ...(!creativeOrder.includes("address") ? ["address"] : [])]
+    .map((k) => creativeFieldRows[k] ?? "").filter(Boolean).join("\n          ");
+
   const contentTd = `<td style="vertical-align:top;border-left:2px dashed ${a};padding-left:18px;">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr><td style="${nameStyle(data, { size: 20, color: c, bold: true })};padding-bottom:2px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:11px;font-weight:normal;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
         ${data.jobTitle ? `<tr><td style="${titleStyle(data, { size: 13, color: "#555" })};padding-bottom:8px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
-        <tr><td style="font-size:12px;">
-          ${data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">&#9993;&nbsp;${escapeHtml(data.email)}</a>` : ""}
-          ${data.email && data.phone ? `&nbsp;&nbsp;` : ""}
-          ${data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">&#9742;&nbsp;${escapeHtml(data.phone)}</a>` : ""}
+        <tr><td>
+          <table cellpadding="0" cellspacing="0" border="0">
+            ${creativeContactRows}
+          </table>
         </td></tr>
-        ${data.website ? `<tr><td style="font-size:12px;padding-top:2px;"><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">&#127760;&nbsp;${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>` : ""}
-        ${data.address ? `<tr><td style="font-size:11px;color:#aaa;padding-top:3px;">&#128205;&nbsp;${escapeHtml(data.address)}</td></tr>` : ""}
         ${socialLinks(data)}
         ${calendlyButton(data, a)}
         ${ctaBanner(data)}
@@ -635,11 +650,19 @@ function generateDeveloper(data: SignatureData, options?: GenerateOptions): stri
         ${data.jobTitle ? `<tr><td style="${titleStyle(data, { size: 11, color: a })};padding-bottom:1px;"><span style="color:#94a3b8;">const </span><span style="color:#334155;">role</span><span style="color:#94a3b8;"> = </span>'${escapeHtml(data.jobTitle)}${data.company ? ` @ ${escapeHtml(data.company)}` : ""}'</td></tr>` : ""}
         <tr><td style="padding-top:6px;">
           <table cellpadding="0" cellspacing="0" border="0" style="font-size:12px;">
-            ${data.email ? `<tr><td style="padding-bottom:2px;color:#64748b;"><span style="color:#94a3b8;">&gt; </span><a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a></td></tr>` : ""}
-            ${data.phone ? `<tr><td style="padding-bottom:2px;color:#64748b;"><span style="color:#94a3b8;">&gt; </span><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#475569;text-decoration:none;">${escapeHtml(data.phone)}</a></td></tr>` : ""}
-            ${data.website ? `<tr><td style="padding-bottom:2px;color:#64748b;"><span style="color:#94a3b8;">&gt; </span><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>` : ""}
-            ${data.github ? `<tr><td style="padding-bottom:2px;color:#64748b;"><span style="color:#94a3b8;">&gt; </span><a href="${escapeHtml(data.github.startsWith("http") ? data.github : `https://${data.github}`)}" target="_blank" rel="noopener noreferrer" style="color:${a};text-decoration:none;">github/${escapeHtml(data.github.replace(/^https?:\/\/(www\.)?github\.com\//, ""))}</a></td></tr>` : ""}
-            ${data.address ? `<tr><td style="padding-bottom:2px;color:#94a3b8;"><span style="color:#cbd5e1;"># </span>${escapeHtml(data.address)}</td></tr>` : ""}
+            ${(() => {
+              const devOrder = data.contactOrder ?? ["phone", "email", "website"];
+              const devFieldRows: Record<string, string> = {
+                phone: data.phone ? `<tr><td style="padding-bottom:2px;color:#64748b;"><span style="color:#94a3b8;">&gt; </span><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#475569;text-decoration:none;">${escapeHtml(data.phone)}</a></td></tr>` : "",
+                email: data.email ? `<tr><td style="padding-bottom:2px;color:#64748b;"><span style="color:#94a3b8;">&gt; </span><a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a></td></tr>` : "",
+                website: data.website ? `<tr><td style="padding-bottom:2px;color:#64748b;"><span style="color:#94a3b8;">&gt; </span><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>` : "",
+                address: data.address ? `<tr><td style="padding-bottom:2px;color:#94a3b8;"><span style="color:#cbd5e1;"># </span>${escapeHtml(data.address)}</td></tr>` : "",
+              };
+              const rows = [...devOrder, ...(!devOrder.includes("address") ? ["address"] : [])]
+                .map((k) => devFieldRows[k] ?? "").filter(Boolean);
+              const githubRow = data.github ? `<tr><td style="padding-bottom:2px;color:#64748b;"><span style="color:#94a3b8;">&gt; </span><a href="${escapeHtml(data.github.startsWith("http") ? data.github : `https://${data.github}`)}" target="_blank" rel="noopener noreferrer" style="color:${a};text-decoration:none;">github/${escapeHtml(data.github.replace(/^https?:\/\/(www\.)?github\.com\//, ""))}</a></td></tr>` : "";
+              return [...rows, githubRow].filter(Boolean).join("\n            ");
+            })()}
           </table>
         </td></tr>
         ${socialLinks(data)}
@@ -664,10 +687,18 @@ function generateSales(data: SignatureData, options?: GenerateOptions): string {
   const isPro = options?.plan === "pro" || options?.plan === "team";
   const font = ff(data, "Arial,Helvetica,sans-serif");
 
-  const contact = [
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 7px;">·</span>`);
+  const salesOrder = data.contactOrder ?? ["phone", "email", "website"];
+  const salesFieldMap: Record<string, () => string> = {
+    email: () => data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
+    website: () => data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
+    address: () => "",
+    phone: () => "",
+  };
+  const contact = salesOrder
+    .filter((k) => k !== "phone")
+    .map((k) => salesFieldMap[k]?.() ?? "")
+    .filter(Boolean)
+    .join(`<span style="color:#d1d5db;padding:0 7px;">·</span>`);
 
   const photoPosition = data.photoPosition ?? "left";
   const photo = photoPosition === "right"
@@ -758,10 +789,17 @@ function generateLegal(data: SignatureData, options?: GenerateOptions): string {
         ${data.company ? `<tr><td style="${companyStyle(data, { size: 13, color: "#1a1a1a", bold: true })};padding-bottom:7px;">${escapeHtml(data.company)}</td></tr>` : ""}
         <tr><td style="border-top:2px solid #334155;padding-top:8px;">
           <table cellpadding="0" cellspacing="0" border="0" style="font-size:12px;font-family:Arial,Helvetica,sans-serif;color:#555;">
-            ${data.phone ? `<tr><td style="padding-bottom:3px;"><span style="color:#94a3b8;font-size:10px;letter-spacing:0.5px;font-weight:bold;">T&nbsp;</span><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#333;text-decoration:none;">${escapeHtml(data.phone)}</a></td></tr>` : ""}
-            ${data.email ? `<tr><td style="padding-bottom:3px;"><span style="color:#94a3b8;font-size:10px;letter-spacing:0.5px;font-weight:bold;">E&nbsp;</span><a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a></td></tr>` : ""}
-            ${data.website ? `<tr><td style="padding-bottom:3px;"><span style="color:#94a3b8;font-size:10px;letter-spacing:0.5px;font-weight:bold;">W&nbsp;</span><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>` : ""}
-            ${data.address ? `<tr><td style="color:#888;"><span style="color:#94a3b8;font-size:10px;letter-spacing:0.5px;font-weight:bold;">A&nbsp;</span>${escapeHtml(data.address)}</td></tr>` : ""}
+            ${(() => {
+              const legalOrder = data.contactOrder ?? ["phone", "email", "website"];
+              const legalFieldRows: Record<string, string> = {
+                phone: data.phone ? `<tr><td style="padding-bottom:3px;"><span style="color:#94a3b8;font-size:10px;letter-spacing:0.5px;font-weight:bold;">T&nbsp;</span><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#333;text-decoration:none;">${escapeHtml(data.phone)}</a></td></tr>` : "",
+                email: data.email ? `<tr><td style="padding-bottom:3px;"><span style="color:#94a3b8;font-size:10px;letter-spacing:0.5px;font-weight:bold;">E&nbsp;</span><a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a></td></tr>` : "",
+                website: data.website ? `<tr><td style="padding-bottom:3px;"><span style="color:#94a3b8;font-size:10px;letter-spacing:0.5px;font-weight:bold;">W&nbsp;</span><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>` : "",
+                address: data.address ? `<tr><td style="color:#888;"><span style="color:#94a3b8;font-size:10px;letter-spacing:0.5px;font-weight:bold;">A&nbsp;</span>${escapeHtml(data.address)}</td></tr>` : "",
+              };
+              return [...legalOrder, ...(!legalOrder.includes("address") ? ["address"] : [])]
+                .map((k) => legalFieldRows[k] ?? "").filter(Boolean).join("\n            ");
+            })()}
           </table>
         </td></tr>
         ${socialLinks(data)}
@@ -845,13 +883,24 @@ function generateRealtor(data: SignatureData, options?: GenerateOptions): string
         <tr><td style="${nameStyle(data, { size: 22, color: "#1a1a1a", bold: true })};padding-bottom:1px;">${escapeHtml(data.fullName)}${data.pronouns ? ` <span style="font-size:12px;font-weight:normal;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}</td></tr>
         ${data.jobTitle ? `<tr><td style="${titleStyle(data, { size: 13, color: c, bold: true })};padding-bottom:1px;">${escapeHtml(data.jobTitle)}</td></tr>` : ""}
         ${data.company ? `<tr><td style="${companyStyle(data, { size: 14, color: "#333", bold: true })};padding-bottom:7px;">${escapeHtml(data.company)}</td></tr>` : ""}
-        <tr><td style="font-size:13px;padding-bottom:3px;">
-          ${data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#1a1a1a;text-decoration:none;font-weight:bold;">${escapeHtml(data.phone)}</a>` : ""}
-          ${data.phone && data.email ? `<span style="color:#d1d5db;padding:0 10px;">|</span>` : ""}
-          ${data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : ""}
-        </td></tr>
-        ${data.website ? `<tr><td style="font-size:12px;padding-bottom:2px;"><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${a};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>` : ""}
-        ${data.address ? `<tr><td style="font-size:11px;color:#aaa;padding-bottom:2px;">${escapeHtml(data.address)}</td></tr>` : ""}
+        ${(() => {
+          const realtorOrder = data.contactOrder ?? ["phone", "email", "website"];
+          const realtorFieldMap: Record<string, string> = {
+            phone: data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#1a1a1a;text-decoration:none;font-weight:bold;">${escapeHtml(data.phone)}</a>` : "",
+            email: data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
+          };
+          const inlineFields = realtorOrder
+            .filter((k) => k !== "website" && k !== "address")
+            .map((k) => realtorFieldMap[k] ?? "").filter(Boolean);
+          const inlineHtml = inlineFields.join(`<span style="color:#d1d5db;padding:0 10px;">|</span>`);
+          const websiteRow = realtorOrder.includes("website") && data.website
+            ? `<tr><td style="font-size:12px;padding-bottom:2px;"><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${a};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>`
+            : "";
+          const addressRow = data.address ? `<tr><td style="font-size:11px;color:#aaa;padding-bottom:2px;">${escapeHtml(data.address)}</td></tr>` : "";
+          // Determine whether website row comes before or after address based on order
+          const websiteBeforeAddress = !realtorOrder.includes("address") || realtorOrder.indexOf("website") < realtorOrder.indexOf("address");
+          return `<tr><td style="font-size:13px;padding-bottom:3px;">${inlineHtml}</td></tr>\n        ${websiteBeforeAddress ? websiteRow + "\n        " + addressRow : addressRow + "\n        " + websiteRow}`;
+        })()}
         ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
@@ -894,10 +943,16 @@ function generateInfluencer(data: SignatureData, options?: GenerateOptions): str
     data.facebook ? socialLink(data.facebook, "facebook") : "",
   ].filter(Boolean).join("").replace(/width="20" height="20" style="width:20px;height:20px/g, `width="24" height="24" style="width:24px;height:24px`);
 
-  const contact = [
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 8px;">·</span>`);
+  const influencerOrder = data.contactOrder ?? ["phone", "email", "website"];
+  const influencerFieldMap: Record<string, () => string> = {
+    phone: () => data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
+    email: () => data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
+    website: () => data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
+    address: () => data.address ? `<span style="color:#888;">${escapeHtml(data.address)}</span>` : "",
+  };
+  const influencerContactParts = [...influencerOrder, ...(!influencerOrder.includes("address") ? ["address"] : [])]
+    .map((k) => influencerFieldMap[k]?.() ?? "").filter(Boolean);
+  const contact = influencerContactParts.join(`<span style="color:#d1d5db;padding:0 8px;">·</span>`);
 
   const contentTd = `<td style="vertical-align:top;">
       <table cellpadding="0" cellspacing="0" border="0">
@@ -906,7 +961,6 @@ function generateInfluencer(data: SignatureData, options?: GenerateOptions): str
         ${data.company ? `<tr><td style="${companyStyle(data, { size: 12, color: "#999" })};padding-bottom:6px;">@${escapeHtml(data.company)}</td></tr>` : ""}
         ${bigSocials ? `<tr><td style="padding-bottom:7px;">${bigSocials}</td></tr>` : ""}
         <tr><td style="font-size:12px;color:#555;padding-bottom:3px;">${contact}</td></tr>
-        ${data.phone ? `<tr><td style="font-size:12px;color:#555;padding-bottom:2px;"><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a></td></tr>` : ""}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
         ${disclaimerRow(data)}
@@ -947,13 +1001,25 @@ function generatePhotographer(data: SignatureData, options?: GenerateOptions): s
         <tr><td style="border-top:1px solid #e5e7eb;padding-top:7px;">
           <table cellpadding="0" cellspacing="0" border="0" style="font-size:12px;">
             <tr>
-              ${data.email ? `<td style="padding-right:14px;"><a href="mailto:${escapeHtml(data.email)}" style="color:#666;text-decoration:none;">${escapeHtml(data.email)}</a></td>` : ""}
-              ${data.phone ? `<td style="padding-right:14px;"><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#888;text-decoration:none;">${escapeHtml(data.phone)}</a></td>` : ""}
+              ${(() => {
+                const photoOrder = data.contactOrder ?? ["phone", "email", "website"];
+                const photoInlineMap: Record<string, string> = {
+                  phone: data.phone ? `<td style="padding-right:14px;"><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#888;text-decoration:none;">${escapeHtml(data.phone)}</a></td>` : "",
+                  email: data.email ? `<td style="padding-right:14px;"><a href="mailto:${escapeHtml(data.email)}" style="color:#666;text-decoration:none;">${escapeHtml(data.email)}</a></td>` : "",
+                };
+                return photoOrder.filter((k) => k !== "website" && k !== "address")
+                  .map((k) => photoInlineMap[k] ?? "").filter(Boolean).join("\n              ");
+              })()}
             </tr>
           </table>
         </td></tr>
-        ${data.website ? `<tr><td style="font-size:12px;padding-top:3px;"><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:underline;font-style:italic;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>` : ""}
-        ${data.address ? `<tr><td style="font-size:11px;color:#ccc;padding-top:3px;">${escapeHtml(data.address)}</td></tr>` : ""}
+        ${(() => {
+          const photoOrder = data.contactOrder ?? ["phone", "email", "website"];
+          const websiteRow = data.website ? `<tr><td style="font-size:12px;padding-top:3px;"><a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:underline;font-style:italic;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a></td></tr>` : "";
+          const addressRow = data.address ? `<tr><td style="font-size:11px;color:#ccc;padding-top:3px;">${escapeHtml(data.address)}</td></tr>` : "";
+          const websiteBeforeAddress = !photoOrder.includes("address") || !photoOrder.includes("website") || photoOrder.indexOf("website") < photoOrder.indexOf("address");
+          return websiteBeforeAddress ? websiteRow + "\n        " + addressRow : addressRow + "\n        " + websiteRow;
+        })()}
         ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
