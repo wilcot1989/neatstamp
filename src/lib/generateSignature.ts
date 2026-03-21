@@ -405,6 +405,7 @@ function generateBold(data: SignatureData, options?: GenerateOptions): string {
     </table>
     <table cellpadding="0" cellspacing="0" border="0">
       ${ctaBanner(data)}
+      ${disclaimerRow(data)}
       ${!isPro ? `<tr><td style="padding-top:8px;"><a href="https://neatstamp.com?ref=sig" target="_blank" rel="noopener noreferrer" style="color:rgba(255,255,255,0.35);font-size:10px;font-family:Arial,sans-serif;text-decoration:none;">Made with NeatStamp</a></td></tr>` : ""}
       ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
     </table>
@@ -1027,6 +1028,7 @@ function generateDark(data: SignatureData, options?: GenerateOptions): string {
     </table>
     <table cellpadding="0" cellspacing="0" border="0">
       ${ctaBanner(data)}
+      ${disclaimerRow(data)}
       ${!isPro ? `<tr><td style="padding-top:8px;"><a href="https://neatstamp.com?ref=sig" target="_blank" rel="noopener noreferrer" style="color:rgba(255,255,255,0.2);font-size:10px;font-family:Arial,sans-serif;text-decoration:none;">Made with NeatStamp</a></td></tr>` : ""}
       ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
     </table>
