@@ -40,6 +40,7 @@ export interface SignatureData {
   photoPosition?: string;
   backgroundColor?: string;
   textOnDark?: boolean;
+  disclaimer?: string;
 }
 
 // ---------------------------------------------------------------------------

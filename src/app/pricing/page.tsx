@@ -49,7 +49,7 @@ const plans = [
     highlighted: true,
     comingSoon: false,
     features: [
-      "All 8+ templates",
+      "All 20+ templates",
       "Custom brand colors",
       "Unlimited social links",
       "Pure HTML output (no hosted images)",

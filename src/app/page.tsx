@@ -533,7 +533,7 @@ export default function HomePage() {
               <p className="text-sm text-blue-200 mb-6">Cancel anytime, 30-day guarantee</p>
               <ul className="space-y-3 mb-8">
                 {[
-                  "15+ premium templates",
+                  "20+ premium templates",
                   "Calendly booking button",
                   "CTA banners & analytics",
                   "Save & manage multiple signatures",
@@ -615,7 +615,7 @@ export default function HomePage() {
               },
               {
                 q: "What's included in the Pro plan?",
-                a: "Pro ($5/month) adds 15+ premium templates, Calendly booking buttons, CTA banners, multiple signatures, click analytics, and the ability to save your signatures. Cancel anytime in 2 clicks. 30-day money-back guarantee.",
+                a: "Pro ($5/month) adds 20+ premium templates in 8 color themes, Calendly booking buttons, CTA banners, multiple signatures, click analytics, legal disclaimers, and the ability to save your signatures. Cancel anytime in 2 clicks. 30-day money-back guarantee.",
               },
               {
                 q: "What makes NeatStamp different from competitors?",

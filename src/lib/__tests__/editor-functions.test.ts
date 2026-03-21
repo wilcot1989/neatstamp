@@ -209,6 +209,16 @@ test("banner appears when URL set", () => {
   expect(html).toContain("banner.png");
 });
 
+test("disclaimer appears when set", () => {
+  const html = generateSignatureHtml(makeData({ disclaimer: "This email is confidential." }));
+  expect(html).toContain("This email is confidential.");
+});
+
+test("disclaimer absent when empty", () => {
+  const html = generateSignatureHtml(makeData({ disclaimer: "" }));
+  expect(html).not.toContain("confidential");
+});
+
 console.log("\n📐 ALL 20 TEMPLATES — basic rendering + overrides\n");
 
 const templates: TemplateName[] = [

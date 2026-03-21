@@ -141,6 +141,11 @@ function trackingPixel(signatureId: string): string {
   return `<tr><td><img src="https://neatstamp.com/api/images/${escapeHtml(signatureId)}/track" width="1" height="1" style="width:1px;height:1px;display:block;" alt="" /></td></tr>`;
 }
 
+function disclaimerRow(data: SignatureData): string {
+  if (!data.disclaimer?.trim()) return "";
+  return `<tr><td style="padding-top:8px;font-size:9px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;line-height:1.4;max-width:500px;">${escapeHtml(data.disclaimer)}</td></tr>`;
+}
+
 // ----------------------------------------------------------------
 // Shared style-override helpers — called inside each template
 // ----------------------------------------------------------------
@@ -214,6 +219,7 @@ function generateMinimal(data: SignatureData, options?: GenerateOptions): string
         ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
+        ${disclaimerRow(data)}
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
@@ -253,6 +259,7 @@ function generateModern(data: SignatureData, options?: GenerateOptions): string 
         ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
+        ${disclaimerRow(data)}
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
@@ -290,6 +297,7 @@ function generateCorporate(data: SignatureData, options?: GenerateOptions): stri
         ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
+        ${disclaimerRow(data)}
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
@@ -341,6 +349,7 @@ function generateCreative(data: SignatureData, options?: GenerateOptions): strin
         ${socialLinks(data)}
         ${calendlyButton(data, a)}
         ${ctaBanner(data)}
+        ${disclaimerRow(data)}
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
@@ -438,6 +447,7 @@ function generateElegant(data: SignatureData, options?: GenerateOptions): string
         ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
+        ${disclaimerRow(data)}
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
@@ -487,7 +497,8 @@ function generateStartup(data: SignatureData, options?: GenerateOptions): string
   ${socialLinks(data)}
   ${data.calendlyUrl ? `<tr><td colspan="2" style="padding-top:8px;"><a href="${escapeHtml(data.calendlyUrl.startsWith("http") ? data.calendlyUrl : `https://${data.calendlyUrl}`)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:5px 14px;background-color:${c};color:#fff;text-decoration:none;font-size:11px;font-family:Arial,sans-serif;border-radius:12px;font-weight:bold;">Book a Meeting</a></td></tr>` : ""}
   ${ctaBanner(data)}
-  ${!isPro ? neatstampBranding() : ""}
+  ${disclaimerRow(data)}
+        ${!isPro ? neatstampBranding() : ""}
   ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
 </table>`;
 }
@@ -511,7 +522,8 @@ function generateCompact(data: SignatureData, options?: GenerateOptions): string
   ${data.address ? `<tr><td style="font-size:11px;color:#aaa;padding-top:2px;">${escapeHtml(data.address)}</td></tr>` : ""}
   ${calendlyButton(data, c)}
   ${ctaBanner(data)}
-  ${!isPro ? neatstampBranding() : ""}
+  ${disclaimerRow(data)}
+        ${!isPro ? neatstampBranding() : ""}
   ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
 </table>`;
 }
@@ -559,6 +571,7 @@ function generateExecutive(data: SignatureData, options?: GenerateOptions): stri
         ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
+        ${disclaimerRow(data)}
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
@@ -593,7 +606,8 @@ function generateGradient(data: SignatureData, options?: GenerateOptions): strin
               ${socialLinks(data)}
               ${calendlyButton(data, c)}
               ${ctaBanner(data)}
-              ${!isPro ? neatstampBranding() : ""}
+              ${disclaimerRow(data)}
+        ${!isPro ? neatstampBranding() : ""}
               ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
             </table>
           </td>`;
@@ -640,6 +654,7 @@ function generateDeveloper(data: SignatureData, options?: GenerateOptions): stri
         ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
+        ${disclaimerRow(data)}
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
@@ -677,6 +692,7 @@ function generateSales(data: SignatureData, options?: GenerateOptions): string {
         ${socialLinks(data)}
         ${data.calendlyUrl ? `<tr><td style="padding-top:8px;"><a href="${escapeHtml(data.calendlyUrl.startsWith("http") ? data.calendlyUrl : `https://${data.calendlyUrl}`)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:8px 22px;background-color:#16a34a;color:#fff;text-decoration:none;font-size:13px;font-family:Arial,sans-serif;border-radius:4px;font-weight:bold;">Schedule a Call</a></td></tr>` : ""}
         ${ctaBanner(data)}
+        ${disclaimerRow(data)}
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
@@ -722,6 +738,7 @@ function generateMedical(data: SignatureData, options?: GenerateOptions): string
         ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
+        ${disclaimerRow(data)}
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
@@ -761,6 +778,7 @@ function generateLegal(data: SignatureData, options?: GenerateOptions): string {
         ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
+        ${disclaimerRow(data)}
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
@@ -810,7 +828,8 @@ function generateAcademic(data: SignatureData, options?: GenerateOptions): strin
       ${socialLinks(data)}
       ${calendlyButton(data, c)}
       ${ctaBanner(data)}
-      ${!isPro ? neatstampBranding() : ""}
+      ${disclaimerRow(data)}
+        ${!isPro ? neatstampBranding() : ""}
       ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
     </table>
   </td></tr>
@@ -850,6 +869,7 @@ function generateRealtor(data: SignatureData, options?: GenerateOptions): string
         ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
+        ${disclaimerRow(data)}
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
@@ -902,6 +922,7 @@ function generateInfluencer(data: SignatureData, options?: GenerateOptions): str
         ${data.phone ? `<tr><td style="font-size:12px;color:#555;padding-bottom:2px;"><a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a></td></tr>` : ""}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
+        ${disclaimerRow(data)}
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
@@ -948,6 +969,7 @@ function generatePhotographer(data: SignatureData, options?: GenerateOptions): s
         ${socialLinks(data)}
         ${calendlyButton(data, c)}
         ${ctaBanner(data)}
+        ${disclaimerRow(data)}
         ${!isPro ? neatstampBranding() : ""}
         ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
       </table>
@@ -1032,7 +1054,8 @@ function generateSimple(data: SignatureData, options?: GenerateOptions): string 
   ${socialLinks(data)}
   ${calendlyButton(data, c)}
   ${ctaBanner(data)}
-  ${!isPro ? neatstampBranding() : ""}
+  ${disclaimerRow(data)}
+        ${!isPro ? neatstampBranding() : ""}
   ${!isPro && options?.signatureId ? trackingPixel(options.signatureId) : ""}
 </table>`;
 }

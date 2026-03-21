@@ -614,6 +614,18 @@ function AddOnsSection({
           />
         </div>
       </div>
+
+      {/* Disclaimer */}
+      <div>
+        <p className="text-[11px] font-medium text-slate-500 mb-1.5">Legal Disclaimer</p>
+        <textarea
+          value={data.disclaimer ?? ""}
+          onChange={(e) => onDataChange({ ...data, disclaimer: e.target.value })}
+          placeholder="Confidentiality notice or legal disclaimer..."
+          rows={2}
+          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors resize-none"
+        />
+      </div>
     </div>
   );
 }
