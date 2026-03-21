@@ -41,6 +41,8 @@ export interface SignatureData {
   backgroundColor?: string;
   textOnDark?: boolean;
   disclaimer?: string;
+  fieldOrder?: string[]; // e.g. ["jobTitle", "fullName", "company"] — order of user info fields
+  contactOrder?: string[]; // e.g. ["phone", "email", "website"] — order of contact fields
 }
 
 // ---------------------------------------------------------------------------

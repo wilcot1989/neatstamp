@@ -146,6 +146,25 @@ function disclaimerRow(data: SignatureData): string {
   return `<tr><td style="padding-top:8px;font-size:9px;color:#94a3b8;font-family:Arial,Helvetica,sans-serif;line-height:1.4;max-width:500px;">${escapeHtml(data.disclaimer)}</td></tr>`;
 }
 
+/**
+ * Build contact info string in the user's preferred order.
+ * Falls back to default order if no contactOrder is set.
+ */
+function orderedContact(data: SignatureData, separator: string, linkColor: string, textColor: string): string {
+  const order = data.contactOrder ?? ["phone", "email", "website"];
+  const fieldMap: Record<string, () => string> = {
+    phone: () => data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:${textColor};text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
+    email: () => data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${linkColor};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
+    website: () => data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${linkColor};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
+    address: () => data.address ? `<span style="color:${textColor};">${escapeHtml(data.address)}</span>` : "",
+  };
+
+  return order
+    .map((key) => fieldMap[key]?.() ?? "")
+    .filter(Boolean)
+    .join(separator);
+}
+
 // ----------------------------------------------------------------
 // Shared style-override helpers — called inside each template
 // ----------------------------------------------------------------
@@ -199,11 +218,7 @@ function generateMinimal(data: SignatureData, options?: GenerateOptions): string
   const isPro = options?.plan === "pro" || options?.plan === "team";
   const font = ff(data, "Arial,Helvetica,sans-serif");
 
-  const contact = [
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
-    data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="color:#ccc;padding:0 6px;">·</span>`);
+  const contact = orderedContact(data, `<span style="color:#ccc;padding:0 6px;">·</span>`, c, "#555");
 
   const photoPosition = data.photoPosition ?? "left";
   const photo = photoPosition === "right"
@@ -238,11 +253,7 @@ function generateModern(data: SignatureData, options?: GenerateOptions): string 
   const isPro = options?.plan === "pro" || options?.plan === "team";
   const font = ff(data, "Arial,Helvetica,sans-serif");
 
-  const contact = [
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
-    data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 8px;">|</span>`);
+  const contact = orderedContact(data, `<span style="color:#d1d5db;padding:0 8px;">|</span>`, c, "#555");
 
   const photoPosition = data.photoPosition ?? "left";
   const photo = photoPosition === "right"
@@ -277,6 +288,7 @@ function generateCorporate(data: SignatureData, options?: GenerateOptions): stri
   const isPro = options?.plan === "pro" || options?.plan === "team";
   const font = ff(data, "Arial,Helvetica,sans-serif");
 
+  // Custom layout: stacked T/E/W/A labels — intentionally not using orderedContact()
   const photoPosition = data.photoPosition ?? "left";
   const photo = photoPosition === "right"
     ? photoCellRight(data, 65, "4px", options)
@@ -312,6 +324,7 @@ function generateCorporate(data: SignatureData, options?: GenerateOptions): stri
 }
 
 function generateCreative(data: SignatureData, options?: GenerateOptions): string {
+  // Custom layout: emoji contact icons (✉ ✆ 🌐 📍) — intentionally not using orderedContact()
   const c = data.primaryColor;
   const a = data.accentColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
@@ -379,11 +392,7 @@ function generateBold(data: SignatureData, options?: GenerateOptions): string {
     photoPart = `<td style="vertical-align:middle;${paddingStyle}"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="${photoSize}" height="${photoSize}" style="width:${photoSize}px;height:${photoSize}px;border-radius:${photoBr};object-fit:cover;display:block;border:2px solid rgba(255,255,255,0.4);" /></td>`;
   }
 
-  const contactInline = [
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:#fff;text-decoration:none;opacity:0.9;">${escapeHtml(data.email)}</a>` : "",
-    data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#fff;text-decoration:none;opacity:0.85;">${escapeHtml(data.phone)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:#fff;text-decoration:none;opacity:0.9;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="opacity:0.4;padding:0 8px;">|</span>`);
+  const contactInline = orderedContact(data, `<span style="opacity:0.4;padding:0 8px;">|</span>`, "#fff", "#fff");
 
   const contentTd = `<td style="vertical-align:middle;">
           <table cellpadding="0" cellspacing="0" border="0">
@@ -418,11 +427,7 @@ function generateElegant(data: SignatureData, options?: GenerateOptions): string
   const isPro = options?.plan === "pro" || options?.plan === "team";
   const font = ff(data, "Georgia,'Times New Roman',serif");
 
-  const contact = [
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;font-family:Arial,sans-serif;">${escapeHtml(data.email)}</a>` : "",
-    data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#666;text-decoration:none;font-family:Arial,sans-serif;">${escapeHtml(data.phone)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;font-family:Arial,sans-serif;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="color:#ccc;padding:0 6px;">&mdash;</span>`);
+  const contact = orderedContact(data, `<span style="color:#ccc;padding:0 6px;">&mdash;</span>`, c, "#666");
 
   const photoPosition = data.photoPosition ?? "left";
   const photo = photoPosition === "right"
@@ -478,11 +483,7 @@ function generateStartup(data: SignatureData, options?: GenerateOptions): string
     avatarCell = `<td style="vertical-align:middle;${paddingStyle}"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="${photoSize}" height="${photoSize}" style="width:${photoSize}px;height:${photoSize}px;border-radius:${photoBr};object-fit:cover;display:block;" /></td>`;
   }
 
-  const contact = [
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
-    data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 7px;">·</span>`);
+  const contact = orderedContact(data, `<span style="color:#d1d5db;padding:0 7px;">·</span>`, c, "#555");
 
   const nameTd = `<td style="vertical-align:middle;">
       <span style="${nameStyle(data, { size: 15, color: "#1a1a1a", bold: true })}">${escapeHtml(data.fullName)}</span>${data.pronouns ? ` <span style="font-size:11px;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}
@@ -509,11 +510,7 @@ function generateCompact(data: SignatureData, options?: GenerateOptions): string
   const isPro = options?.plan === "pro" || options?.plan === "team";
   const font = ff(data, "Arial,Helvetica,sans-serif");
 
-  const contact = [
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
-    data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 5px;">&middot;</span>`);
+  const contact = orderedContact(data, `<span style="color:#d1d5db;padding:0 5px;">&middot;</span>`, c, "#555");
 
   return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:13px;color:#333;">
   <tr><td style="white-space:nowrap;">
@@ -535,11 +532,7 @@ function generateExecutive(data: SignatureData, options?: GenerateOptions): stri
   const isPro = options?.plan === "pro" || options?.plan === "team";
   const font = ff(data, "Arial,Helvetica,sans-serif");
 
-  const contact = [
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
-    data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#444;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 8px;">|</span>`);
+  const contact = orderedContact(data, `<span style="color:#d1d5db;padding:0 8px;">|</span>`, c, "#444");
 
   const photoPosition = data.photoPosition ?? "left";
   const photo = photoPosition === "right"
@@ -587,11 +580,7 @@ function generateGradient(data: SignatureData, options?: GenerateOptions): strin
   const isPro = options?.plan === "pro" || options?.plan === "team";
   const font = ff(data, "Arial,Helvetica,sans-serif");
 
-  const contact = [
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
-    data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${a};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="color:#cbd5e1;padding:0 7px;">|</span>`);
+  const contact = orderedContact(data, `<span style="color:#cbd5e1;padding:0 7px;">|</span>`, c, "#555");
 
   const photoPosition = data.photoPosition ?? "left";
   const photo = photoPosition === "right"
@@ -629,6 +618,7 @@ function generateGradient(data: SignatureData, options?: GenerateOptions): strin
 }
 
 function generateDeveloper(data: SignatureData, options?: GenerateOptions): string {
+  // Custom layout: stacked rows with > prefix — intentionally not using orderedContact()
   const c = data.primaryColor;
   const a = data.accentColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
@@ -669,6 +659,7 @@ function generateDeveloper(data: SignatureData, options?: GenerateOptions): stri
 }
 
 function generateSales(data: SignatureData, options?: GenerateOptions): string {
+  // Custom layout: phone is displayed as a hero click-to-call above the name — intentionally not using orderedContact()
   const c = data.primaryColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
   const font = ff(data, "Arial,Helvetica,sans-serif");
@@ -723,11 +714,7 @@ function generateMedical(data: SignatureData, options?: GenerateOptions): string
     photoCell2 = `<td style="vertical-align:top;${paddingStyle}"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="${photoSize}" height="${photoSize}" style="width:${photoSize}px;height:${photoSize}px;border-radius:${photoBr};object-fit:cover;display:block;border:2px solid ${c};" /></td>`;
   }
 
-  const contact = [
-    data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#333;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 7px;">·</span>`);
+  const contact = orderedContact(data, `<span style="color:#d1d5db;padding:0 7px;">·</span>`, c, "#333");
 
   const contentTd = `<td style="vertical-align:top;">
       <table cellpadding="0" cellspacing="0" border="0">
@@ -754,6 +741,7 @@ function generateMedical(data: SignatureData, options?: GenerateOptions): string
 }
 
 function generateLegal(data: SignatureData, options?: GenerateOptions): string {
+  // Custom layout: stacked T/E/W/A labels — intentionally not using orderedContact()
   const c = data.primaryColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
   const font = ff(data, "Georgia,'Times New Roman',serif");
@@ -799,11 +787,7 @@ function generateAcademic(data: SignatureData, options?: GenerateOptions): strin
   const isPro = options?.plan === "pro" || options?.plan === "team";
   const font = ff(data, "Arial,Helvetica,sans-serif");
 
-  const contact = [
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
-    data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${a};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 8px;">·</span>`);
+  const contact = orderedContact(data, `<span style="color:#d1d5db;padding:0 8px;">·</span>`, c, "#555");
 
   const photoPosition = data.photoPosition ?? "left";
   const photo = photoPosition === "right"
@@ -838,6 +822,7 @@ function generateAcademic(data: SignatureData, options?: GenerateOptions): strin
 }
 
 function generateRealtor(data: SignatureData, options?: GenerateOptions): string {
+  // Custom layout: bold phone + email inline, website on separate row — intentionally not using orderedContact()
   const c = data.primaryColor;
   const a = data.accentColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
@@ -845,7 +830,7 @@ function generateRealtor(data: SignatureData, options?: GenerateOptions): string
 
   const photoSize = data.photoSize ?? 100;
   const photoShape = data.photoShape ?? "rounded";
-  const photoBr = photoShape === "circle" ? "50%" : photoShape === "square" ? "0" : "10px";
+  const photoBr = photoShape === "circle" ? "50%" : photoShape === "rounded" ? "8px" : photoShape === "square" ? "0" : "8px";
   const photoPosition = data.photoPosition ?? "left";
 
   let photoCell2 = "";
@@ -884,6 +869,7 @@ function generateRealtor(data: SignatureData, options?: GenerateOptions): string
 }
 
 function generateInfluencer(data: SignatureData, options?: GenerateOptions): string {
+  // Custom layout: email+website inline, phone on separate row below — intentionally not using orderedContact()
   const c = data.primaryColor;
   const a = data.accentColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
@@ -937,6 +923,7 @@ function generateInfluencer(data: SignatureData, options?: GenerateOptions): str
 }
 
 function generatePhotographer(data: SignatureData, options?: GenerateOptions): string {
+  // Custom layout: email+phone in inline table cells, website on separate row — intentionally not using orderedContact()
   const c = data.primaryColor;
   const isPro = options?.plan === "pro" || options?.plan === "team";
   const font = ff(data, "Arial,Helvetica,sans-serif");
@@ -1001,11 +988,7 @@ function generateDark(data: SignatureData, options?: GenerateOptions): string {
     photoCell2 = `<td style="vertical-align:middle;${paddingStyle}"><img src="${src}" alt="${escapeHtml(data.fullName)}" width="${photoSize}" height="${photoSize}" style="width:${photoSize}px;height:${photoSize}px;border-radius:${photoBr};object-fit:cover;display:block;border:2px solid rgba(255,255,255,0.2);" /></td>`;
   }
 
-  const contact = [
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
-    data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:rgba(255,255,255,0.7);text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="color:rgba(255,255,255,0.2);padding:0 8px;">|</span>`);
+  const contact = orderedContact(data, `<span style="color:rgba(255,255,255,0.2);padding:0 8px;">|</span>`, c, "rgba(255,255,255,0.7)");
 
   const contentTd = `<td style="vertical-align:middle;">
           <table cellpadding="0" cellspacing="0" border="0">
@@ -1041,11 +1024,7 @@ function generateSimple(data: SignatureData, options?: GenerateOptions): string 
   const isPro = options?.plan === "pro" || options?.plan === "team";
   const font = ff(data, "Arial,Helvetica,sans-serif");
 
-  const contact = [
-    data.email ? `<a href="mailto:${escapeHtml(data.email)}" style="color:${c};text-decoration:none;">${escapeHtml(data.email)}</a>` : "",
-    data.phone ? `<a href="tel:${escapeHtml(data.phone.replace(/\s/g, ""))}" style="color:#555;text-decoration:none;">${escapeHtml(data.phone)}</a>` : "",
-    data.website ? `<a href="https://${escapeHtml(data.website.replace(/^https?:\/\//, ""))}" style="color:${c};text-decoration:none;">${escapeHtml(data.website.replace(/^https?:\/\//, ""))}</a>` : "",
-  ].filter(Boolean).join(`<span style="color:#d1d5db;padding:0 5px;">&middot;</span>`);
+  const contact = orderedContact(data, `<span style="color:#d1d5db;padding:0 5px;">&middot;</span>`, c, "#555");
 
   return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:13px;color:#333;">
   <tr><td style="white-space:nowrap;padding-bottom:2px;">

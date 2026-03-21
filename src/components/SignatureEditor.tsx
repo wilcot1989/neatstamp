@@ -40,8 +40,8 @@ function DragHandle({ onDragStart }: { onDragStart?: (e: React.MouseEvent) => vo
   return (
     <span
       onMouseDown={onDragStart}
-      className="cursor-default select-none text-slate-300 hover:text-slate-400 transition-colors flex-shrink-0 px-0.5"
-      title="Use arrows to reorder"
+      className="cursor-grab active:cursor-grabbing select-none text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0 px-0.5"
+      title="Drag to reorder"
     >
       <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor">
         <circle cx="2" cy="2" r="1.5" />
@@ -868,8 +868,11 @@ export default function SignatureEditor({
   const [sigId] = useState(() =>
     typeof crypto !== "undefined" ? crypto.randomUUID() : "temp"
   );
-  const [userFieldOrder, setUserFieldOrder] = useState<string[]>(["jobTitle", "fullName", "company", "pronouns"]);
-  const [contactOrder, setContactOrder] = useState<string[]>(["phone", "email", "website"]);
+  // Field order stored in data so the renderer can use it
+  const userFieldOrder = data.fieldOrder ?? ["jobTitle", "fullName", "company", "pronouns"];
+  const setUserFieldOrder = (order: string[]) => onDataChange({ ...data, fieldOrder: order });
+  const contactOrder = data.contactOrder ?? ["phone", "email", "website"];
+  const setContactOrder = (order: string[]) => onDataChange({ ...data, contactOrder: order });
 
   const ws = wrapperSettings ?? DEFAULT_WRAPPER_SETTINGS;
   const isPro = plan === "pro" || plan === "team";
