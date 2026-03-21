@@ -263,6 +263,7 @@ function UserInfoSection({
             <label className="text-[10px] text-slate-400 mb-0.5 block">{f.label}</label>
             <input
               type="text"
+              data-testid={`field-${f.key}`}
               value={String(data[f.key] ?? "")}
               onChange={(e) => onDataChange({ ...data, [f.key]: e.target.value })}
               placeholder={f.placeholder}
@@ -389,6 +390,7 @@ function ContactInfoSection({
           />
           <input
             type="text"
+            data-testid={`field-${row.key}`}
             value={String(data[row.key] ?? "")}
             onChange={(e) => onDataChange({ ...data, [row.key]: e.target.value })}
             placeholder={row.placeholder}
@@ -993,7 +995,7 @@ function LivePreview({
       </div>
 
       {/* Signature */}
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4" data-testid="live-preview-signature">
         <div dangerouslySetInnerHTML={{ __html: html }} />
       </div>
     </div>
@@ -1121,6 +1123,7 @@ export default function SignatureEditor({
             <button
               key={tab}
               type="button"
+              data-testid={`tab-${tab}`}
               onClick={() => setActiveTab(tab)}
               className={`px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition-colors relative ${
                 activeTab === tab
