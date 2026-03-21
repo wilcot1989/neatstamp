@@ -11,6 +11,7 @@ import InstallGuide from "./InstallGuide";
 import EmailClientPreview from "./EmailClientPreview";
 import ReplySignature from "./ReplySignature";
 import DynamicSignature from "./DynamicSignature";
+import BannerScheduler from "./BannerScheduler";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -1053,6 +1054,9 @@ export default function SignatureEditor({
 
           {/* Dynamic Signatures (Pro) */}
           <DynamicSignature data={data} plan={plan} onDataChange={onDataChange} />
+
+          {/* Banner Scheduling (Pro) */}
+          <BannerScheduler plan={plan} onApplyBanner={(img, link) => onDataChange({ ...data, ctaBannerUrl: img, ctaBannerLink: link })} />
         </div>
       </div>
     </div>
