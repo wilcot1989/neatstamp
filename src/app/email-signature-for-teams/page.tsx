@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Email Signature Management for Teams: 10–200 Employees (2026)",
+  title: "Email Signature Management for Teams (2026)",
   description:
     "Managing email signatures for a whole company is a nightmare. Here's how to standardize, deploy, and update them without IT involvement.",
   alternates: { canonical: "https://neatstamp.com/email-signature-for-teams" },

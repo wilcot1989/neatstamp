@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Dark Mode Email Signature: Fix Invisible Logos & Broken Colors",
+  title: "Dark Mode Email Signature — Fix Invisible Logos",
   description:
     "Your email signature breaks in dark mode. Here's why it happens in Gmail, Outlook, and Apple Mail — and exactly how to fix it.",
   alternates: { canonical: "https://neatstamp.com/email-signature-dark-mode-compatible" },

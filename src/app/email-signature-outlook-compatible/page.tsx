@@ -6,7 +6,7 @@ import {
 } from "@/components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Outlook Compatible Email Signature: Fix Broken Layouts (2026)",
+  title: "Outlook-Compatible Email Signature Generator",
   description:
     "Why your email signature breaks in Outlook — and how to build one that actually renders correctly every time.",
   alternates: { canonical: "https://neatstamp.com/email-signature-outlook-compatible" },

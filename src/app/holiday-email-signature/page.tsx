@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Holiday Email Signature — Professional Ideas",
   description:
-    "Holiday email signatures for every season — inclusive greetings, office closure notices, seasonal banners, and how to handle the transition from Christmas through the New Year. Templates included.",
+    "Holiday email signatures for every season. Inclusive greetings, office closure notices, seasonal banners, and free templates.",
   alternates: {
     canonical: "https://neatstamp.com/holiday-email-signature",
   },

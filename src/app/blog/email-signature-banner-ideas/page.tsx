@@ -343,7 +343,7 @@ export default function EmailSignatureBannerIdeasPage() {
 
               <p className="text-slate-600 leading-relaxed">
                 For broader email signature marketing strategy, the{" "}
-                <Link href="/email-signature-marketing" className="text-blue-600 hover:underline">
+                <Link href="/blog/email-signature-marketing" className="text-blue-600 hover:underline">
                   email signature marketing guide
                 </Link>{" "}
                 covers how to build banners into your content calendar.

@@ -8,7 +8,7 @@ import {
 export const metadata: Metadata = {
   title: "Christmas Email Signature — Ideas & Templates",
   description:
-    "How to add a festive Christmas signature without looking unprofessional. When to switch, what to change, office closure wording, examples for corporate and casual contexts, and the most common mistakes.",
+    "Add a festive Christmas email signature without looking unprofessional. Templates, timing tips, office closure wording, and common mistakes.",
   alternates: {
     canonical: "https://neatstamp.com/christmas-email-signature",
   },
