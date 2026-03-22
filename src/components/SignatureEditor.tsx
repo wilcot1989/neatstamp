@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { SignatureData, WrapperSettings, DEFAULT_WRAPPER_SETTINGS, TEMPLATE_DEFAULTS, TemplateName } from "@/lib/types";
+import { SignatureData, WrapperSettings, DEFAULT_WRAPPER_SETTINGS, TEMPLATE_DEFAULTS, TemplateName, TEMPLATES } from "@/lib/types";
 import { Block, SOCIAL_ICON_URLS, SOCIAL_LABELS } from "@/lib/blocks";
 import { GenerateOptions, generateSignatureHtml } from "@/lib/generateSignature";
 import { copySignatureToClipboard } from "@/lib/clipboard";
@@ -32,37 +32,6 @@ interface SignatureEditorProps {
   onBlocksChange: (blocks: Block[]) => void;
   onDataChange: (data: SignatureData) => void;
   onWrapperSettingsChange: (ws: WrapperSettings) => void;
-}
-
-// ---------------------------------------------------------------------------
-// Drag handle — 6-dot ⠿ pattern
-// ---------------------------------------------------------------------------
-
-function DragHandle({ onDragStart }: { onDragStart?: (e: React.MouseEvent) => void }) {
-  return (
-    <span
-      onMouseDown={onDragStart}
-      className="cursor-grab active:cursor-grabbing select-none text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0 px-0.5"
-      title="Drag to reorder"
-    >
-      <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor">
-        <circle cx="2" cy="2" r="1.5" />
-        <circle cx="8" cy="2" r="1.5" />
-        <circle cx="2" cy="8" r="1.5" />
-        <circle cx="8" cy="8" r="1.5" />
-        <circle cx="2" cy="14" r="1.5" />
-        <circle cx="8" cy="14" r="1.5" />
-      </svg>
-    </span>
-  );
-}
-
-// Simple reorder: move item up or down
-function moveItem<T>(arr: T[], from: number, to: number): T[] {
-  const result = [...arr];
-  const [moved] = result.splice(from, 1);
-  result.splice(to, 0, moved);
-  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -164,832 +133,6 @@ function FontSizeInput({ value, onChange }: { value: number; onChange: (v: numbe
 }
 
 // ---------------------------------------------------------------------------
-// TAB 1: Details Panel
-// ---------------------------------------------------------------------------
-
-// --- User Info Section ---
-
-type FieldDef = { key: keyof SignatureData; label: string; placeholder: string; required?: boolean };
-
-const DEFAULT_USER_FIELDS: FieldDef[] = [
-  { key: "jobTitle", label: "Job Title", placeholder: "Marketing Manager" },
-  { key: "fullName", label: "Name", placeholder: "John Doe", required: true },
-  { key: "company", label: "Company", placeholder: "Acme Corp" },
-  { key: "pronouns", label: "Pronouns", placeholder: "he/him" },
-];
-
-function UserInfoSection({
-  data,
-  onDataChange,
-  fieldOrder,
-  onFieldOrderChange,
-}: {
-  data: SignatureData;
-  onDataChange: (d: SignatureData) => void;
-  fieldOrder: string[];
-  onFieldOrderChange: (order: string[]) => void;
-}) {
-  const fields = fieldOrder
-    .map((key) => DEFAULT_USER_FIELDS.find((f) => f.key === key))
-    .filter(Boolean) as FieldDef[];
-
-  // Fields not currently in the order (removed ones)
-  const removedFields = DEFAULT_USER_FIELDS.filter((f) => !fieldOrder.includes(f.key) && !f.required);
-
-  const handleRemove = (key: string) => {
-    // Remove from order AND clear the value
-    onFieldOrderChange(fieldOrder.filter((k) => k !== key));
-    onDataChange({ ...data, [key]: "" });
-  };
-
-  const handleAdd = (key: string) => {
-    onFieldOrderChange([...fieldOrder, key]);
-  };
-
-  // Drag state
-  const dragIdxRef = useRef<number | null>(null);
-  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
-
-  const handleDragStart = (idx: number) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    dragIdxRef.current = idx;
-
-    const handleMove = (me: MouseEvent) => {
-      const rows = document.querySelectorAll("[data-user-field-idx]");
-      let closest = idx;
-      let closestDist = Infinity;
-      rows.forEach((el) => {
-        const i = Number(el.getAttribute("data-user-field-idx"));
-        const rect = el.getBoundingClientRect();
-        const mid = rect.top + rect.height / 2;
-        const dist = Math.abs(me.clientY - mid);
-        if (dist < closestDist) { closestDist = dist; closest = i; }
-      });
-      setDragOverIdx(closest);
-    };
-
-    const handleUp = () => {
-      document.removeEventListener("mousemove", handleMove);
-      document.removeEventListener("mouseup", handleUp);
-      const from = dragIdxRef.current;
-      dragIdxRef.current = null;
-      setDragOverIdx((to) => {
-        if (from !== null && to !== null && from !== to) {
-          onFieldOrderChange(moveItem(fieldOrder, from, to));
-        }
-        return null;
-      });
-    };
-
-    document.addEventListener("mousemove", handleMove);
-    document.addEventListener("mouseup", handleUp);
-  };
-
-  return (
-    <div className="space-y-1.5">
-      <SectionHeader title="User Info" />
-      {fields.map((f, idx) => (
-        <div
-          key={f.key}
-          data-user-field-idx={idx}
-          className={`flex items-center gap-2 group rounded-lg px-1 py-0.5 transition-colors ${
-            dragOverIdx === idx && dragIdxRef.current !== null && dragIdxRef.current !== idx
-              ? "bg-blue-50 border-t-2 border-blue-400"
-              : ""
-          } ${dragIdxRef.current === idx ? "opacity-40" : ""}`}
-        >
-          <DragHandle onDragStart={handleDragStart(idx)} />
-          <div className="flex-1 min-w-0">
-            <label className="text-[10px] text-slate-400 mb-0.5 block">{f.label}</label>
-            <input
-              type="text"
-              data-testid={`field-${f.key}`}
-              value={String(data[f.key] ?? "")}
-              onChange={(e) => onDataChange({ ...data, [f.key]: e.target.value })}
-              placeholder={f.placeholder}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
-            />
-          </div>
-          {f.required ? (
-            <div className="h-7 w-7 flex-shrink-0" />
-          ) : (
-            <DeleteBtn onClick={() => handleRemove(f.key)} />
-          )}
-        </div>
-      ))}
-      {/* Add removed fields back */}
-      {removedFields.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-1">
-          {removedFields.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => handleAdd(f.key)}
-              className="text-xs text-blue-600 hover:text-blue-700 font-medium bg-blue-50 hover:bg-blue-100 rounded-lg px-2.5 py-1 transition-colors"
-            >
-              + {f.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// --- Contact Info Section ---
-
-type ContactRowDef = { key: keyof SignatureData; label: string; placeholder: string };
-
-const ALL_CONTACT_FIELDS: ContactRowDef[] = [
-  { key: "phone", label: "p.", placeholder: "+1 (555) 123-4567" },
-  { key: "email", label: "e.", placeholder: "john@company.com" },
-  { key: "website", label: "w.", placeholder: "www.company.com" },
-  { key: "address", label: "a.", placeholder: "123 Main St" },
-];
-
-function ContactInfoSection({
-  data,
-  onDataChange,
-  contactOrder,
-  onContactOrderChange,
-}: {
-  data: SignatureData;
-  onDataChange: (d: SignatureData) => void;
-  contactOrder: string[];
-  onContactOrderChange: (order: string[]) => void;
-}) {
-  const visibleRows = contactOrder
-    .map((key) => ALL_CONTACT_FIELDS.find((f) => f.key === key))
-    .filter(Boolean) as ContactRowDef[];
-
-  const hiddenFields = ALL_CONTACT_FIELDS.filter((f) => !contactOrder.includes(f.key));
-
-  const handleRemove = (key: string) => {
-    onDataChange({ ...data, [key]: "" });
-    onContactOrderChange(contactOrder.filter((k) => k !== key));
-  };
-
-  // Drag state
-  const dragIdxRef = useRef<number | null>(null);
-  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
-
-  const handleDragStart = (idx: number) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    dragIdxRef.current = idx;
-
-    const handleMove = (me: MouseEvent) => {
-      const rows = document.querySelectorAll("[data-contact-field-idx]");
-      let closest = idx;
-      let closestDist = Infinity;
-      rows.forEach((el) => {
-        const i = Number(el.getAttribute("data-contact-field-idx"));
-        const rect = el.getBoundingClientRect();
-        const mid = rect.top + rect.height / 2;
-        const dist = Math.abs(me.clientY - mid);
-        if (dist < closestDist) { closestDist = dist; closest = i; }
-      });
-      setDragOverIdx(closest);
-    };
-
-    const handleUp = () => {
-      document.removeEventListener("mousemove", handleMove);
-      document.removeEventListener("mouseup", handleUp);
-      const from = dragIdxRef.current;
-      dragIdxRef.current = null;
-      setDragOverIdx((to) => {
-        if (from !== null && to !== null && from !== to) {
-          onContactOrderChange(moveItem(contactOrder, from, to));
-        }
-        return null;
-      });
-    };
-
-    document.addEventListener("mousemove", handleMove);
-    document.addEventListener("mouseup", handleUp);
-  };
-
-  return (
-    <div className="space-y-1.5">
-      <SectionHeader title="Contact Info" />
-      {visibleRows.map((row, idx) => (
-        <div
-          key={row.key}
-          data-contact-field-idx={idx}
-          className={`flex items-center gap-2 group rounded-lg px-1 py-0.5 transition-colors ${
-            dragOverIdx === idx && dragIdxRef.current !== null && dragIdxRef.current !== idx
-              ? "bg-blue-50 border-t-2 border-blue-400"
-              : ""
-          } ${dragIdxRef.current === idx ? "opacity-40" : ""}`}
-        >
-          <DragHandle onDragStart={handleDragStart(idx)} />
-          <input
-            type="text"
-            value={row.label}
-            readOnly
-            className="w-8 rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-1.5 text-[11px] text-slate-500 text-center focus:outline-none flex-shrink-0"
-          />
-          <input
-            type="text"
-            data-testid={`field-${row.key}`}
-            value={String(data[row.key] ?? "")}
-            onChange={(e) => onDataChange({ ...data, [row.key]: e.target.value })}
-            placeholder={row.placeholder}
-            className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
-          />
-          <DeleteBtn onClick={() => handleRemove(row.key)} />
-        </div>
-      ))}
-      {hiddenFields.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-1">
-          {hiddenFields.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => onContactOrderChange([...contactOrder, f.key])}
-              className="text-xs text-blue-600 hover:text-blue-700 font-medium bg-blue-50 hover:bg-blue-100 rounded-lg px-2.5 py-1 transition-colors"
-            >
-              + {f.key === "phone" ? "Phone" : f.key === "email" ? "Email" : f.key === "website" ? "Website" : "Address"}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// --- Photo or Logo Section ---
-
-function PhotoSection({
-  data,
-  onDataChange,
-  blocks,
-  onBlocksChange,
-}: {
-  data: SignatureData;
-  onDataChange: (d: SignatureData) => void;
-  blocks: Block[];
-  onBlocksChange: (b: Block[]) => void;
-}) {
-  const fileRef = useRef<HTMLInputElement>(null);
-  const shape = String(data.photoShape ?? "circle");
-  const size = Number(data.photoSize ?? 80);
-  const position = String(data.photoPosition ?? "left");
-
-  const set = (key: string, val: unknown) => {
-    onDataChange({ ...data, [key]: val });
-  };
-
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { alert("Max 2MB"); return; }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const img = new window.Image();
-      img.onload = () => {
-        const sz = 200;
-        const canvas = document.createElement("canvas");
-        canvas.width = sz; canvas.height = sz;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        const min = Math.min(img.width, img.height);
-        ctx.drawImage(img, (img.width - min) / 2, (img.height - min) / 2, min, min, 0, 0, sz, sz);
-        onDataChange({ ...data, photoUrl: canvas.toDataURL("image/jpeg", 0.85) });
-      };
-      img.src = ev.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const shapeOptions: { value: string; title: string; borderRadius: string }[] = [
-    { value: "circle", title: "Circle", borderRadius: "50%" },
-    { value: "rounded", title: "Rounded", borderRadius: "22%" },
-    { value: "near-square", title: "Near square", borderRadius: "8%" },
-    { value: "square", title: "Square", borderRadius: "0%" },
-  ];
-
-  return (
-    <div className="space-y-3">
-      <SectionHeader title="Photo or Logo" />
-
-      {data.photoUrl ? (
-        <div className="flex items-center gap-3">
-          <img
-            src={data.photoUrl}
-            alt="Photo"
-            className="object-cover border border-slate-200 flex-shrink-0"
-            style={{
-              width: 52, height: 52,
-              borderRadius: shape === "circle" ? "50%" : shape === "rounded" ? "22%" : shape === "near-square" ? "8%" : "0",
-            }}
-          />
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-            >
-              Replace
-            </button>
-            <button
-              type="button"
-              onClick={() => onDataChange({ ...data, photoUrl: "" })}
-              className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      ) : (
-        <label className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-5 text-sm text-slate-400 hover:border-blue-300 hover:text-blue-500 transition-colors">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
-          </svg>
-          <span>Click to upload photo or logo</span>
-          <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
-        </label>
-      )}
-      <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
-
-      {/* Shape */}
-      <div>
-        <p className="text-[11px] font-medium text-slate-500 mb-1.5">Shape</p>
-        <div className="flex gap-2">
-          {shapeOptions.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => set("photoShape", opt.value)}
-              title={opt.title}
-              className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${
-                shape === opt.value
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-slate-200 bg-white hover:border-slate-300"
-              }`}
-            >
-              <span
-                className="h-5 w-5 bg-slate-400"
-                style={{ borderRadius: opt.borderRadius }}
-              />
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Size */}
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <p className="text-[11px] font-medium text-slate-500">Size</p>
-          <span className="text-[11px] text-slate-400">{size}px</span>
-        </div>
-        <input
-          type="range"
-          min={40}
-          max={120}
-          value={size}
-          onChange={(e) => set("photoSize", Number(e.target.value))}
-          className="w-full h-1.5 accent-blue-600"
-        />
-      </div>
-
-      {/* Position */}
-      <div>
-        <p className="text-[11px] font-medium text-slate-500 mb-1.5">Position</p>
-        <div className="flex rounded-lg border border-slate-200 overflow-hidden w-fit">
-          {(["left", "right"] as const).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => set("photoPosition", p)}
-              className={`px-4 py-1.5 text-xs font-medium transition-colors ${
-                position === p
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              {p === "left" ? "Left" : "Right"}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// --- Social Media Section ---
-
-const SOCIAL_PLATFORMS = [
-  { key: "linkedin" as keyof SignatureData, icon: "linkedin" },
-  { key: "twitter" as keyof SignatureData, icon: "twitter" },
-  { key: "instagram" as keyof SignatureData, icon: "instagram" },
-  { key: "facebook" as keyof SignatureData, icon: "facebook" },
-  { key: "github" as keyof SignatureData, icon: "github" },
-  { key: "youtube" as keyof SignatureData, icon: "youtube" },
-];
-
-function SocialSection({
-  data,
-  onDataChange,
-  plan,
-}: {
-  data: SignatureData;
-  onDataChange: (d: SignatureData) => void;
-  plan: "free" | "pro" | "team";
-}) {
-  const isPro = plan === "pro" || plan === "team";
-  const [showDropdown, setShowDropdown] = useState(false);
-
-  const activePlatforms = SOCIAL_PLATFORMS.filter((p) => String(data[p.key] ?? "").trim() !== "");
-  const availablePlatforms = SOCIAL_PLATFORMS.filter((p) => String(data[p.key] ?? "").trim() === "");
-
-  return (
-    <div className="space-y-1.5">
-      <SectionHeader title="Social Media" />
-      {activePlatforms.map((p, i) => {
-        const locked = !isPro && i >= 2;
-        return (
-          <div key={p.key} className="flex items-center gap-2">
-            <DragHandle />
-            <img src={SOCIAL_ICON_URLS[p.icon]} alt={SOCIAL_LABELS[p.icon] ?? p.icon} className="h-4 w-4 flex-shrink-0" />
-            {locked ? (
-              <div className="flex-1 flex items-center justify-between rounded-lg border border-dashed border-amber-200 bg-amber-50 px-3 py-1.5">
-                <span className="text-xs text-amber-700">{SOCIAL_LABELS[p.icon]}</span>
-                <span className="text-[9px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full">PRO</span>
-              </div>
-            ) : (
-              <input
-                type="text"
-                value={String(data[p.key] ?? "")}
-                onChange={(e) => onDataChange({ ...data, [p.key]: e.target.value })}
-                placeholder={`https://...`}
-                className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
-              />
-            )}
-            <DeleteBtn onClick={() => onDataChange({ ...data, [p.key]: "" })} />
-          </div>
-        );
-      })}
-
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => setShowDropdown((v) => !v)}
-          className="mt-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
-        >
-          + Add social link
-        </button>
-        {showDropdown && availablePlatforms.length > 0 && (
-          <div className="absolute left-0 top-full mt-1 z-10 w-48 rounded-xl border border-slate-200 bg-white shadow-lg py-1">
-            {availablePlatforms.map((p) => (
-              <button
-                key={p.key}
-                type="button"
-                onClick={() => {
-                  onDataChange({ ...data, [p.key]: "https://" });
-                  setShowDropdown(false);
-                }}
-                className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                <img src={SOCIAL_ICON_URLS[p.icon]} alt="" className="h-4 w-4" />
-                {SOCIAL_LABELS[p.icon] ?? p.key}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// --- Add-ons Section (Pro) ---
-
-function AddOnsSection({
-  data,
-  onDataChange,
-  plan,
-}: {
-  data: SignatureData;
-  onDataChange: (d: SignatureData) => void;
-  plan: "free" | "pro" | "team";
-}) {
-  const isPro = plan === "pro" || plan === "team";
-
-  if (!isPro) {
-    return (
-      <div className="space-y-2">
-        <SectionHeader title="Add-ons" />
-        <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50 p-4 text-center">
-          <p className="text-xs font-semibold text-amber-700">Pro Feature</p>
-          <p className="text-xs text-amber-600 mt-0.5">Upgrade to add CTA buttons, banners & disclaimers</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      <SectionHeader title="Add-ons" />
-
-      {/* CTA Button */}
-      <div>
-        <p className="text-[11px] font-medium text-slate-500 mb-1.5">CTA Button</p>
-        <div className="space-y-1.5">
-          <input
-            type="text"
-            value={data.calendlyUrl}
-            onChange={(e) => onDataChange({ ...data, calendlyUrl: e.target.value })}
-            placeholder="Button URL (e.g. calendly.com/...)"
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
-          />
-        </div>
-      </div>
-
-      {/* Banner */}
-      <div>
-        <p className="text-[11px] font-medium text-slate-500 mb-1.5">Banner</p>
-        <div className="space-y-1.5">
-          <input
-            type="text"
-            value={data.ctaBannerUrl}
-            onChange={(e) => onDataChange({ ...data, ctaBannerUrl: e.target.value })}
-            placeholder="Banner image URL"
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
-          />
-          <input
-            type="text"
-            value={data.ctaBannerLink}
-            onChange={(e) => onDataChange({ ...data, ctaBannerLink: e.target.value })}
-            placeholder="Banner link URL"
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
-          />
-        </div>
-      </div>
-
-      {/* Disclaimer */}
-      <div>
-        <p className="text-[11px] font-medium text-slate-500 mb-1.5">Legal Disclaimer</p>
-        <textarea
-          value={data.disclaimer ?? ""}
-          onChange={(e) => onDataChange({ ...data, disclaimer: e.target.value })}
-          placeholder="Confidentiality notice or legal disclaimer..."
-          rows={2}
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors resize-none"
-        />
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// TAB 2: Design Panel
-// ---------------------------------------------------------------------------
-
-function DesignPanel({
-  data,
-  onDataChange,
-}: {
-  data: SignatureData;
-  onDataChange: (d: SignatureData) => void;
-}) {
-  const set = (key: keyof SignatureData, val: unknown) => onDataChange({ ...data, [key]: val });
-  const td = TEMPLATE_DEFAULTS[(data.template || "minimal") as TemplateName] ?? TEMPLATE_DEFAULTS.minimal;
-
-  return (
-    <div className="space-y-6">
-      {/* Text Styling — all write to data.* so renderer can read them */}
-      <div>
-        <SectionHeader title="Text Styling" />
-        <div className="space-y-2.5">
-          {/* Name */}
-          <div className="flex items-center gap-2">
-            <span className="w-16 text-xs text-slate-500 flex-shrink-0">Name</span>
-            <BIUButtons
-              bold={data.nameBold ?? td.nameBold}
-              italic={data.nameItalic ?? td.nameItalic}
-              underline={data.nameUnderline === true}
-              onBold={(v) => set("nameBold", v)}
-              onItalic={(v) => set("nameItalic", v)}
-              onUnderline={(v) => set("nameUnderline", v)}
-            />
-            <ColorDot value={data.nameColor ?? td.nameColor} onChange={(v) => set("nameColor", v)} />
-            <FontSizeInput value={data.nameSize ?? td.nameSize} onChange={(v) => set("nameSize", v)} />
-          </div>
-          {/* Job Title */}
-          <div className="flex items-center gap-2">
-            <span className="w-16 text-xs text-slate-500 flex-shrink-0">Title</span>
-            <BIUButtons
-              bold={data.titleBold ?? false}
-              italic={data.titleItalic ?? false}
-              underline={data.titleUnderline === true}
-              onBold={(v) => set("titleBold", v)}
-              onItalic={(v) => set("titleItalic", v)}
-              onUnderline={(v) => set("titleUnderline", v)}
-            />
-            <ColorDot value={data.titleColor ?? td.titleColor} onChange={(v) => set("titleColor", v)} />
-            <FontSizeInput value={data.titleSize ?? td.titleSize} onChange={(v) => set("titleSize", v)} />
-          </div>
-          {/* Company */}
-          <div className="flex items-center gap-2">
-            <span className="w-16 text-xs text-slate-500 flex-shrink-0">Company</span>
-            <BIUButtons
-              bold={data.companyBold ?? false}
-              italic={data.companyItalic ?? false}
-              underline={data.companyUnderline === true}
-              onBold={(v) => set("companyBold", v)}
-              onItalic={(v) => set("companyItalic", v)}
-              onUnderline={(v) => set("companyUnderline", v)}
-            />
-            <ColorDot value={data.companyColor ?? td.companyColor} onChange={(v) => set("companyColor", v)} />
-            <FontSizeInput value={data.companySize ?? td.titleSize} onChange={(v) => set("companySize", v)} />
-          </div>
-        </div>
-      </div>
-
-      {/* Style */}
-      <div>
-        <SectionHeader title="Style" />
-        <div className="space-y-3">
-          <div>
-            <label className="text-[11px] font-medium text-slate-500 block mb-1">Font family</label>
-            <select
-              value={data.fontFamily ?? "Arial,Helvetica,sans-serif"}
-              onChange={(e) => set("fontFamily", e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
-            >
-              <option value="Arial,Helvetica,sans-serif">Arial</option>
-              <option value="Georgia,'Times New Roman',serif">Georgia</option>
-              <option value="'Courier New',Courier,monospace">Courier New</option>
-              <option value="Verdana,Geneva,sans-serif">Verdana</option>
-              <option value="Tahoma,Geneva,sans-serif">Tahoma</option>
-              <option value="'Trebuchet MS',Helvetica,sans-serif">Trebuchet MS</option>
-            </select>
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-[11px] font-medium text-slate-500">Base font size</label>
-              <span className="text-[11px] text-slate-400">{data.fontSize ?? 14}px</span>
-            </div>
-            <input type="range" min={11} max={18} value={data.fontSize ?? 14} onChange={(e) => set("fontSize", Number(e.target.value))} className="w-full h-1.5 accent-blue-600" />
-          </div>
-        </div>
-      </div>
-
-      {/* Photo */}
-      <div>
-        <SectionHeader title="Photo Style" />
-        <div className="space-y-3">
-          <div>
-            <label className="text-[11px] font-medium text-slate-500 block mb-1">Size</label>
-            <input type="range" min={40} max={120} value={data.photoSize ?? 70} onChange={(e) => set("photoSize", Number(e.target.value))} className="w-full h-1.5 accent-blue-600" />
-            <span className="text-[10px] text-slate-400">{data.photoSize ?? 70}px</span>
-          </div>
-          <div>
-            <label className="text-[11px] font-medium text-slate-500 block mb-1">Shape</label>
-            <div className="flex gap-2">
-              {(["circle", "rounded", "square"] as const).map((s) => (
-                <button key={s} type="button" onClick={() => set("photoShape", s)}
-                  className={`h-8 w-8 rounded-lg border flex items-center justify-center transition-colors ${(data.photoShape ?? "circle") === s ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300"}`}>
-                  <span className="h-4 w-4 bg-slate-400" style={{ borderRadius: s === "circle" ? "50%" : s === "rounded" ? "20%" : "0" }} />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Field Layout */}
-      <div>
-        <SectionHeader title="Field Layout" />
-        <div className="space-y-2">
-          <p className="text-[10px] text-slate-400">Drag fields up/down in Details tab. Use arrows below to place side by side or move to photo column.</p>
-          {/* Field rows editor */}
-          {(() => {
-            const currentRows: string[][] = data.fieldRows || (data.fieldOrder || ["fullName", "jobTitle", "company"]).map(f => [f]);
-            const leftCols = new Set(data.leftColumnFields || []);
-
-            const allFields: Record<string, string> = {
-              fullName: "Name", jobTitle: "Title", company: "Company",
-              contact: "Contact", social: "Social Icons", calendly: "Calendly",
-            };
-
-            const mergeWithNext = (rowIdx: number) => {
-              if (rowIdx >= currentRows.length - 1) return;
-              const merged = [...currentRows];
-              merged[rowIdx] = [...merged[rowIdx], ...merged[rowIdx + 1]];
-              merged.splice(rowIdx + 1, 1);
-              set("fieldRows", merged);
-            };
-
-            const splitRow = (rowIdx: number, fieldIdx: number) => {
-              if (currentRows[rowIdx].length <= 1) return;
-              const merged = [...currentRows];
-              const field = merged[rowIdx][fieldIdx];
-              merged[rowIdx] = merged[rowIdx].filter((_, i) => i !== fieldIdx);
-              merged.splice(rowIdx + 1, 0, [field]);
-              set("fieldRows", merged);
-            };
-
-            const toggleLeftColumn = (key: string) => {
-              const current = new Set(data.leftColumnFields || []);
-              if (current.has(key)) current.delete(key); else current.add(key);
-              set("leftColumnFields", [...current]);
-            };
-
-            return (
-              <>
-                {/* User fields layout */}
-                <div className="space-y-1">
-                  {currentRows.map((row, rowIdx) => (
-                    <div key={rowIdx} className="flex items-center gap-1">
-                      <div className="flex-1 flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5">
-                        {row.map((field, fIdx) => (
-                          <div key={field} className="flex items-center gap-1">
-                            {fIdx > 0 && <span className="text-[9px] text-slate-300">|</span>}
-                            <span className="text-[11px] text-slate-700 font-medium">{allFields[field] || field}</span>
-                            {row.length > 1 && (
-                              <button type="button" onClick={() => splitRow(rowIdx, fIdx)}
-                                className="text-[9px] text-slate-400 hover:text-red-500" title="Split to own row">↓</button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      {rowIdx < currentRows.length - 1 && (
-                        <button type="button" onClick={() => mergeWithNext(rowIdx)}
-                          className="h-6 w-6 rounded border border-slate-200 text-[10px] text-slate-500 hover:bg-blue-50 hover:text-blue-600 flex items-center justify-center" title="Merge with row below">→←</button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Section column assignment */}
-                <div className="mt-2 pt-2 border-t border-slate-100">
-                  <p className="text-[10px] text-slate-400 mb-1">Move to photo column:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {(["social", "contact", "calendly"] as const).map(key => (
-                      <button key={key} type="button" onClick={() => toggleLeftColumn(key)}
-                        className={`text-[10px] rounded-full px-2.5 py-1 font-medium transition-colors ${
-                          leftCols.has(key)
-                            ? "bg-blue-600 text-white"
-                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                        }`}>
-                        {leftCols.has(key) ? "← " : ""}{allFields[key] || key}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            );
-          })()}
-        </div>
-      </div>
-
-      {/* Colors */}
-      <div>
-        <SectionHeader title="Colors" />
-        <div className="space-y-2.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-600">Primary color</span>
-            <label className="relative cursor-pointer">
-              <span className="block h-7 w-12 rounded-lg border border-slate-200 shadow-sm" style={{ backgroundColor: data.primaryColor }} />
-              <input type="color" className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" value={data.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} />
-            </label>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-600">Accent color</span>
-            <label className="relative cursor-pointer">
-              <span className="block h-7 w-12 rounded-lg border border-slate-200 shadow-sm" style={{ backgroundColor: data.accentColor }} />
-              <input type="color" className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" value={data.accentColor} onChange={(e) => set("accentColor", e.target.value)} />
-            </label>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-600">Background</span>
-            <div className="flex items-center gap-1.5">
-              <label className="relative cursor-pointer">
-                <span className="block h-7 w-12 rounded-lg border border-slate-200 shadow-sm" style={{ backgroundColor: data.backgroundColor ?? "#ffffff" }} />
-                <input type="color" value={data.backgroundColor ?? "#ffffff"} onChange={(e) => set("backgroundColor", e.target.value)} className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" />
-              </label>
-              {data.backgroundColor && (
-                <button type="button" onClick={() => { set("backgroundColor", undefined); set("textOnDark", false); }} className="text-xs text-slate-400 hover:text-red-500 px-1">none</button>
-              )}
-            </div>
-          </div>
-          {data.backgroundColor && (
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={data.textOnDark ?? false} onChange={(e) => set("textOnDark", e.target.checked)} className="accent-blue-600 h-3.5 w-3.5" />
-              <span className="text-xs text-slate-600">Light text (dark background)</span>
-            </label>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Live Preview — email chrome + rendered signature
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
 // Collapsible tool section — keeps right panel clean
 // ---------------------------------------------------------------------------
 
@@ -1089,6 +232,648 @@ function LivePreview({
 }
 
 // ---------------------------------------------------------------------------
+// Step 1: Content — simple input sections
+// ---------------------------------------------------------------------------
+
+const CONTACT_FIELDS = [
+  { key: "phone" as keyof SignatureData, label: "Phone", placeholder: "+1 (555) 123-4567" },
+  { key: "email" as keyof SignatureData, label: "Email", placeholder: "john@company.com" },
+  { key: "website" as keyof SignatureData, label: "Website", placeholder: "www.company.com" },
+  { key: "address" as keyof SignatureData, label: "Address", placeholder: "123 Main St, City" },
+];
+
+const SOCIAL_PLATFORMS = [
+  { key: "linkedin" as keyof SignatureData, icon: "linkedin" },
+  { key: "twitter" as keyof SignatureData, icon: "twitter" },
+  { key: "instagram" as keyof SignatureData, icon: "instagram" },
+  { key: "facebook" as keyof SignatureData, icon: "facebook" },
+  { key: "github" as keyof SignatureData, icon: "github" },
+  { key: "youtube" as keyof SignatureData, icon: "youtube" },
+];
+
+function ContentStep({
+  data,
+  onDataChange,
+  plan,
+}: {
+  data: SignatureData;
+  onDataChange: (d: SignatureData) => void;
+  plan: "free" | "pro" | "team";
+}) {
+  const isPro = plan === "pro" || plan === "team";
+  const [showPronouns, setShowPronouns] = useState(!!data.pronouns);
+  const [showAddress, setShowAddress] = useState(!!data.address);
+  const [showSocialDropdown, setShowSocialDropdown] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const set = (key: keyof SignatureData, val: unknown) => onDataChange({ ...data, [key]: val });
+
+  // Photo upload
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { alert("Max 2MB"); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const sz = 200;
+        const canvas = document.createElement("canvas");
+        canvas.width = sz; canvas.height = sz;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        const min = Math.min(img.width, img.height);
+        ctx.drawImage(img, (img.width - min) / 2, (img.height - min) / 2, min, min, 0, 0, sz, sz);
+        onDataChange({ ...data, photoUrl: canvas.toDataURL("image/jpeg", 0.85) });
+      };
+      img.src = ev.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const shapeOptions = [
+    { value: "circle", title: "Circle", borderRadius: "50%" },
+    { value: "rounded", title: "Rounded", borderRadius: "22%" },
+    { value: "near-square", title: "Near square", borderRadius: "8%" },
+    { value: "square", title: "Square", borderRadius: "0%" },
+  ];
+  const shape = String(data.photoShape ?? "circle");
+
+  const activeSocial = SOCIAL_PLATFORMS.filter((p) => String(data[p.key] ?? "").trim() !== "");
+  const availableSocial = SOCIAL_PLATFORMS.filter((p) => String(data[p.key] ?? "").trim() === "");
+
+  return (
+    <div className="space-y-7">
+      {/* Your Info */}
+      <div>
+        <SectionHeader title="Your Info" />
+        <div className="space-y-2.5">
+          <div>
+            <label className="text-[11px] font-medium text-slate-500 block mb-1">Full Name <span className="text-red-400">*</span></label>
+            <input
+              type="text"
+              data-testid="field-fullName"
+              value={data.fullName ?? ""}
+              onChange={(e) => set("fullName", e.target.value)}
+              placeholder="John Doe"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[11px] font-medium text-slate-500 block mb-1">Job Title</label>
+            <input
+              type="text"
+              data-testid="field-jobTitle"
+              value={data.jobTitle ?? ""}
+              onChange={(e) => set("jobTitle", e.target.value)}
+              placeholder="Marketing Manager"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[11px] font-medium text-slate-500 block mb-1">Company</label>
+            <input
+              type="text"
+              data-testid="field-company"
+              value={data.company ?? ""}
+              onChange={(e) => set("company", e.target.value)}
+              placeholder="Acme Corp"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+            />
+          </div>
+
+          {/* Pronouns — collapsible */}
+          {showPronouns ? (
+            <div>
+              <label className="text-[11px] font-medium text-slate-500 block mb-1">Pronouns</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  data-testid="field-pronouns"
+                  value={data.pronouns ?? ""}
+                  onChange={(e) => set("pronouns", e.target.value)}
+                  placeholder="he/him"
+                  className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+                />
+                <DeleteBtn onClick={() => { set("pronouns", ""); setShowPronouns(false); }} />
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowPronouns(true)}
+              className="text-xs text-blue-600 hover:text-blue-700 font-medium bg-blue-50 hover:bg-blue-100 rounded-lg px-2.5 py-1 transition-colors"
+            >
+              + Pronouns
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Contact */}
+      <div>
+        <SectionHeader title="Contact" />
+        <div className="space-y-2.5">
+          {CONTACT_FIELDS.filter((f) => f.key !== "address").map((f) => (
+            <div key={f.key}>
+              <label className="text-[11px] font-medium text-slate-500 block mb-1">{f.label}</label>
+              <input
+                type="text"
+                data-testid={`field-${f.key}`}
+                value={String(data[f.key] ?? "")}
+                onChange={(e) => onDataChange({ ...data, [f.key]: e.target.value })}
+                placeholder={f.placeholder}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+              />
+            </div>
+          ))}
+
+          {/* Address — collapsible */}
+          {showAddress ? (
+            <div>
+              <label className="text-[11px] font-medium text-slate-500 block mb-1">Address</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  data-testid="field-address"
+                  value={data.address ?? ""}
+                  onChange={(e) => set("address", e.target.value)}
+                  placeholder="123 Main St, City"
+                  className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+                />
+                <DeleteBtn onClick={() => { set("address", ""); setShowAddress(false); }} />
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowAddress(true)}
+              className="text-xs text-blue-600 hover:text-blue-700 font-medium bg-blue-50 hover:bg-blue-100 rounded-lg px-2.5 py-1 transition-colors"
+            >
+              + Address
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Photo */}
+      <div>
+        <SectionHeader title="Photo or Logo" />
+        <div className="space-y-3">
+          <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+
+          {data.photoUrl ? (
+            <div className="flex items-center gap-3">
+              <img
+                src={data.photoUrl}
+                alt="Photo"
+                className="object-cover border border-slate-200 flex-shrink-0"
+                style={{
+                  width: 52, height: 52,
+                  borderRadius: shape === "circle" ? "50%" : shape === "rounded" ? "22%" : shape === "near-square" ? "8%" : "0",
+                }}
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  Replace
+                </button>
+                <button
+                  type="button"
+                  onClick={() => set("photoUrl", "")}
+                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          ) : (
+            <label className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-5 text-sm text-slate-400 hover:border-blue-300 hover:text-blue-500 transition-colors">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+              </svg>
+              <span>Click to upload photo or logo</span>
+              <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+            </label>
+          )}
+
+          {/* Shape picker */}
+          <div>
+            <p className="text-[11px] font-medium text-slate-500 mb-1.5">Shape</p>
+            <div className="flex gap-2">
+              {shapeOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => set("photoShape", opt.value)}
+                  title={opt.title}
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${
+                    shape === opt.value
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-slate-200 bg-white hover:border-slate-300"
+                  }`}
+                >
+                  <span className="h-5 w-5 bg-slate-400" style={{ borderRadius: opt.borderRadius }} />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Social Links */}
+      <div>
+        <SectionHeader title="Social Links" />
+        <div className="space-y-1.5">
+          {activeSocial.map((p, i) => {
+            const locked = !isPro && i >= 2;
+            return (
+              <div key={p.key} className="flex items-center gap-2">
+                <img src={SOCIAL_ICON_URLS[p.icon]} alt={SOCIAL_LABELS[p.icon] ?? p.icon} className="h-4 w-4 flex-shrink-0" />
+                {locked ? (
+                  <div className="flex-1 flex items-center justify-between rounded-lg border border-dashed border-amber-200 bg-amber-50 px-3 py-1.5">
+                    <span className="text-xs text-amber-700">{SOCIAL_LABELS[p.icon]}</span>
+                    <span className="text-[9px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full">PRO</span>
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    value={String(data[p.key] ?? "")}
+                    onChange={(e) => onDataChange({ ...data, [p.key]: e.target.value })}
+                    placeholder="https://..."
+                    className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+                  />
+                )}
+                <DeleteBtn onClick={() => onDataChange({ ...data, [p.key]: "" })} />
+              </div>
+            );
+          })}
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowSocialDropdown((v) => !v)}
+              className="mt-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            >
+              + Add social link
+            </button>
+            {showSocialDropdown && availableSocial.length > 0 && (
+              <div className="absolute left-0 top-full mt-1 z-10 w-48 rounded-xl border border-slate-200 bg-white shadow-lg py-1">
+                {availableSocial.map((p) => (
+                  <button
+                    key={p.key}
+                    type="button"
+                    onClick={() => {
+                      onDataChange({ ...data, [p.key]: "https://" });
+                      setShowSocialDropdown(false);
+                    }}
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    <img src={SOCIAL_ICON_URLS[p.icon]} alt="" className="h-4 w-4" />
+                    {SOCIAL_LABELS[p.icon] ?? p.key}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Add-ons (Pro only — CTA, Banner, Disclaimer) */}
+      {isPro && (
+        <div>
+          <SectionHeader title="Add-ons" />
+          <div className="space-y-3">
+            <div>
+              <label className="text-[11px] font-medium text-slate-500 block mb-1">CTA Button URL</label>
+              <input
+                type="text"
+                value={data.calendlyUrl}
+                onChange={(e) => onDataChange({ ...data, calendlyUrl: e.target.value })}
+                placeholder="e.g. calendly.com/yourlink"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-slate-500 block mb-1">Banner Image URL</label>
+              <input
+                type="text"
+                value={data.ctaBannerUrl}
+                onChange={(e) => onDataChange({ ...data, ctaBannerUrl: e.target.value })}
+                placeholder="https://..."
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-slate-500 block mb-1">Banner Link</label>
+              <input
+                type="text"
+                value={data.ctaBannerLink}
+                onChange={(e) => onDataChange({ ...data, ctaBannerLink: e.target.value })}
+                placeholder="https://..."
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-slate-500 block mb-1">Legal Disclaimer</label>
+              <textarea
+                value={data.disclaimer ?? ""}
+                onChange={(e) => onDataChange({ ...data, disclaimer: e.target.value })}
+                placeholder="Confidentiality notice or legal disclaimer..."
+                rows={2}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors resize-none"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Step 2: Style — template, colors, typography, photo size/position
+// ---------------------------------------------------------------------------
+
+function StyleStep({
+  data,
+  onDataChange,
+  plan,
+}: {
+  data: SignatureData;
+  onDataChange: (d: SignatureData) => void;
+  plan: "free" | "pro" | "team";
+}) {
+  const isPro = plan === "pro" || plan === "team";
+  const set = (key: keyof SignatureData, val: unknown) => onDataChange({ ...data, [key]: val });
+  const td = TEMPLATE_DEFAULTS[(data.template || "minimal") as TemplateName] ?? TEMPLATE_DEFAULTS.minimal;
+
+  const freeTemplates = TEMPLATES.filter((t) => !t.isPro);
+  const proTemplates = TEMPLATES.filter((t) => t.isPro);
+  const visibleTemplates = isPro ? TEMPLATES : freeTemplates;
+
+  const [showBg, setShowBg] = useState(!!(data.backgroundColor));
+
+  return (
+    <div className="space-y-7">
+      {/* Template picker */}
+      <div>
+        <SectionHeader title="Template" />
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+          {visibleTemplates.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => set("template", t.id)}
+              title={t.name}
+              className={`flex-shrink-0 flex flex-col items-center gap-1 rounded-lg border px-2 py-1.5 transition-colors ${
+                data.template === t.id
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-slate-200 bg-white hover:border-slate-300"
+              }`}
+            >
+              <span
+                className="h-8 w-12 rounded bg-slate-100 border border-slate-200 flex items-end justify-center overflow-hidden"
+                style={{ background: t.id === "dark" ? "#1e293b" : undefined }}
+              >
+                <span
+                  className="w-full h-3 rounded-sm"
+                  style={{ background: data.primaryColor ?? "#2563eb", opacity: 0.6 }}
+                />
+              </span>
+              <span className="text-[10px] font-medium text-slate-600 whitespace-nowrap">{t.name}</span>
+            </button>
+          ))}
+          {!isPro && (
+            <button
+              type="button"
+              className="flex-shrink-0 flex flex-col items-center gap-1 rounded-lg border border-dashed border-amber-200 bg-amber-50 px-3 py-1.5"
+              title="More templates with Pro"
+            >
+              <span className="h-8 w-12 rounded bg-amber-100 flex items-center justify-center">
+                <span className="text-[9px] font-bold text-amber-600">+{proTemplates.length}</span>
+              </span>
+              <span className="text-[10px] font-medium text-amber-600 whitespace-nowrap">Pro</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Colors */}
+      <div>
+        <SectionHeader title="Colors" />
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-600">Primary color</span>
+            <label className="relative cursor-pointer">
+              <span className="block h-7 w-12 rounded-lg border border-slate-200 shadow-sm" style={{ backgroundColor: data.primaryColor }} />
+              <input type="color" className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" value={data.primaryColor} onChange={(e) => set("primaryColor", e.target.value)} />
+            </label>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-600">Accent color</span>
+            <label className="relative cursor-pointer">
+              <span className="block h-7 w-12 rounded-lg border border-slate-200 shadow-sm" style={{ backgroundColor: data.accentColor }} />
+              <input type="color" className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" value={data.accentColor} onChange={(e) => set("accentColor", e.target.value)} />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Text styling */}
+      <div>
+        <SectionHeader title="Text" />
+        <div className="space-y-2.5">
+          {/* Name */}
+          <div className="flex items-center gap-2">
+            <span className="w-16 text-xs text-slate-500 flex-shrink-0">Name</span>
+            <BIUButtons
+              bold={data.nameBold ?? td.nameBold}
+              italic={data.nameItalic ?? td.nameItalic}
+              underline={data.nameUnderline === true}
+              onBold={(v) => set("nameBold", v)}
+              onItalic={(v) => set("nameItalic", v)}
+              onUnderline={(v) => set("nameUnderline", v)}
+            />
+            <ColorDot value={data.nameColor ?? td.nameColor} onChange={(v) => set("nameColor", v)} />
+            <FontSizeInput value={data.nameSize ?? td.nameSize} onChange={(v) => set("nameSize", v)} />
+          </div>
+          {/* Title */}
+          <div className="flex items-center gap-2">
+            <span className="w-16 text-xs text-slate-500 flex-shrink-0">Title</span>
+            <BIUButtons
+              bold={data.titleBold ?? false}
+              italic={data.titleItalic ?? false}
+              underline={data.titleUnderline === true}
+              onBold={(v) => set("titleBold", v)}
+              onItalic={(v) => set("titleItalic", v)}
+              onUnderline={(v) => set("titleUnderline", v)}
+            />
+            <ColorDot value={data.titleColor ?? td.titleColor} onChange={(v) => set("titleColor", v)} />
+            <FontSizeInput value={data.titleSize ?? td.titleSize} onChange={(v) => set("titleSize", v)} />
+          </div>
+          {/* Company */}
+          <div className="flex items-center gap-2">
+            <span className="w-16 text-xs text-slate-500 flex-shrink-0">Company</span>
+            <BIUButtons
+              bold={data.companyBold ?? false}
+              italic={data.companyItalic ?? false}
+              underline={data.companyUnderline === true}
+              onBold={(v) => set("companyBold", v)}
+              onItalic={(v) => set("companyItalic", v)}
+              onUnderline={(v) => set("companyUnderline", v)}
+            />
+            <ColorDot value={data.companyColor ?? td.companyColor} onChange={(v) => set("companyColor", v)} />
+            <FontSizeInput value={data.companySize ?? td.titleSize} onChange={(v) => set("companySize", v)} />
+          </div>
+        </div>
+      </div>
+
+      {/* Font */}
+      <div>
+        <SectionHeader title="Font" />
+        <div className="space-y-3">
+          <div>
+            <label className="text-[11px] font-medium text-slate-500 block mb-1">Font family</label>
+            <select
+              value={data.fontFamily ?? "Arial,Helvetica,sans-serif"}
+              onChange={(e) => set("fontFamily", e.target.value)}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none"
+            >
+              <option value="Arial,Helvetica,sans-serif">Arial</option>
+              <option value="Georgia,'Times New Roman',serif">Georgia</option>
+              <option value="'Courier New',Courier,monospace">Courier New</option>
+              <option value="Verdana,Geneva,sans-serif">Verdana</option>
+              <option value="Tahoma,Geneva,sans-serif">Tahoma</option>
+              <option value="'Trebuchet MS',Helvetica,sans-serif">Trebuchet MS</option>
+            </select>
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-medium text-slate-500">Base font size</label>
+              <span className="text-[11px] text-slate-400">{data.fontSize ?? 14}px</span>
+            </div>
+            <input
+              type="range"
+              min={11}
+              max={18}
+              value={data.fontSize ?? 14}
+              onChange={(e) => set("fontSize", Number(e.target.value))}
+              className="w-full h-1.5 accent-blue-600"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Photo Style — only shown when photo exists */}
+      {data.photoUrl && (
+        <div>
+          <SectionHeader title="Photo Style" />
+          <div className="space-y-3">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px] font-medium text-slate-500">Size</label>
+                <span className="text-[11px] text-slate-400">{data.photoSize ?? 70}px</span>
+              </div>
+              <input
+                type="range"
+                min={40}
+                max={120}
+                value={data.photoSize ?? 70}
+                onChange={(e) => set("photoSize", Number(e.target.value))}
+                className="w-full h-1.5 accent-blue-600"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-slate-500 block mb-1.5">Position</label>
+              <div className="flex rounded-lg border border-slate-200 overflow-hidden w-fit">
+                {(["left", "right"] as const).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => set("photoPosition", p)}
+                    className={`px-4 py-1.5 text-xs font-medium transition-colors ${
+                      (data.photoPosition ?? "left") === p
+                        ? "bg-blue-600 text-white"
+                        : "bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {p === "left" ? "Left" : "Right"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Background — collapsible advanced section */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowBg((v) => !v)}
+          className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors mb-2"
+        >
+          <span>Background</span>
+          <svg
+            className={`h-3 w-3 transition-transform ${showBg ? "rotate-180" : ""}`}
+            fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+          <div className="flex-1 h-px bg-slate-200" />
+        </button>
+
+        {showBg && (
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-600">Background color</span>
+              <div className="flex items-center gap-2">
+                <label className="relative cursor-pointer">
+                  <span
+                    className="block h-7 w-12 rounded-lg border border-slate-200 shadow-sm"
+                    style={{ backgroundColor: data.backgroundColor ?? "#ffffff" }}
+                  />
+                  <input
+                    type="color"
+                    value={data.backgroundColor ?? "#ffffff"}
+                    onChange={(e) => set("backgroundColor", e.target.value)}
+                    className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                  />
+                </label>
+                {data.backgroundColor && (
+                  <button
+                    type="button"
+                    onClick={() => { set("backgroundColor", undefined); set("textOnDark", false); }}
+                    className="text-xs text-slate-400 hover:text-red-500 px-1"
+                  >
+                    none
+                  </button>
+                )}
+              </div>
+            </div>
+            {data.backgroundColor && (
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={data.textOnDark ?? false}
+                  onChange={(e) => set("textOnDark", e.target.checked)}
+                  className="accent-blue-600 h-3.5 w-3.5"
+                />
+                <span className="text-xs text-slate-600">Light text (for dark background)</span>
+              </label>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main SignatureEditor component
 // ---------------------------------------------------------------------------
 
@@ -1101,21 +886,15 @@ export default function SignatureEditor({
   onDataChange,
   onWrapperSettingsChange,
 }: SignatureEditorProps) {
-  const [activeTab, setActiveTab] = useState<"details" | "design">("details");
+  const [activeTab, setActiveTab] = useState<"content" | "style">("content");
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
   const [sigId] = useState(() =>
     typeof crypto !== "undefined" ? crypto.randomUUID() : "temp"
   );
-  // Field order stored in data so the renderer can use it
-  const userFieldOrder = data.fieldOrder ?? ["jobTitle", "fullName", "company", "pronouns"];
-  const setUserFieldOrder = (order: string[]) => onDataChange({ ...data, fieldOrder: order });
-  const contactOrder = data.contactOrder ?? ["phone", "email", "website"];
-  const setContactOrder = (order: string[]) => onDataChange({ ...data, contactOrder: order });
 
   const ws = wrapperSettings ?? DEFAULT_WRAPPER_SETTINGS;
   const isPro = plan === "pro" || plan === "team";
   const previewHtml = generateSignatureHtml(data, { plan });
-  const photoBlock = blocks.find((b) => b.type === "photo" && b.visible);
 
   const cropPhotoToShape = (photoUrl: string, shape: string): Promise<string> => {
     return new Promise((resolve) => {
@@ -1192,65 +971,57 @@ export default function SignatureEditor({
     setTimeout(() => setCopyState("idle"), 3000);
   };
 
+  // Suppress unused variable warning for ws — kept for onWrapperSettingsChange compatibility
+  void ws;
+
   return (
     <div className="grid gap-6 lg:grid-cols-5">
 
       {/* ================================================================
-          LEFT PANEL — 2 cols (form)
+          LEFT PANEL — 2 cols: Content + Style tabs
       ================================================================ */}
       <div className="lg:col-span-2 flex flex-col min-h-0">
 
         {/* AI Signature Generator — FREE (viral acquisition) */}
         <AISignatureGenerator onGenerate={(newData) => onDataChange(newData)} />
 
-        {/* Tab switcher */}
+        {/* Step tabs */}
         <div className="flex border-b border-slate-200 mb-5">
-          {(["details", "design"] as const).map((tab) => (
+          {([
+            { id: "content", label: "Content" },
+            { id: "style", label: "Style" },
+          ] as const).map((tab) => (
             <button
-              key={tab}
+              key={tab.id}
               type="button"
-              data-testid={`tab-${tab}`}
-              onClick={() => setActiveTab(tab)}
+              data-testid={`tab-${tab.id}`}
+              onClick={() => setActiveTab(tab.id)}
               className={`px-5 py-2.5 text-xs font-semibold uppercase tracking-widest transition-colors relative ${
-                activeTab === tab
+                activeTab === tab.id
                   ? "text-blue-600"
                   : "text-slate-400 hover:text-slate-600"
               }`}
             >
-              {tab}
-              {activeTab === tab && (
+              {tab.label}
+              {activeTab === tab.id && (
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t" />
               )}
             </button>
           ))}
         </div>
 
-        {/* Scrollable form content */}
+        {/* Scrollable step content */}
         <div className="flex-1 overflow-y-auto pr-1 space-y-6 pb-4">
-          {activeTab === "details" ? (
-            <>
-              <UserInfoSection data={data} onDataChange={onDataChange} fieldOrder={userFieldOrder} onFieldOrderChange={setUserFieldOrder} />
-              <ContactInfoSection data={data} onDataChange={onDataChange} contactOrder={contactOrder} onContactOrderChange={setContactOrder} />
-              <PhotoSection
-                data={data}
-                onDataChange={onDataChange}
-                blocks={blocks}
-                onBlocksChange={onBlocksChange}
-              />
-              <SocialSection data={data} onDataChange={onDataChange} plan={plan} />
-              <AddOnsSection data={data} onDataChange={onDataChange} plan={plan} />
-            </>
+          {activeTab === "content" ? (
+            <ContentStep data={data} onDataChange={onDataChange} plan={plan} />
           ) : (
-            <DesignPanel
-              data={data}
-              onDataChange={onDataChange}
-            />
+            <StyleStep data={data} onDataChange={onDataChange} plan={plan} />
           )}
         </div>
       </div>
 
       {/* ================================================================
-          RIGHT PANEL — 3 cols: live preview + copy button
+          RIGHT PANEL — 3 cols: live preview + copy + tools
       ================================================================ */}
       <div className="lg:col-span-3">
         <div className="sticky top-20 space-y-3">
@@ -1287,12 +1058,10 @@ export default function SignatureEditor({
             )}
           </button>
 
-          {/* Push to Outlook — one-click integration */}
+          {/* Push to Outlook */}
           <OutlookPushButton signatureHtml={previewHtml} />
 
-          {/* ================================================================
-              TOOLS — organized in collapsible groups for clarity
-          ================================================================ */}
+          {/* Signature Score */}
           <ToolSection title="Signature Score" defaultOpen>
             <SignatureScore data={data} />
           </ToolSection>
@@ -1359,7 +1128,7 @@ export default function SignatureEditor({
                 <InstallGuide />
               </ToolSection>
 
-              {/* Compact Pro upsell — focused on sub-niche value */}
+              {/* Pro upsell */}
               <div className="rounded-xl border border-blue-200 bg-gradient-to-b from-blue-50 to-white p-4">
                 <p className="text-xs font-bold text-blue-800 mb-2">Upgrade to Pro</p>
                 <ul className="space-y-1.5 mb-3">
