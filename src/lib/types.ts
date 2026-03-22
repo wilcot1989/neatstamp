@@ -27,14 +27,17 @@ export interface SignatureData {
   nameColor?: string;
   nameBold?: boolean;
   nameItalic?: boolean;
+  nameUnderline?: boolean;
   titleSize?: number;
   titleColor?: string;
   titleBold?: boolean;
   titleItalic?: boolean;
+  titleUnderline?: boolean;
   companySize?: number;
   companyColor?: string;
   companyBold?: boolean;
   companyItalic?: boolean;
+  companyUnderline?: boolean;
   photoSize?: number;
   photoShape?: string;
   photoPosition?: string;

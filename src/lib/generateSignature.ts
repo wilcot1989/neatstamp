@@ -187,38 +187,49 @@ function ff(data: SignatureData, templateDefault: string): string {
 }
 
 /** Build name inline style from data overrides. templateDefaults contain fallbacks. */
+function safeSize(val: number | undefined, fallback: number): number {
+  if (val !== undefined && Number.isFinite(val) && val > 0) return val;
+  return fallback;
+}
+
 function nameStyle(data: SignatureData, defaults: { size: number; color: string; bold?: boolean; italic?: boolean }): string {
-  const size = data.nameSize ?? defaults.size;
+  const size = safeSize(data.nameSize, defaults.size);
   const color = data.nameColor ?? defaults.color;
   const bold = data.nameBold !== undefined ? data.nameBold : (defaults.bold !== false);
   const italic = data.nameItalic === true || (defaults.italic === true && data.nameItalic !== false);
+  const underline = data.nameUnderline === true;
   const weight = bold ? "bold" : "normal";
   const style = italic ? "font-style:italic;" : "";
-  return `font-size:${size}px;font-weight:${weight};color:${color};${style}`;
+  const textDec = underline ? "text-decoration:underline;" : "";
+  return `font-size:${size}px;font-weight:${weight};color:${color};${style}${textDec}`;
 }
 
 /** Build title inline style from data overrides. */
 function titleStyle(data: SignatureData, defaults: { size: number; color: string; bold?: boolean; italic?: boolean; extraCss?: string }): string {
-  const size = data.titleSize ?? defaults.size;
+  const size = safeSize(data.titleSize, defaults.size);
   const color = data.titleColor ?? defaults.color;
   const bold = data.titleBold === true || (defaults.bold === true && data.titleBold !== false);
   const italic = data.titleItalic === true || (defaults.italic === true && data.titleItalic !== false);
+  const underline = data.titleUnderline === true;
   const weight = bold ? "bold" : "normal";
   const style = italic ? "font-style:italic;" : "";
+  const textDec = underline ? "text-decoration:underline;" : "";
   const extra = defaults.extraCss ?? "";
-  return `font-size:${size}px;font-weight:${weight};color:${color};${style}${extra}`;
+  return `font-size:${size}px;font-weight:${weight};color:${color};${style}${textDec}${extra}`;
 }
 
 /** Build company inline style from data overrides. */
 function companyStyle(data: SignatureData, defaults: { size: number; color: string; bold?: boolean; italic?: boolean; extraCss?: string }): string {
-  const size = data.companySize ?? defaults.size;
+  const size = safeSize(data.companySize, defaults.size);
   const color = data.companyColor ?? defaults.color;
   const bold = data.companyBold === true || (defaults.bold === true && data.companyBold !== false);
   const italic = data.companyItalic === true || (defaults.italic === true && data.companyItalic !== false);
+  const underline = data.companyUnderline === true;
   const weight = bold ? "bold" : "normal";
   const style = italic ? "font-style:italic;" : "";
+  const textDec = underline ? "text-decoration:underline;" : "";
   const extra = defaults.extraCss ?? "";
-  return `font-size:${size}px;font-weight:${weight};color:${color};${style}${extra}`;
+  return `font-size:${size}px;font-weight:${weight};color:${color};${style}${textDec}${extra}`;
 }
 
 // ============================================================

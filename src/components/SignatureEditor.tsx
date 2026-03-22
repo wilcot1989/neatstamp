@@ -766,10 +766,10 @@ function DesignPanel({
             <BIUButtons
               bold={data.nameBold ?? td.nameBold}
               italic={data.nameItalic ?? td.nameItalic}
-              underline={false}
+              underline={data.nameUnderline === true}
               onBold={(v) => set("nameBold", v)}
               onItalic={(v) => set("nameItalic", v)}
-              onUnderline={() => {}}
+              onUnderline={(v) => set("nameUnderline", v)}
             />
             <ColorDot value={data.nameColor ?? td.nameColor} onChange={(v) => set("nameColor", v)} />
             <FontSizeInput value={data.nameSize ?? td.nameSize} onChange={(v) => set("nameSize", v)} />
@@ -780,10 +780,10 @@ function DesignPanel({
             <BIUButtons
               bold={data.titleBold ?? false}
               italic={data.titleItalic ?? false}
-              underline={false}
+              underline={data.titleUnderline === true}
               onBold={(v) => set("titleBold", v)}
               onItalic={(v) => set("titleItalic", v)}
-              onUnderline={() => {}}
+              onUnderline={(v) => set("titleUnderline", v)}
             />
             <ColorDot value={data.titleColor ?? td.titleColor} onChange={(v) => set("titleColor", v)} />
             <FontSizeInput value={data.titleSize ?? td.titleSize} onChange={(v) => set("titleSize", v)} />
@@ -794,10 +794,10 @@ function DesignPanel({
             <BIUButtons
               bold={data.companyBold ?? false}
               italic={data.companyItalic ?? false}
-              underline={false}
+              underline={data.companyUnderline === true}
               onBold={(v) => set("companyBold", v)}
               onItalic={(v) => set("companyItalic", v)}
-              onUnderline={() => {}}
+              onUnderline={(v) => set("companyUnderline", v)}
             />
             <ColorDot value={data.companyColor ?? td.companyColor} onChange={(v) => set("companyColor", v)} />
             <FontSizeInput value={data.companySize ?? td.titleSize} onChange={(v) => set("companySize", v)} />
@@ -1072,8 +1072,8 @@ export default function SignatureEditor({
     const options: GenerateOptions = { plan, signatureId: sigId };
     let copyData = { ...data };
 
-    if (data.photoUrl && photoBlock) {
-      const shape = String(photoBlock.settings.shape ?? "circle");
+    if (data.photoUrl) {
+      const shape = String(data.photoShape ?? "circle");
       if (shape !== "square") {
         copyData = { ...data, photoUrl: await cropPhotoToShape(data.photoUrl, shape) };
       }
