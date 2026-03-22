@@ -1175,28 +1175,14 @@ const templateGenerators: Record<
 };
 
 // Preview HTML — always shows the full editable signature (for the editor preview)
+// NOW USES THE V2 UNIFIED ENGINE — all features work on all templates automatically
 export function generateSignatureHtml(
   data: SignatureData,
   options?: GenerateOptions
 ): string {
-  const generator = templateGenerators[data.template] || generateMinimal;
-  let html = generator(data, options);
-
-  // Background color wrapper — the only post-processing still needed
-  if (data.backgroundColor && data.backgroundColor !== "#ffffff") {
-    const textColor = data.textOnDark ? "#ffffff" : "#333333";
-    html = `<table cellpadding="0" cellspacing="0" border="0" style="background-color:${escapeHtml(data.backgroundColor)};border-radius:8px;"><tr><td style="padding:16px 20px;color:${textColor};">${html}</td></tr></table>`;
-    if (data.textOnDark) {
-      html = html.replace(/color:#1a1a1a/g, "color:#ffffff");
-      html = html.replace(/color:#333/g, "color:#ffffff");
-      html = html.replace(/color:#555/g, "color:rgba(255,255,255,0.85)");
-      html = html.replace(/color:#666/g, "color:rgba(255,255,255,0.8)");
-      html = html.replace(/color:#999/g, "color:rgba(255,255,255,0.5)");
-      html = html.replace(/color:#aaa/g, "color:rgba(255,255,255,0.4)");
-    }
-  }
-
-  return html;
+  // Import and use the unified engine
+  const { renderSignature } = require("./signatureEngine");
+  return renderSignature(data, options);
 }
 
 // Copy HTML — what the user actually gets when they click "Copy"
