@@ -133,9 +133,9 @@ test.describe("Design Tab — Italic button", () => {
     expect(count).toBeGreaterThan(0);
   });
 
-  test.fixme("clicking Name Italic button changes preview HTML", async ({ page }) => {
-    // FIXME: CI timing issue — italic toggle click doesn't reliably trigger React re-render in headless Chromium.
-    // Works locally. Needs investigation into BIU button event propagation in CI.
+  test("clicking Name Italic button changes preview HTML", async ({ page }) => {
+    // Known CI timing issue — italic toggle doesn't reliably trigger React re-render in headless Chromium
+    test.skip(!!process.env.CI, "Skipped in CI — React re-render timing issue with BIU buttons");
     const preview = page.locator("[data-testid='live-preview-signature']");
 
     // The "I" (italic) button is in the first BIU button group (Name row)
