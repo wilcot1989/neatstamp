@@ -232,6 +232,13 @@ function companyStyle(data: SignatureData, defaults: { size: number; color: stri
   return `font-size:${size}px;font-weight:${weight};color:${color};${style}${textDec}${extra}`;
 }
 
+/** Base font size for the outer table — respects data.fontSize override */
+function bfs(data: SignatureData, templateDefault: number = 14): number {
+  const val = data.fontSize;
+  if (typeof val === "number" && Number.isFinite(val) && val > 0) return val;
+  return templateDefault;
+}
+
 // ============================================================
 // TEMPLATES
 // ============================================================
@@ -269,7 +276,7 @@ function generateMinimal(data: SignatureData, options?: GenerateOptions): string
       </table>
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#333;">
   <tr>
     ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
@@ -305,7 +312,7 @@ function generateModern(data: SignatureData, options?: GenerateOptions): string 
       </table>
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#333;">
   <tr>
     ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
@@ -351,7 +358,7 @@ function generateCorporate(data: SignatureData, options?: GenerateOptions): stri
       </table>
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;border-top:3px solid ${c};">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#333;border-top:3px solid ${c};">
   <tr><td colspan="2" style="height:10px;"></td></tr>
   <tr>
     ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
@@ -413,7 +420,7 @@ function generateCreative(data: SignatureData, options?: GenerateOptions): strin
       </table>
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#333;">
   <tr>
     ${photoPosition === "right" ? contentTd + photoPart : photoPart + contentTd}
   </tr>
@@ -450,7 +457,7 @@ function generateBold(data: SignatureData, options?: GenerateOptions): string {
           </table>
         </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};background-color:${c};border-radius:8px;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#fff;background-color:${c};border-radius:8px;">
   <tr><td style="padding:18px 20px;">
     <table cellpadding="0" cellspacing="0" border="0" width="100%">
       <tr>
@@ -504,7 +511,7 @@ function generateElegant(data: SignatureData, options?: GenerateOptions): string
       </table>
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#333;">
   <tr>
     ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
@@ -535,7 +542,7 @@ function generateStartup(data: SignatureData, options?: GenerateOptions): string
       ${(data.jobTitle || data.company) ? `&nbsp;<span style="color:#d1d5db;">|</span>&nbsp;<span style="${titleStyle(data, { size: 12, color: c })}">${data.jobTitle ? escapeHtml(data.jobTitle) : ""}${data.jobTitle && data.company ? `<span style="color:#aaa;"> @ </span>` : ""}${data.company ? escapeHtml(data.company) : ""}</span>` : ""}
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:13px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data, 13)}px;color:#333;">
   <tr>
     ${photoPosition === "right" ? nameTd + avatarCell : avatarCell + nameTd}
   </tr>
@@ -557,7 +564,7 @@ function generateCompact(data: SignatureData, options?: GenerateOptions): string
 
   const contact = orderedContact(data, `<span style="color:#d1d5db;padding:0 5px;">&middot;</span>`, c, "#555");
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:13px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data, 13)}px;color:#333;">
   <tr><td style="white-space:nowrap;">
     <strong style="${nameStyle(data, { size: 13, color: "#1a1a1a", bold: true })}">${escapeHtml(data.fullName)}</strong>${data.pronouns ? ` <span style="font-size:11px;color:#aaa;">(${escapeHtml(data.pronouns)})</span>` : ""}${data.jobTitle ? ` <span style="color:#ccc;">|</span> <span style="${titleStyle(data, { size: 13, color: c })}">${escapeHtml(data.jobTitle)}</span>` : ""}${data.company ? ` <span style="color:#ccc;">|</span> <span style="${companyStyle(data, { size: 13, color: "#555" })}">${escapeHtml(data.company)}</span>` : ""}
   </td></tr>
@@ -592,7 +599,7 @@ function generateExecutive(data: SignatureData, options?: GenerateOptions): stri
             </table>
           </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#333;">
   <tr>
     <td style="background-color:#1e293b;padding:16px 20px;border-radius:4px 4px 0 0;">
       <table cellpadding="0" cellspacing="0" border="0">
@@ -647,7 +654,7 @@ function generateGradient(data: SignatureData, options?: GenerateOptions): strin
             </table>
           </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#333;">
   <tr>
     <td style="width:8px;background-color:${c};padding:0;font-size:0;line-height:0;">&nbsp;</td>
     <td style="width:4px;background-color:${a};padding:0;font-size:0;line-height:0;">&nbsp;</td>
@@ -704,7 +711,7 @@ function generateDeveloper(data: SignatureData, options?: GenerateOptions): stri
       </table>
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:13px;color:#334155;border-bottom:2px solid #e2e8f0;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data, 13)}px;color:#334155;border-bottom:2px solid #e2e8f0;">
   <tr>
     ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
@@ -751,7 +758,7 @@ function generateSales(data: SignatureData, options?: GenerateOptions): string {
       </table>
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#333;">
   <tr>
     ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
@@ -793,7 +800,7 @@ function generateMedical(data: SignatureData, options?: GenerateOptions): string
       </table>
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#1a1a1a;border-top:3px solid ${c};">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#1a1a1a;border-top:3px solid ${c};">
   <tr><td colspan="2" style="height:10px;"></td></tr>
   <tr>
     ${photoPosition === "right" ? contentTd + photoCell2 : photoCell2 + contentTd}
@@ -841,7 +848,7 @@ function generateLegal(data: SignatureData, options?: GenerateOptions): string {
       </table>
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#1a1a1a;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#1a1a1a;">
   <tr>
     ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
@@ -870,7 +877,7 @@ function generateAcademic(data: SignatureData, options?: GenerateOptions): strin
       </table>
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#333;">
   <tr>
     ${photoPosition === "right" ? contentTd + photo : photo + contentTd}
   </tr>
@@ -940,7 +947,7 @@ function generateRealtor(data: SignatureData, options?: GenerateOptions): string
       </table>
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#333;">
   <tr>
     ${photoPosition === "right" ? contentTd + photoCell2 : photoCell2 + contentTd}
   </tr>
@@ -999,7 +1006,7 @@ function generateInfluencer(data: SignatureData, options?: GenerateOptions): str
       </table>
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#333;">
   <tr>
     ${photoPosition === "right" ? contentTd + photoCell2 : photoCell2 + contentTd}
   </tr>
@@ -1059,7 +1066,7 @@ function generatePhotographer(data: SignatureData, options?: GenerateOptions): s
       </table>
     </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:14px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#333;">
   <tr>
     ${photoPosition === "right" ? contentTd + photoCell2 : photoCell2 + contentTd}
   </tr>
@@ -1098,7 +1105,7 @@ function generateDark(data: SignatureData, options?: GenerateOptions): string {
           </table>
         </td>`;
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};background-color:#111827;border-radius:8px;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data)}px;color:#f1f5f9;background-color:#111827;border-radius:8px;">
   <tr><td style="padding:18px 22px;">
     <table cellpadding="0" cellspacing="0" border="0" width="100%">
       <tr>
@@ -1122,7 +1129,7 @@ function generateSimple(data: SignatureData, options?: GenerateOptions): string 
 
   const contact = orderedContact(data, `<span style="color:#d1d5db;padding:0 5px;">&middot;</span>`, c, "#555");
 
-  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:13px;color:#333;">
+  return `<table cellpadding="0" cellspacing="0" border="0" width="500" style="max-width:500px;font-family:${font};font-size:${bfs(data, 13)}px;color:#333;">
   <tr><td style="white-space:nowrap;padding-bottom:2px;">
     <strong style="${nameStyle(data, { size: 14, color: "#1a1a1a", bold: true })}">${escapeHtml(data.fullName)}</strong>${data.pronouns ? ` <span style="font-size:11px;color:#bbb;">(${escapeHtml(data.pronouns)})</span>` : ""}${data.jobTitle ? ` <span style="color:#d1d5db;">|</span> <span style="${titleStyle(data, { size: 13, color: c })}">${escapeHtml(data.jobTitle)}</span>` : ""}${data.company ? ` <span style="color:#d1d5db;">|</span> <span style="${companyStyle(data, { size: 13, color: "#555" })}">${escapeHtml(data.company)}</span>` : ""}
   </td></tr>
